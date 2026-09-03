@@ -1,4 +1,4 @@
-# 04 · technik architektur
+# 04 · Technik und Architektur
 
 Stand: 3. September 2026 · Status: Entwurf
 

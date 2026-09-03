@@ -1,0 +1,302 @@
+# 09 · Roadmap
+
+Stand: 3. September 2026 · Status: Entwurf
+
+Dieses Dokument ordnet die Arbeit vom ersten technischen Versuch bis zum Store-Start. Es nennt keine Kalenderdaten, sondern Reihenfolge, Ziele, Ergebnisse und Prüfkriterien je Phase sowie grobe Aufwandsklassen. Es setzt `00-anforderungen.md` und die verbindlichen Entscheidungen D1 bis D15 um; die Feature-Stufen stammen aus `03-produktkonzept.md` (Abschnitt 8), die Teststrategie aus `04-technik-architektur.md` (Abschnitt 11), die Rechtspflichten aus `05-sicherheit-und-datenschutz.md`, der Transfer aus `06-geraetewechsel-qr-transfer.md`, der Marktstart aus `07-geschaeftsmodell.md` (Abschnitt 7). Preise stehen nur dort. Der Name ist offen (D11); hier heißt es "die App".
+
+## 1. Leitgedanken der Reihenfolge
+
+1. **Unsicherheit zuerst abbauen.** Die drei Kernversprechen (lokale Transkription auf beiden Plattformen, Verschlüsselung ohne Klartext auf der Platte, Gerätewechsel ohne Cloud) hängen an Annahmen, die keine Recherche ersetzen kann: Apple dokumentiert weder die Hardware-Untergrenze noch die Sprachliste von `SpeechTranscriber` [2][3], für Moonshine Small fehlen belastbare Android-Laufzeitzahlen [7], und ob Play Asset Delivery ohne `INTERNET`-Berechtigung funktioniert, weiß niemand [10]. Deshalb kommen die Spikes vor jeder Oberfläche.
+2. **Jede Phase endet mit einem Nachweis, nicht mit einem Gefühl.** Der Flugmodus-Test aus `04-technik-architektur.md` läuft ab dem ersten durchgehenden Prototyp bei jedem Phasenabschluss.
+3. **Rückfalloptionen sind Teil des Plans.** D1 nennt zweimal nativ als zweite Wahl, D2 den `DictationTranscriber`, D3 den System-Recognizer. Die Roadmap definiert, an welcher Stelle und anhand welcher Zahl umgeschaltet wird.
+4. **Ein Entwickler, kein Team.** Aufwandsklassen sind eigene Schätzungen für eine Person mit Flutter- und etwas Swift/Kotlin-Erfahrung: **S** = wenige Tage, **M** = ein bis drei Wochen, **L** = ein bis zwei Monate, **XL** = mehr als zwei Monate. Sie sind Reihenfolge- und Größenhinweise, keine Zusagen.
+
+## 2. Phasen im Überblick
+
+| Phase | Ziel | Ergebnis | Aufwand |
+|---|---|---|---|
+| 0 Vorbereitung | Entscheidungen des Inhabers, Konten, Geräte, Repository | Beschlossene Punkte aus Abschnitt 13; Testgerätepool; öffentliches Repository mit Konzeptdokumenten | S |
+| 1 Technische Spikes | Kernannahmen auf echten Geräten prüfen | Messprotokolle, Go/No-go je Spike, ggf. Umschalten auf Rückfalloptionen | L |
+| 2 Durchstich | Ein Eintrag von Aufnahme bis Wiedergabe, verschlüsselt, auf beiden Plattformen | Lauffähiger Prototyp ohne Feinschliff; erster bestandener Flugmodus-Test | M |
+| 3 MVP-Aufbau | Funktionsumfang nach `03-produktkonzept.md` 8.1 | Feature-vollständige App in Deutsch und Englisch | XL |
+| 4 Härtung und interne Alpha | Teststrategie vollständig, Sicherheits-Selbstprüfung, CI mit reproduzierbarem Android-Build | Alpha-Build; Threat-Model und Netzwerk-Null-Nachweis veröffentlicht | L |
+| 5 Beta | TestFlight und Play Closed Testing mit der Privacy-Community | Behobene Blocker, bestätigte Erinnerungs- und Transfer-Zuverlässigkeit, erste Rezensenten | M bis L |
+| 6 Store-Vorbereitung | Listings, Labels, Rechtstexte, Barrierefreiheit, Exportkontrolle | Eingereichte Builds, Launch-Checkliste abgehakt | M |
+| 7 Start und erste Wochen | Gestaffelte Freigabe, Reaktion ohne Telemetrie | Version 1.0 in beiden Stores; F-Droid eingereicht | S bis M |
+| 8 Nach dem Start | Version 1.x nach `03-produktkonzept.md` 8.2 | Eine Geste zum Aufnehmen, Plus-Funktionen, lokale Rückblicke | fortlaufend |
+
+## 3. Phase 0: Vorbereitung
+
+**Ziel:** Alles, was nicht Code ist und den Code blockiert.
+
+1. Entscheidungen aus Abschnitt 13 treffen (mindestens Name, Lizenz, Rechtsform, Plus-Zeitpunkt).
+2. Entwicklerkonten anlegen: Apple Developer Program (99 $/Jahr) und Google Play (einmalig 25 $) [41]; Apple Small Business Program beantragen (15 % Abgabe bis 1 Mio. $ Vorjahreserlös) [41]. Bei Google Play Konto früh anlegen, weil neue persönliche Konten vor der Produktionsfreigabe einen geschlossenen Test mit einer Mindestzahl von Testern über einen Mindestzeitraum nachweisen müssen (Play-Console-Hilfe, in der Sandbox nicht erreichbar; Bedingung und Zahlen unverifiziert) [50].
+3. Testgerätepool beschaffen. Empfehlung: ein iPhone 12 oder neuer (16-Kern-Neural-Engine, `SpeechTranscriber`-Pfad) und ein iPhone 11 oder SE 2 (Fallback `DictationTranscriber`; Forumsbefund, von Apple nicht bestätigt) [2][6]; auf Android ein Pixel (Referenz), ein Samsung-Mittelklassegerät mit 4 GB RAM (Richtwert D13, Akku-Killer-Rangliste Platz 4) und ein Xiaomi (Platz 2) [15]. Ohne diese Geräte sind Spike 1, 2 und 7 nicht aussagekräftig.
+4. Repository `tagebuch` öffentlich, Konzeptdokumente 00 bis 09, Lizenzdatei nach D10, Issue-Vorlagen, `SECURITY.md` mit Meldeweg.
+
+**Prüfkriterium:** Alle Punkte aus Abschnitt 13 haben eine Antwort oder ein bewusstes "später mit Datum".
+
+## 4. Phase 1: Technische Spikes
+
+Jeder Spike ist ein kleines, wegwerfbares Projekt mit einer Messfrage, einem Zielwert und einer Rückfallregel. Ergebnisse landen als Tabelle in `docs/recherche/spikes/` mit Gerät, OS-Version, Build-Hash und Datum. Die Reihenfolge folgt dem Risiko: Was das Produktversprechen kippen könnte, kommt zuerst.
+
+| Nr. | Spike | Messfrage | Zielwert | Rückfall, wenn verfehlt | Aufwand |
+|---|---|---|---|---|---|
+| S1 | iOS-Transkription (D2) | Liefert `SpeechTranscriber` auf iOS 26 für de-DE, de-AT, de-CH und en-* nutzbaren Text? Ist `supportedLocales` verlässlich? Wie verhält sich `AssetInventory` beim Erstdownload und nach Wochen Nichtnutzung? | Je Locale ein Validierungslauf mit 3 Minuten Tagebuch-Audio, wie von Apple selbst empfohlen, statt der API zu vertrauen (Apple listete Arabisch fälschlich als unterstützt) [3]; kein Locale-Format-Fehler dank `supportedLocale(equivalentTo:)` [4]; Assets nach Entzug automatisch neu anforderbar; Modelle liegen im Systemspeicher, nicht in der App [5][46] | `DictationTranscriber` mit `.longDictation` als Primärpfad auf betroffenen Locales [6]; falls auch der versagt: WhisperKit large-v3-turbo (626 MB) als Standard statt Zusatzpaket (D2) | M |
+| S2 | Android-Transkription (D3) | Läuft sherpa-onnx mit Moonshine German/English Small Streaming auf dem 4-GB-Samsung? Tatsächliche `.ort`-Dateigrößen, Spitzen-RAM, Echtzeitfaktor (RTF) | RTF ≤ 0,5 auf einem Snapdragon-6/7-Gerät (Zielwert aus dem Android-Bericht, keine öffentlichen Messungen vorhanden) [7][9]; kein Absturz durch die neuen RAM-Limits von Android 17 [60] | Moonshine German Tiny Streaming (34 M Parameter, WER 12,0 %) [7] als Standard auf schwachen Geräten; System-Recognizer nur als Opt-in mit Hinweis (D3) | M |
+| S3 | Modellauslieferung und Bezahlung ohne `INTERNET` (D3, D14) | Funktionieren Play Asset Delivery (`fast-follow`, `on-demand`) und die Play Billing Library, wenn die App keine `INTERNET`-Berechtigung deklariert? | Modelle kommen an, Kauf lässt sich abschließen; `dumpsys package` zeigt keine `INTERNET`-Berechtigung [10] | Modelle im APK/AAB bündeln (Größe prüfen) oder Berechtigung bewusst aufnehmen und auf der Transparenzseite erklären; Entscheidung an Inhaber | S |
+| S4 | Verschlüsselung und Schlüsselverwahrung (D4, D5) | Durchsatz von `crypto_secretstream_xchacha20poly1305` in 64-KiB-Chunks aus Dart heraus während der Aufnahme; Argon2id 64 MiB/t=3 auf dem 4-GB-Gerät; nutzt `flutter_secure_storage` 11 StrongBox oder nur TEE; überlebt der iOS-Keychain-Eintrag eine Deinstallation; SQLCipher via `sqlite3` mit `source: sqlcipher` und Raw-Key | Verschlüsselung hält mit der Aufnahme mit, kein Klartext-Audio im Sandbox-Verzeichnis (Scan nach OGG/WAV-Magic-Bytes); Argon2id unter einer Sekunde (libsodium nennt eine Sekunde als akzeptables Maximum) [16][17][18][19][20]; Keystore-Schutzstufe protokolliert [21] | Bei fehlender StrongBox-Anbindung eigene Kotlin-Brücke (D1 c); bei zu langsamer Ableitung Parameter im Rahmen der OWASP-Äquivalente senken (dokumentieren) [17] | M |
+| S5 | Transfer und Container (D6) | Round-Trip Export/Import iOS→Android und Android→iOS mit Testdaten von 131 MB und 197 MB (Rechenbasis D6); QR unter 200 Byte lesbar (ein QR fasst höchstens 2953 Byte) [45]; HKDF im Dart-Paket `sodium` vorhanden; Übergabe per Dateien-App, AirDrop, Quick Share, USB-Stick | Gesamtzeit unter fünf Minuten je Weg (Erfolgskriterium `00-anforderungen.md`); Abschneiden und Umsortieren werden erkannt [16] | Fehlt HKDF: `crypto_kx` mit BLAKE2b (siehe `06-geraetewechsel-qr-transfer.md`); dauert die Übergabe zu lang: Container in Teile splitten | M |
+| S6 | Audio-Pipeline (D4) | PCM-Stream aus `record` 7.x parallel in STT-Puffer und Opus-Encoder; Hörprobe und Transkriptionsvergleich 16 gegen 24 kbit/s; Verhalten bei Anruf, Sperre, App-Kill, 30 Minuten Dauer | Keine verlorene Aufnahme in allen Abbruchfällen (Vorbild negativ: `FileNotFoundException` nach langer Aufnahme im Fossify Voice Recorder) [44]; Bitrate entschieden | Bei Problemen mit `record` native Aufnahme in den Brücken | S |
+| S7 | Erinnerungen Android (D7) | `setAlarmClock()` mit und ohne `SCHEDULE_EXACT_ALARM`, `setWindow()`-Fallback, Neustart, Doze (`force-idle`), Samsung- und Xiaomi-Akkuoptimierung | Erinnerung kommt an allen drei Android-Geräten an drei aufeinanderfolgenden Tagen ohne manuellen Eingriff nach dem Onboarding-Schritt [14][15] | Onboarding-Hinweise verschärfen; `USE_EXACT_ALARM` nur nach Klärung der Play-Policy | S |
+| S8 | Größe der nativen Brücken (D1) | Wie viel Swift und Kotlin braucht es tatsächlich für S1, S2 und S4? | Brücken bleiben dünne Adapter ohne eigene Geschäftslogik | Übersteigen sie das Maß eines Plugins, greift die Rückfalloption zweimal nativ (D1); Entscheidung vor Phase 3 | wird aus S1, S2, S4 abgeleitet |
+
+Parallel zu den Spikes: Lizenzprüfung der Modelle (Parakeet TDT 0.6B v3: CC-BY-4.0 laut NVIDIA, Modellkarte in der Sandbox nicht erreichbar; Moonshine Streaming: MIT) [7][8] und die Exportkontroll-Einordnung, weil libsodium und SQLCipher keine Betriebssystem-Kryptografie sind (Apples Tabelle: Industriestandard, nicht vom OS bereitgestellt, erfordert die französische Deklaration bei Vertrieb in Frankreich; Jahresbericht an das BIS möglich, Frist unverifiziert) [29][30].
+
+**Prüfkriterium Phase 1:** Für S1 bis S7 liegt ein Protokoll mit Messwert und Entscheidung vor. Kein Spike endet mit "funktioniert wahrscheinlich".
+
+## 5. Phase 2: Durchstich
+
+**Ziel:** Ein einziger Ablauf, der die gesamte Architektur berührt: Aufnahme starten, PCM in Opus und secretstream, Transkription, Speichern in SQLCipher, Liste, Wiedergabe, Text lesen. Keine Einstellungen, keine Erinnerung, keine Suche, rohe Oberfläche.
+
+**Ergebnis:** Ein Build je Plattform, der den Flugmodus-Test aus `04-technik-architektur.md` (Schritte 1 bis 4, ohne Export) besteht, plus ein Lauf hinter mitmproxy mit null Verbindungen aus dem App-Prozess.
+
+**Prüfkriterien:**
+- Kein Klartext-Audio und keine unverschlüsselte Datenbank im Sandbox-Verzeichnis (Dateisystem-Scan).
+- App-Kill während der Aufnahme verliert höchstens den letzten Chunk, nie den Eintrag.
+- Öffnen mit falschem Schlüssel schlägt fehl.
+
+Empfehlung: Den Durchstich auf Flutter stable 3.47.x (D1) [1] und nicht wegwerfen, sondern als Rumpf der Paketstruktur aus `04-technik-architektur.md` bauen (Krypto- und Containerkern als separate Dart-Bibliothek nach D10), weil genau dieser Kern später auditierbar sein muss.
+
+## 6. Phase 3: MVP-Aufbau
+
+**Ziel:** Der Funktionsumfang aus `03-produktkonzept.md` 8.1, in dieser Reihenfolge (jede Zeile ist ein abschließbares Arbeitspaket mit eigenem Test):
+
+1. Aufnahmebildschirm "Heute", Pause, Fertig, mehrere Aufnahmen pro Tag, Nachträge (M1, M3, A4).
+2. Tägliche Erinnerung mit "In 1 Stunde", "Heute nicht", Pause bis Datum, Aufnahme aus der Benachrichtigung (D7).
+3. App-Sperre, Privacy-Overlay, `FLAG_SECURE`, Benachrichtigungen ohne Inhalt (D5).
+4. Transkriptanzeige, Bearbeiten mit Original, neu transkribieren, feste Sprachwahl (D12).
+5. Volltextsuche (FTS5), Kalender, "Vor einem Jahr", Monatszahlen (D8).
+6. Audio behalten oder löschen pro Eintrag und global, Speicheranzeige, Crypto-Shredding (D4, D5).
+7. Backup-Container mit Passphrase, monatliche Erinnerung, Wiederherstellung im Onboarding (D6, A8).
+8. Gerätewechsel per QR und Datei in beide Richtungen, "Einträge hier löschen" danach (D6, M8).
+9. Export Markdown, JSON, PDF, Opus mit Zeitraum; Exportvorschau vor dem ersten Eintrag.
+10. Onboarding: Gerätecode-Prüfung, Modell-Download mit Wiederaufnahme (Negativbeispiel: Download startet nach Abbruch "from byte 0", Nutzer mussten die App minutenlang offen halten) [42], Erinnerungs-Zuverlässigkeit je Hersteller, Backup-Hinweis.
+11. Transparenzseite "Was verlässt dein Gerät: nichts" mit Berechtigungsliste (D14).
+12. Barrierefreiheit über den gesamten Fluss: VoiceOver/TalkBack, Schriftskalierung, Kontrast, Reduce Motion.
+13. Lokalisierung Deutsch (mit Schweizer Orthografie für de-CH) und Englisch.
+14. In-App-Kauf-Gerüst (StoreKit 2, Play Billing) für Plus, sofern der Inhaber Plus zum Start freigibt (Abschnitt 13, Punkt 4).
+
+**Prüfkriterium:** Jedes Paket hat Unit- oder Integrationstests nach `04-technik-architektur.md` 11; die Erfolgskriterien aus `00-anforderungen.md` 5 sind im Flugmodus-Test nachweisbar (ein Tipp bis Aufnahme; Deutsch und Englisch offline; Eintrag nach Sperre nur mit Code/Biometrie; Gerätewechsel unter fünf Minuten).
+
+Empfehlung: Migrationstests ab der ersten Datenbankversion, weil Datenverlust durch fehlgeschlagene Migration ein belegter Totalschaden bei Tagebuch-Apps ist ("lost access to the body copy of all entries made before the version 0.17 update") [43]. Jede Schemaänderung bekommt einen Vorwärts-Migrationstest mit einer echten Alt-Datenbank.
+
+## 7. Phase 4: Härtung und interne Alpha
+
+**Ziel:** Die App verhält sich unter widrigen Bedingungen wie versprochen, und das Versprechen ist öffentlich nachvollziehbar.
+
+1. **Teststrategie vollständig** nach `04-technik-architektur.md` 11: STT-Regressionskorpus (de-DE, de-AT, de-CH, en; Freiwillige mit Einwilligung plus TTS-Sätze) mit WER, RTF und Spitzen-RAM je Engine und Gerät; Erinnerungstests mit Zeitzonenwechsel und Neustart; Sicherheitsfälle nach OWASP MASTG (App-Switcher-Snapshot leer, Screenshot geblockt, `adb backup` liefert nichts) [22][47][49].
+2. **Halluzinations-Schutz** prüfen: Stille-Abschnitte im Korpus dürfen keine Phantomsätze erzeugen (bekanntes Whisper-Muster "Untertitel im Auftrag des ZDF") [48][56]; Sprache ist fest gesetzt, weil Auto-Erkennung bei deutschem Audio zu Sprachwechseln und Auslassungen führt [55], VAD aktiv (D2, D3).
+3. **CI ohne Datenabfluss** nach `04-technik-architektur.md` 10: Format, Analyse, Tests auf jedem Pull Request; reproduzierbarer Android-Build im Docker-Image mit `apkdiff` nach dem Signal-Muster [37]; iOS-Reproduzierbarkeit ist praktisch nicht erreichbar und wird nicht versprochen [38].
+4. **Sicherheitsdokumente veröffentlichen:** Threat-Model (aus `05-sicherheit-und-datenschutz.md`), Datenflussdiagramm, Liste ausgehender Verbindungen (Ziel: null außer OS- und Store-Downloads), Flugmodus-Protokolle.
+5. **Fehlermeldung ohne Crash-Reporter:** Die App schreibt Fehler nur lokal; "Problem melden" erzeugt eine Diagnosedatei ohne Tagebuchinhalt, die der Nutzer selbst per Mail sendet. Kein automatischer Upload (D14).
+6. **Interne Alpha** auf dem Testgerätepool mit täglicher eigener Nutzung über mindestens zwei Wochen (eigene Festlegung), damit Erinnerung, Sperre und Speicherwachstum im Alltag auffallen.
+
+**Prüfkriterium:** Flugmodus-Test auf iPhone, Pixel und Samsung bestanden und in `docs/` abgelegt; keine offenen Blocker der Kategorien Datenverlust, Klartext, Absturz bei Aufnahme.
+
+Empfehlung: Vor der Beta einen bezahlten Kurz-Review des Krypto- und Containerkerns einholen (Schlüsselhierarchie, secretstream-Nutzung, HKDF-Ableitung, Argon2id-Parameter), weil der Kern klein und separat ist und weil das Argument "wir können deine Einträge nicht lesen" später gegen Kritik bestehen muss. Umfang und Budget entscheidet der Inhaber (Abschnitt 13).
+
+## 8. Phase 5: Beta
+
+**Ziel:** Bestätigung durch Fremde auf Geräten, die der Entwickler nicht besitzt, ohne Telemetrie.
+
+### 8.1 Kanäle
+
+| Plattform | Stufe | Zweck |
+|---|---|---|
+| iOS | TestFlight intern (Team) [51] | Build-Pipeline, Signatur, Exportkontroll-Frage einmal durchspielen |
+| iOS | TestFlight extern mit Beta-App-Review | 50 bis 100 Personen aus der Privacy-Community (Plan aus `07-geschaeftsmodell.md` 7.1) |
+| Android | Play Internal Testing | Play-Asset-Delivery-Pfad und Billing unter Store-Bedingungen (S3 bestätigen) |
+| Android | Play Closed Testing | Dieselbe Gruppe; erfüllt zugleich die Testpflicht neuer Konten (unverifiziert) [50] |
+| Android | Direktes APK aus dem CI-Build | Für GrapheneOS- und Custom-ROM-Tester ohne Play-Dienste; prüft den Hinweis "Keystore nicht hardwaregestützt" (D5) |
+
+Tester erhalten nach dem Start Lifetime per Offer Code (Offer Codes gelten seit 29. Oktober 2025 für alle Kauftypen) [40]; das setzt ein vorhandenes Plus-Produkt voraus (Abschnitt 13, Punkt 4).
+
+### 8.2 Was die Beta beantworten muss
+
+1. Kommt die Erinnerung auf fremden Samsung-, Xiaomi-, OnePlus- und Huawei-Geräten an? Abfrage per kurzem Formular nach einer Woche; Ziel: kein Hersteller, auf dem sie ohne Hinweis dauerhaft ausbleibt.
+2. Gelingt der Gerätewechsel iOS↔Android bei Testern ohne Anleitung durch den Entwickler? Ziel: unter fünf Minuten, Fehlerfälle dokumentiert.
+3. Ist die Transkription für Schweizer Tester mit Hochdeutsch brauchbar, und ist der Hinweis zur Mundart verständlich (D12)?
+4. Werden Modell-Download und Backup-Hinweis im Onboarding verstanden? Beobachtung: Bricht jemand vor dem ersten Eintrag ab?
+5. Barrierefreiheit: mindestens zwei Tester, die VoiceOver oder TalkBack dauerhaft nutzen, durchlaufen Aufnahme, Wiedergabe, Suche und Export.
+6. Speicherwachstum und Akku über zwei Wochen täglicher Nutzung: Rückmeldung per Speicheranzeige der App.
+
+Weil die App keine Nutzungsdaten sendet, sind alle Antworten freiwillig und kommen per Formular, Mail oder Issue. Das ist langsamer als Telemetrie und gehört so kommuniziert.
+
+### 8.3 Ausstiegskriterien
+
+- Kein Datenverlust-Bericht in den letzten zwei Beta-Wochen.
+- Flugmodus-Test auf mindestens drei fremden Gerätemodellen von Testern bestätigt (Screenshot der Transparenzseite plus Aussage genügt).
+- Alle Fehler der Klasse "Aufnahme verloren", "Eintrag nicht lesbar", "Transfer schlägt reproduzierbar fehl" geschlossen.
+- Onboarding-Abbruchgründe bekannt und behoben oder bewusst akzeptiert.
+
+Aufwand: M bis L, je nachdem, wie viele Runden nötig sind. Empfehlung: zwei Runden einplanen, die zweite kürzer.
+
+## 9. Phase 6: Store-Vorbereitung und Launch-Checkliste
+
+Die Checkliste fasst `05-sicherheit-und-datenschutz.md` (Rechtspflichten) und die Store-Anforderungen zusammen. Einträge mit "unverifiziert" beruhen auf Quellen, die in der Recherche-Sandbox nicht erreichbar waren (D15).
+
+**Store-Labels und Datenschutz**
+- [ ] Apple App Privacy: "Es werden keine Daten erfasst". Apples Definition zählt nur Daten als erfasst, die das Gerät verlassen und für den Entwickler oder Partner zugänglich sind; rein lokal verarbeitete Daten müssen nicht angegeben werden [23]. Vorher prüfen, dass kein SDK etwas sendet (Flugmodus-Protokoll).
+- [ ] Google Play Data Safety: "Keine Daten erhoben"; Datentyp "Sprach- oder Tonaufnahmen" bewusst als nicht erhoben begründen [32][33] (Play-Definition unverifiziert).
+- [ ] Datenschutzerklärung als URL im Store und in der App erreichbar (Apple 5.1.1 verlangt sie für alle Apps, inklusive Aufbewahrung und Löschung) [24]; Kerntext aus `05-sicherheit-und-datenschutz.md`.
+- [ ] `PrivacyInfo.xcprivacy` mit Required-Reason-Codes für Dateizeitstempel, UserDefaults, Speicherplatz und Systemzeit, je nach Nutzung [25].
+- [ ] `NSMicrophoneUsageDescription` in Deutsch und Englisch nach der Formulierungshilfe; `NSSpeechRecognitionUsageDescription` nur, wenn `SFSpeechRecognizer` im Fallback wirklich genutzt wird [26]. Sichtbare Aufnahmeanzeige (Apple 2.5.14) [24].
+- [ ] Android: `RECORD_AUDIO` im Kontext anfragen; Vordergrunddienst-Typ `microphone` in der Play Console deklarieren [13]; keine `INTERNET`-Berechtigung (Ergebnis S3).
+- [ ] Health-App-Deklaration bei Google prüfen; Empfehlung: keine Health-Connect-Integration in Version 1, keine Gesundheitsaussagen (unverifiziert) [34].
+
+**Rechtliches**
+- [ ] Impressum in der App (Einstellungen > Rechtliches) nach § 5 DDG bzw. § 5 ECG; aktuelle Fassung unverifiziert [36].
+- [ ] DSA-Händlerstatus bei Apple und Google mit verifizierter Adresse, Telefon und E-Mail; Apple veröffentlicht sie in allen EU-Storefronts [31]. Vor dem ersten Kauf zwingend; Empfehlung: schon zum Start, damit Offer Codes funktionieren.
+- [ ] Exportkontrolle: Frage in App Store Connect beantworten; `ITSAppUsesNonExemptEncryption` korrekt setzen; bei gebündeltem libsodium/SQLCipher französische Deklaration bereitlegen; Jahresbericht an das BIS prüfen (Frist unverifiziert) [29][30].
+- [ ] Altersfreigabe: Apple-Fragebogen (Stufen 4+, 9+, 13+, 16+, 18+; seit September 2026 mit Fragen zu Social-Media-Funktionen) und IARC bei Google; reines Tagebuch ohne Empfehlungen bleibt 4+ [27][35]. Zielgruppe nicht "Kinder".
+- [ ] Open-Source-Lizenzhinweise in der App: MIT (Moonshine, whisper-Komponenten, falls genutzt), Apache-2.0 mit NOTICE (sherpa-onnx), CC-BY (Parakeet, falls Zusatzpaket) [8].
+- [ ] Abgrenzungssatz "kein Medizinprodukt" in Store-Text und Nutzungsbedingungen; keine der vermiedenen Formulierungen ("erkennt Stress", "militärische Verschlüsselung").
+- [ ] Freischaltung nur über In-App-Kauf; der Transfer-QR schaltet nichts frei (Apple 3.1.1) [24].
+
+**Listing und Material**
+- [ ] Store-Seiten Deutsch (DE, AT, CH) und Englisch; Keyword-Hypothesen aus `07-geschaeftsmodell.md` 7.2.
+- [ ] Screenshots je Gerätetyp: Aufnahme mit einem Tipp, Transkript, Kalender, Transparenzseite "Was verlässt dein Gerät: nichts", Gerätewechsel per QR. Keine Screenshots mit echten Tagebuchtexten; Demo-Daten kennzeichnen.
+- [ ] Garantie im Store-Text: kostenlose Funktionen werden nie kostenpflichtig (D9).
+- [ ] Website statisch, ohne Tracking, mit Datenschutzerklärung, Impressum, Pressemappe, Link zum Repository.
+- [ ] Accessibility Nutrition Labels (iOS 26+) ausfüllen; derzeit freiwillig, von Apple als künftige Pflicht angekündigt [28].
+- [ ] Barrierefreiheits-Abnahme: VoiceOver/TalkBack-Durchlauf, Schriftskalierung, Kontrast, Reduce Motion, protokolliert.
+- [ ] Support-Postfach, Antwortvorlagen, Issue-Vorlagen im Repository.
+
+**Technisch vor Einreichung**
+- [ ] Ziel-API auf Android mindestens 36 (seit 31. August 2026 Pflicht für neue Apps und Updates; Verlängerung bis 1. November 2026 beantragbar) [11]; 16-KB-Seiten für alle nativen Bibliotheken (ab 1. Februar 2027 Pflicht für Ziel-API 35+) [12].
+- [ ] iOS-Mindestversion 26 (D13); Verhalten unter dem zum Startzeitpunkt aktuellen iOS 27 geprüft (Apple öffnete 2025 die Einreichung für iOS 26 am 9. September; ein analoger Termin für iOS 27 war am 3. September 2026 nicht angekündigt) [59].
+- [ ] Reproduzierbarer Android-Build stimmt mit dem Store-AAB überein (`apkdiff`) [37]; F-Droid-Metadaten vorbereitet [58].
+- [ ] Letzter Flugmodus-Test mit dem Release-Kandidaten, Protokoll mit Build-Hash in `docs/`.
+
+Aufwand: M. Empfehlung: Die Checkliste bereits in Phase 4 anlegen und füllen, weil DSA-Verifizierung, Exportkontrolle und Rechtstexte Wartezeiten haben, die sich nicht durch Programmieren verkürzen lassen.
+
+## 10. Phase 7: Start und erste Wochen
+
+1. **Gestaffelt freigeben:** Play Staged Rollout mit kleinem Anteil, iOS Phased Release (beide Store-Funktionen; Details der Konsolen in der Sandbox nicht geprüft) [52][53]. Ein Datenverlust-Fehler am ersten Tag träfe sonst alle.
+2. **Ohne Telemetrie reagieren:** Rezensionen beider Stores täglich lesen, Support-Postfach, Repository-Issues. Ein dokumentierter Hotfix-Pfad (Branch, CI, Einreichung) liegt vor dem Start bereit.
+3. **Sichtbarkeit nach `07-geschaeftsmodell.md` 7.1:** Pressemappe, awesome-privacy, AlternativeTo, Mastodon, Reddit mit Fokus auf Architektur; in den Wochen danach F-Droid-Einreichung, Privacy-Guides-Forum, Kuketz-Blog, Fachpresse; Product Page Optimization mit bis zu drei Varianten [54]. Privacy Guides nimmt nur Apps mit offenem Client auf [39], daher hängt dieser Schritt an D10.
+4. **Erste Messgröße ohne Nutzerdaten:** Downloads und Bewertungen aus den Store-Konsolen (Apple und Google sind dafür eigene Verantwortliche) und die Zahl der Support-Anfragen je Kategorie. Mehr gibt es nicht, und das ist so gewollt.
+
+**Prüfkriterium:** Version 1.0 auf 100 % ausgerollt, kein offener Blocker, F-Droid-Einreichung abgeschickt.
+
+## 11. Phase 8: Nach dem Start (Version 1.x)
+
+Reihenfolge aus `03-produktkonzept.md` 8.2, sortiert nach Nutzen für das tägliche Ritual und nach Abhängigkeiten:
+
+1. **Eine Geste zum Aufnehmen:** iOS Controls, Action Button, Widgets mit Live Activity (Pflicht für `AudioRecordingIntent`); Android Widget, Schnelleinstellungs-Kachel, App-Shortcut. Aufwand M.
+2. **Plus-Funktionen** (falls nicht schon zum Start): 30-Minuten-Aufnahmen, Zusatzpaket "Hohe Genauigkeit" (WhisperKit large-v3-turbo 626 MB; Parakeet TDT 0.6B v3 int8 rund 640 MB, ab 6 GB RAM; Lizenz aus Phase 1) [8]. Aufwand M.
+3. **Persönliches Wörterbuch und Korrektur per Sprache** mit vorgeschaltetem Spike, weil die Wirkung von `contextualStrings` bei `SpeechTranscriber` unklar ist. Aufwand M.
+4. **Lokale Zusammenfassungen** mit Apple Foundation Models, Opt-in, Ablehnungen abgefangen (D8); Android später. Aufwand M (iOS).
+5. **Direkte WLAN-Übertragung** nach dem LocalSend-Muster, dann bewusst mit `INTERNET`-Berechtigung und neuem Flugmodus-Protokoll; Store-Labels vorher erneut prüfen (offene Frage aus `05-sicherheit-und-datenschutz.md`). Aufwand L.
+6. **Jährlich wiederkehrend:** iOS- und Android-Hauptversionen (neue Verhaltensänderungen wie die RAM-Limits von Android 17) [60], Modellwechsel mit STT-Regressionskorpus, Ziel-API-Anhebung, Flugmodus-Protokoll je Release.
+
+## 12. Größte Risiken und wie die Roadmap sie früh entschärft
+
+| Risiko | Folge | Entschärfung in der Roadmap |
+|---|---|---|
+| `SpeechTranscriber` liefert für de-CH oder auf bestimmten Geräten nichts Brauchbares; Hardware-Untergrenze ist nicht offiziell [2][3] | iOS-Kernversprechen wackelt | S1 vor allem anderen; Validierungslauf je Locale; `DictationTranscriber`-Fallback bereits im Durchstich verdrahtet |
+| Moonshine Small ist auf 4-GB-Android zu langsam oder zu groß [7] | Android-Nutzer warten oder die App stürzt ab | S2 mit RTF-Zielwert; Tiny-Modell als Rückfall; Mindestanforderung D13 ggf. nach oben korrigieren, bevor Store-Texte entstehen |
+| Play Asset Delivery oder Billing braucht `INTERNET` [10] | Stärkster Netz-Nachweis auf Android entfällt | S3 in Phase 1; Entscheidung des Inhabers mit beiden Optionen vor Phase 3 |
+| Native Brücken wachsen über ein Plugin hinaus | Flutter-Vorteil schmilzt, Wartung verdoppelt sich | S8 als expliziter Prüfpunkt; Rückfall zweimal nativ vor Phase 3, nicht danach |
+| Datenverlust durch Migration, Aufnahmeabbruch oder Backup, das nicht wiederherstellt [43][44] | Vertrauensbruch, der für ein Tagebuch nicht heilbar ist | Migrationstests ab Version 1 des Schemas; Abbruchfälle in S6; Wiederherstellungstest im Onboarding; Beta-Ausstiegskriterium "kein Datenverlust" |
+| Erinnerungen bleiben auf Hersteller-Android aus [15] | Ritual bricht, Retention der Kategorie ist ohnehin niedrig (30-Tage-Retention von Mental-Health-Apps auf Android im niedrigen einstelligen Prozentbereich; Sekundärquelle, unverifiziert) [57] | S7 auf drei Geräten; Onboarding-Schritt; Beta-Frage 1 auf fremden Geräten |
+| Store-Ablehnung oder falsche Labels (Datenschutz, Exportkontrolle, Altersfreigabe, 3.1.1) | Startverzögerung, im schlimmsten Fall falsche öffentliche Aussage | Checkliste ab Phase 4; Flugmodus-Protokoll als Beleg; QR ohne Freischaltfunktion; Exportkontroll-Einordnung schon in Phase 1 |
+| Rechtsquellen waren in der Recherche nicht erreichbar (D15) | Pflichten könnten anders lauten als beschrieben | Alle als unverifiziert markierten Punkte vor Phase 6 gegen Primärquellen prüfen; Rechtsbausteine budgetieren |
+| Ein Entwickler, Plattformwechsel jedes Jahr | Wartungsschulden, Modelle veralten | Kleiner Funktionsumfang im MVP; STT-Regressionskorpus, CI, jährlicher Pflegeblock in Phase 8 eingeplant |
+| Privacy-Publikum reagiert auf nachträgliche Bezahlschranken empfindlich | Rezensionen, Verlust der Kernzielgruppe | Garantie "kostenlose Funktionen bleiben kostenlos" ab Store-Text 1.0 (D9); Plus nur mit neuen Funktionen |
+
+## 13. Was der Inhaber jetzt entscheiden muss
+
+1. **Name (D11):** Arbeitstitel "Abendton", Alternativen "Tonlade", "Tagschloss". Die manuelle Nachprüfung fand für keinen Favoriten eine App oder Marke gleichen Namens, konnte aber weder App Store, Play Store noch DPMA/EUIPO/Swissreg direkt abfragen; "Tagschloss" ist wegen der vielen "Tagebuch mit Schloss"-Apps schwer abgrenzbar [61]. Vor Phase 3 nötig: Store-Suche, Markenrecherche, Domains (.app, .de, .ch).
+2. **Lizenz (D10):** GPLv3 mit Store-Builds und Marke beim Inhaber, oder Open Core. Entscheidet über F-Droid, Privacy-Guides-Listung und den Aufbau des Krypto-Kerns als separate Bibliothek; muss vor dem ersten öffentlichen Commit feststehen.
+3. **Rechtsform und veröffentlichte Adresse:** Einzelunternehmen genügt; der DSA-Händlerstatus veröffentlicht Adresse, Telefon und E-Mail in allen EU-Storefronts [31]. Wer die Privatadresse nicht zeigen will, braucht eine c/o-Lösung oder eine Gesellschaft (Kosten siehe `07-geschaeftsmodell.md`).
+4. **Plus zum Start oder in 1.1:** `07-geschaeftsmodell.md` plant Lifetime-Codes für Beta-Tester, `03-produktkonzept.md` legt alle Plus-Funktionen in 1.x. Empfehlung: Kaufgerüst und ein kleines Plus (30-Minuten-Aufnahmen) bereits in 1.0, weil DSA-Status, In-App-Kauf-Review, Billing-ohne-`INTERNET`-Test (S3) und Tester-Codes dann nur einmal durchlaufen werden und die Garantie "kostenlos bleibt kostenlos" von Anfang an sichtbar ist. Alternative: 1.0 vollständig kostenlos, Plus mit 1.1.
+5. **Modellauslieferung, falls S3 scheitert:** Modelle bündeln (größerer Download, saubere Aussage "keine INTERNET-Berechtigung") oder Berechtigung aufnehmen und erklären.
+6. **Budget für externe Prüfung:** Kurz-Review des Krypto-Kerns vor der Beta und Rechtsprüfung der unverifizierten Punkte (Impressum, Exportkontrolle, Play-Richtlinien, MDR-Abgrenzung) vor Phase 6.
+7. **Testgeräte:** Freigabe für den Pool aus Phase 0 (ein neueres und ein älteres iPhone, Pixel, Samsung-Mittelklasse, Xiaomi).
+8. **Beta-Rekrutierung:** Wer spricht die 50 bis 100 Tester aus der Privacy-Community an, und unter welchem Namen, falls der Produktname noch nicht feststeht?
+
+## 14. Offene Fragen
+
+1. Reihenfolge iOS 27: Erscheint es vor dem Store-Start, und ändert es `SpeechTranscriber`-Locales oder -Hardwareanforderungen ("with more to come")? Betrifft S1 und die Mindestversion.
+2. Testpflicht neuer Play-Konten (Anzahl Tester, Dauer) und Auswirkung auf die Beta-Dauer (unverifiziert) [50].
+3. Ob TestFlight-Builds mit gebündelten Modellen und ohne Netz in der Beta-App-Review Rückfragen auslösen; Einreichungsnotizen mit Flugmodus-Hinweis vorbereiten.
+4. Zeitpunkt der F-Droid-Einreichung relativ zum Store-Start und Modellauslieferung ohne Play Asset Delivery (offene Frage aus `04-technik-architektur.md`).
+5. Ob eine zweite Beta-Runde speziell für Schweizer Nutzer (de-CH, Hochdeutsch-Hinweis) sinnvoll ist oder die erste Runde reicht.
+6. Umfang des externen Krypto-Reviews: nur Containerformat und Schlüsselhierarchie oder auch die nativen Brücken.
+7. Wie Erfolg ohne Telemetrie nach dem Start definiert wird (Downloads, Bewertungen, Support-Volumen) und ab welchem Wert Phase 8 priorisiert wird.
+
+## Quellen
+
+1. Flutter-Releases (3.47.2 vom 27. 8. 2026): https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json
+2. Apple Developer Forum, `SpeechTranscriber` nicht verfügbar auf iPhone 11/SE 2 (nicht offiziell bestätigt): https://developer.apple.com/forums/thread/806765
+3. Apple Developer Forum, Arabisch fälschlich als unterstützt gelistet, Empfehlung Validierungslauf je Locale: https://developer.apple.com/forums/thread/797835
+4. Apple Developer Forum, Locale-Format und `supportedLocale(equivalentTo:)`: https://developer.apple.com/forums/thread/790108
+5. Apple, `AssetInventory`: https://developer.apple.com/documentation/speech/assetinventory
+6. Apple, `DictationTranscriber`: https://developer.apple.com/documentation/speech/dictationtranscriber
+7. Moonshine, verfügbare Modelle (German Small Streaming 123 M, WER 7,5 %; Tiny 34 M, WER 12,0 %): https://raw.githubusercontent.com/moonshine-ai/moonshine/main/docs/models/available-models.md
+8. sherpa-onnx, Parakeet TDT 0.6B v3 (≈ 640 MB, Lizenzhinweis): https://raw.githubusercontent.com/k2-fsa/sherpa/master/docs/source/onnx/pretrained_models/offline-transducer/nemo/parakeet-tdt-0.6b-v3.rst
+9. sherpa-onnx Releases (v1.13.7): https://github.com/k2-fsa/sherpa-onnx/releases
+10. Android, Play Asset Delivery: https://developer.android.com/guide/playcore/asset-delivery
+11. Android, Ziel-API-Anforderungen von Google Play: https://developer.android.com/google/play/requirements/target-sdk
+12. Android, 16-KB-Seitengröße: https://developer.android.com/guide/practices/page-sizes
+13. Android, Vordergrunddienst-Typen: https://developer.android.com/develop/background-work/services/fgs/service-types
+14. Android, Alarme planen: https://developer.android.com/develop/background-work/services/alarms/schedule
+15. dontkillmyapp (Hersteller-Rangliste, Samsung-/Xiaomi-Hinweise): https://github.com/urbandroid-team/dont-kill-my-app
+16. libsodium, secretstream: https://github.com/jedisct1/libsodium-doc/blob/master/secret-key_cryptography/secretstream.md
+17. libsodium, Passwort-Hashing (Argon2id, eine Sekunde als akzeptables Maximum): https://github.com/jedisct1/libsodium-doc/blob/master/password_hashing/default_phf.md
+18. Dart-Paket `sodium` 4.1.0+1: https://pub.dev/packages/sodium
+19. `flutter_secure_storage` 11.0.0: https://pub.dev/packages/flutter_secure_storage
+20. drift, Verschlüsselung mit SQLCipher: https://github.com/simolus3/drift/blob/develop/docs/content/platforms/encryption.md
+21. Android Keystore: https://developer.android.com/privacy-and-security/keystore
+22. Android Auto Backup: https://developer.android.com/identity/data/autobackup
+23. Apple, App Privacy Details ("processed only on device is not collected"): https://developer.apple.com/app-store/app-privacy-details/
+24. Apple, App Review Guidelines (2.5.14, 3.1.1, 5.1.1): https://developer.apple.com/app-store/review/guidelines/
+25. Apple, Required Reason API: https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api
+26. Apple, `NSMicrophoneUsageDescription`: https://developer.apple.com/documentation/bundleresources/information-property-list/nsmicrophoneusagedescription
+27. Apple, Altersfreigabe-Werte und -Definitionen: https://developer.apple.com/help/app-store-connect/reference/age-ratings-values-and-definitions
+28. Apple, Accessibility Nutrition Labels: https://developer.apple.com/help/app-store-connect/manage-app-accessibility/overview-of-accessibility-nutrition-labels
+29. Apple, Exportkontrolle für Verschlüsselung: https://developer.apple.com/documentation/security/complying-with-encryption-export-regulations
+30. Apple, Dokumentationstabelle Exportkontrolle: https://developer.apple.com/help/app-store-connect/reference/export-compliance-documentation-for-encryption
+31. Apple, DSA-Händleranforderungen: https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements
+32. Android, Datentypen für Data Safety: https://developer.android.com/guide/topics/data/collect-share
+33. Google Play Data Safety (in der Sandbox nicht erreichbar, unverifiziert): https://support.google.com/googleplay/android-developer/answer/10787469
+34. Google Play Health-Apps-Richtlinie (unverifiziert): https://support.google.com/googleplay/android-developer/answer/12261419
+35. Google Play Altersfreigabe IARC (unverifiziert): https://support.google.com/googleplay/android-developer/answer/9859655
+36. § 5 DDG (aktuelle Fassung unverifiziert): https://www.gesetze-im-internet.de/ddg/__5.html
+37. Signal Android, Reproducible Builds: https://github.com/signalapp/Signal-Android/blob/main/reproducible-builds/README.md
+38. Signal iOS, Reproducible Builds offen seit 2015: https://github.com/signalapp/Signal-iOS/issues/641
+39. Privacy Guides, Aufnahmekriterien: https://raw.githubusercontent.com/privacyguides/privacyguides.org/main/docs/about/criteria.md
+40. Apple News, Offer Codes für alle In-App-Kauftypen (29. 10. 2025): https://developer.apple.com/news/?id=r1s3hw2b
+41. Apple Small Business Program: https://developer.apple.com/app-store/small-business-program/
+42. Dictus iOS, Modell-Download bricht ab und startet von vorn (Issue #449): https://github.com/getdictus/dictus-ios/issues/449
+43. Journiv, Datenverlust nach Update-Migration (Issue #540): https://github.com/journiv/journiv-app/issues/540
+44. Fossify Voice Recorder, Aufnahme nach langer Dauer verloren (Issue #56): https://github.com/FossifyOrg/Voice-Recorder/issues/56
+45. node-qrcode, QR-Kapazitätstabelle (2953 Byte bei V40-L): https://github.com/soldair/node-qrcode
+46. Apple WWDC25 Session 277 (SpeechAnalyzer, Modelle im Systemspeicher): https://developer.apple.com/videos/play/wwdc2025/277/
+47. OWASP MASTG, App-Switcher-Snapshot (MASTG-TEST-0010): https://github.com/OWASP/owasp-mastg/blob/master/tests/android/MASVS-PLATFORM/MASTG-TEST-0010.md
+48. openai/whisper, Halluzinationen bei Stille (Discussion #928): https://github.com/openai/whisper/discussions/928
+49. OWASP MASTG, Speicherhygiene (MASTG-TEST-0011): https://github.com/OWASP/owasp-mastg/blob/master/tests/android/MASVS-STORAGE/MASTG-TEST-0011.md
+50. Google Play, Testanforderungen für neue persönliche Entwicklerkonten (in der Sandbox nicht geprüft, unverifiziert): https://support.google.com/googleplay/android-developer/answer/14151465
+51. Apple TestFlight: https://developer.apple.com/testflight/
+52. Apple, Phased Release (in der Sandbox nicht geprüft): https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/release-a-version-update-in-phases
+53. Google Play, Staged Rollout (in der Sandbox nicht geprüft, unverifiziert): https://support.google.com/googleplay/android-developer/answer/6346149
+54. Apple, Product Page Optimization: https://developer.apple.com/app-store/product-page-optimization/
+55. WhisperKit, Deutsch-Probleme bei Auto-Erkennung (Issue #528): https://github.com/argmaxinc/argmax-oss-swift/issues/528
+56. openai/whisper Discussion #928 und whisper.cpp Issue #2660 (Phantom-Untertitel): https://github.com/ggml-org/whisper.cpp/issues/2660
+57. 30-Tage-Retention von Mental-Health-Apps auf Android (Sekundärquelle, unverifiziert): https://www.researchgate.net/figure/App-30-day-retention-by-mental-health-focus-The-percentages-reflect-the-number-of-users_fig2_334562120
+58. F-Droid, Inclusion Policy (in der Sandbox nicht geprüft): https://f-droid.org/docs/Inclusion_Policy/
+59. Apple News, Einreichung für iOS 26 geöffnet (9. 9. 2025): https://developer.apple.com/news/?id=6lxhtioi
+60. Android 17, Verhaltensänderungen (App-Speicherlimits, Native-Libs read-only): https://developer.android.com/about/versions/17/behavior-changes-all
+61. Interne Nachprüfung der Namensfavoriten (3. 9. 2026): `docs/recherche/namensfindung/nachpruefung.md`

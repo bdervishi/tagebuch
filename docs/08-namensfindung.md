@@ -1,4 +1,4 @@
-# 08 · namensfindung
+# 08 · Namensfindung
 
 Stand: 3. September 2026 · Status: Entwurf
 
@@ -90,13 +90,12 @@ Die folgenden Prüfungen konnten nicht durchgeführt werden und sind Voraussetzu
 - Soll die App international unter demselben Namen erscheinen oder mit englischem Untertitel ("Abendton – Voice Journal")? Der Untertitel entscheidet über die Auffindbarkeit in EN-Stores.
 - Wortmarke allein oder Wort-Bild-Marke mit Icon? Beeinflusst Kosten und Schutzumfang.
 - Falls "Abendton" an der Markenrecherche scheitert: Entscheidet der Inhaber zwischen Tonlade und Tagschloss nach Datenschutz-Argument oder nach Klang?
-- Der Verweis in `00-anforderungen.md` auf `06-namensfindung.md` ist an diesen Dateinamen (`08-namensfindung.md`) anzupassen.
 
 ## Quellen
 
-1. Namens-Workflow, Ergebnis der Kandidatenbewertung und Kollisionsprüfung vom 3. September 2026: `scratchpad/naming/ergebnis.json` (41 Kandidaten, Jurywertung, DNS-, GitHub- und Paketregister-Befunde).
-2. Manuelle Nachprüfung der fünf Favoriten per Websuche vom 3. September 2026: `scratchpad/naming/nachpruefung.md`; referenzierte Treffer: https://www.abend.app/ , https://logikstudio.de/abend-app/ , https://apps.apple.com/de/app/tagebuch-mit-schloss/id1572225395 , https://apps.apple.com/de/app/alltag-tagebuch-mit-schloss/id1574140497 , https://apps.apple.com/de/app/geheimes-tagebuch-mit-schloss/id1122964200 , https://play.google.com/store/apps/details?id=com.rucksack.diary , https://apps.apple.com/us/app/-/id6756348446 , https://en.wikipedia.org/wiki/Tonara_(company)
+1. Namens-Workflow, Ergebnis der Kandidatenbewertung und Kollisionsprüfung vom 3. September 2026: `docs/recherche/namensfindung/ergebnis.json` (41 Kandidaten, Jurywertung, DNS-, GitHub- und Paketregister-Befunde).
+2. Manuelle Nachprüfung der fünf Favoriten per Websuche vom 3. September 2026: `docs/recherche/namensfindung/nachpruefung.md`; referenzierte Treffer: https://www.abend.app/ , https://logikstudio.de/abend-app/ , https://apps.apple.com/de/app/tagebuch-mit-schloss/id1572225395 , https://apps.apple.com/de/app/alltag-tagebuch-mit-schloss/id1574140497 , https://apps.apple.com/de/app/geheimes-tagebuch-mit-schloss/id1122964200 , https://play.google.com/store/apps/details?id=com.rucksack.diary , https://apps.apple.com/us/app/-/id6756348446 , https://en.wikipedia.org/wiki/Tonara_(company)
 3. DPMAregister (Markenrecherche Deutschland): https://register.dpma.de/
 4. EUIPO TMview (Markenrecherche EU und Mitgliedstaaten): https://www.tmdn.org/tmview/
 5. Swissreg (Markenrecherche Schweiz): https://www.swissreg.ch/
-6. Verbindliche Entscheidungen D7, D10, D11, D15: `scratchpad/entscheidungen.md`.
+6. Verbindliche Entscheidungen D7, D10, D11, D15: `docs/entscheidungen.md`.

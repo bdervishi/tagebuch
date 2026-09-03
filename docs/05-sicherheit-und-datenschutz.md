@@ -1,4 +1,4 @@
-# 05 · sicherheit und datenschutz
+# 05 · Sicherheit und Datenschutz
 
 Stand: 3. September 2026 · Status: Entwurf
 

@@ -1,4 +1,4 @@
-# 06 · geraetewechsel qr transfer
+# 06 · Gerätewechsel und QR-Transfer
 
 Stand: 3. September 2026 · Status: Entwurf
 

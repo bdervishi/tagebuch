@@ -1,4 +1,4 @@
-# 01 · markt und wettbewerb
+# 01 · Markt und Wettbewerb
 
 Stand: 3. September 2026 · Status: Entwurf
 

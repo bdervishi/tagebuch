@@ -1,4 +1,4 @@
-# 07 · geschaeftsmodell
+# 07 · Geschäftsmodell
 
 Stand: 3. September 2026 · Status: Entwurf
 
