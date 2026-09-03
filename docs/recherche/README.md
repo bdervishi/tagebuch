@@ -26,6 +26,8 @@ Die Recherche lief in einer Umgebung mit eingeschränktem Netzzugang. Nicht erre
 | `geschaeftsmodell.md` | Preis-Benchmarks, Plattformabgaben, Monetarisierungsvarianten, Go-to-Market |
 | `recht-compliance.md` | DSGVO/nDSG, Store-Pflichten, Exportkontrolle, Medizinprodukt-Abgrenzung, Barrierefreiheit |
 | `innovationsluecken.md` | Differenzierungsideen mit Belegen und Aufwandsschätzung |
-| `verifikation.json` | Ergebnisse der Faktenprüfung ausgewählter Aussagen |
+| `nachrecherche-nutzerstimmen-stores.md` | Nachrecherche: echte Nutzerstimmen und Store-Kennzahlen DE/AT/CH (stark eingeschränkt durch Netzsperren) |
+| `nachrecherche-audio-container.md` | Nachrecherche: Audio-Codec, Container, verschlüsselte Wiedergabe auf iOS und Android |
+| `verifikation.json` | Ergebnisse der Faktenprüfung von 30 priorisierten Aussagen (18 bestätigt, 12 präzisiert) |
 | `namensfindung/ergebnis.json` | Namenskandidaten, Kollisionsprüfung, Jurywertung |
 | `namensfindung/nachpruefung.md` | Manuelle Nachprüfung der Favoriten |
