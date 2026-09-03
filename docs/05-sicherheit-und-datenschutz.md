@@ -36,7 +36,8 @@ Hinweis zur Quellenlage: Die Faktenprüfung (`verifikation.json`) lag beim Schre
 | Schadsoftware auf dem Gerät | Läuft im Nutzerkontext, eventuell mit Barrierefreiheitsdiensten | App-Sandbox; Schlüssel verlassen Keystore/Secure Enclave nie [9][12]; `FLAG_SECURE` gegen Bildschirmmitschnitt [18]; keine exportierten Komponenten mit Daten | Ein vollständig kompromittiertes Betriebssystem (Root mit Angreifer während der Nutzung) ist außerhalb des Modells. |
 | Backup-Leck | iCloud-/Google-Backup, Kabel-Backup, Geräte-zu-Gerät-Transfer des Betriebssystems, Zugriff auf das Cloud-Konto | iOS: Master-Key ist `ThisDeviceOnly` und wandert nie ins Backup; Chiffrat ohne Schlüssel ist wertlos [7][16]. Android: `android:allowBackup="false"` plus `dataExtractionRules`, Schlüsselblob in `getNoBackupFilesDir()` [17]. | Das eigene Backup ist nur so stark wie seine Passphrase (Abschnitt 3.4). |
 | Store-Betreiber, Anbieter, Behörden mit Herausgabeanordnung | Zugriff auf Server und Store-Daten | Es gibt keine Server des Anbieters und keine Nutzerdaten in den Stores; Apple/Google sehen nur Kauf- und aggregierte Absturzdaten, die sie selbst erheben. | Die einzigen Netzkontakte sind Modell-Downloads durch das Betriebssystem bzw. den Play Store (D14); sie übertragen keine Inhalte, aber die Tatsache, dass die App installiert ist. |
-| Angreifer im WLAN oder mit Foto des QR-Codes beim Gerätewechsel | Liest den Kanal mit, fotografiert den QR-Code ab | Nur der Empfänger besitzt den privaten X25519-Schlüssel; der QR-Code enthält nur öffentliche Werte (unter 200 Byte; ein einzelner Code fasst höchstens 2 953 Byte, deshalb nie die Daten selbst) [53]; der Container ist Ende-zu-Ende verschlüsselt und erkennt Manipulation (D6) [1] | Beim späteren WLAN-Direktweg (Version 1.x) kommt ein Fingerprint-Vergleich in konstanter Zeit hinzu, wie bei Signal [54]. |
+| Angreifer im WLAN oder mit Foto des QR-Codes beim Gerätewechsel | Liest den Kanal mit, fotografiert den QR-Code ab | Nur der Empfänger besitzt den privaten X25519-Schlüssel; der QR-Code enthält nur öffentliche Werte (unter 200 Byte; ein einzelner Code fasst höchstens 2 953 Byte, deshalb nie die Daten selbst) [53]; der Container ist Ende-zu-Ende verschlüsselt und erkennt Manipulation (D6) [1] | Beim späteren WLAN-Direktweg (Version 1.x) kommt ein Fingerprint-Vergleich in konstanter Zeit hinzu, wie bei Signal [54]. |
+| Uhr als Aufnahmegerät (spätere Ausbaustufe, `03-produktkonzept.md`, Abschnitt 5) | Zweites Gerät mit eigenem Dateisystem, eigenem Backup und einem Übertragungsweg, den nicht die App kontrolliert | Die Uhr schreibt und überträgt nur Chiffrat, das sie selbst nicht öffnen kann (Sealed Box an den Schreibschlüssel des Telefons, Abschnitt 2.7) [63]; Wear OS bleibt gestrichen, weil der Data Layer Daten über Google-Server leiten kann [67] | Die Bedingungen in Abschnitt 2.7 sind Voraussetzung; ohne sie gibt es die Funktion nicht. |
 | Nötigung ("Zeig mir dein Tagebuch") | Physischer Zwang | Nicht im MVP adressiert | Ein Duress-Modus (zweites Tagebuch, Not-Löschung) ist als "Kann" notiert. |
 
 Bewusst nicht Teil des Modells: Seitenkanäle auf Hardware-Ebene, Angriffe auf die Spracherkennungsmodelle selbst, und Nutzer, die Transkripte per Teilen-Blatt in andere Apps geben (das ist gewollt und wird beim Export erklärt).
@@ -105,7 +106,7 @@ Regeln:
 
 | Modus | iOS | Android | Für wen |
 |---|---|---|---|
-| Standard | `SecAccessControl(.userPresence)`: Face ID/Touch ID mit Rückfall auf den Gerätecode | `AUTH_BIOMETRIC_STRONG | AUTH_DEVICE_CREDENTIAL`, Gültigkeit 30 bis 60 s | alle |
+| Standard | `SecAccessControl(.userPresence)`: Face ID/Touch ID mit Rückfall auf den Gerätecode | `AUTH_BIOMETRIC_STRONG \| AUTH_DEVICE_CREDENTIAL`, Gültigkeit 30 bis 60 s | alle |
 | Streng (Opt-in) | `.biometryCurrentSet` | nur `AUTH_BIOMETRIC_STRONG`, Invalidierung bei neuer Registrierung | Nutzer, die das Risiko verstehen; nur aktivierbar, wenn ein Backup jünger als 30 Tage existiert |
 
 Timeout der App-Sperre: sofort beim Wechsel in den Hintergrund, mit einer Kulanz von wenigen Sekunden für den Wechsel zwischen Apps; Standard 30 s, einstellbar bis 5 Minuten (eigene Festlegung, im Nutzertest prüfen). `local_auth` liefert nur ein Ja/Nein und ist deshalb allein kein Schutz; die Sperre gilt erst als sicher, wenn der Schlüssel selbst an die Authentifizierung gebunden ist [24].
@@ -122,6 +123,27 @@ Verhalten bei vergessener Passphrase:
 2. Beim Anlegen zeigt die App eine Stärkeanzeige und den Satz "Wir können diese Passphrase nicht wiederherstellen" mit einer Bestätigung.
 3. **Empfehlung: zusätzlich ein Wiederherstellungsschlüssel.** Der Container-Key wird zweimal gewrappt: einmal mit der Passphrase, einmal mit einem zufälligen, in Wortgruppen dargestellten Wiederherstellungsschlüssel (Vorbild: Signal-Backup-Schlüssel getrennt vom Konto; im Recherchebericht als 64-stelliger Recovery-Key skizziert). Der Nutzer druckt oder schreibt ihn ab; die App zeigt ihn nie wieder an. Alternative: nur Passphrase, dann müssen die Warnungen entsprechend deutlicher sein.
 4. Nach jedem erzeugten Backup bietet die App eine Wiederherstellungsprobe an: Der Container wird sofort mit der eingegebenen Passphrase testweise geöffnet und der Manifest-Hash geprüft. Das fängt Tippfehler ab, bevor das Backup gebraucht wird.
+
+### 2.7 Aufnahmen von einer Uhr: Bedingungen für die spätere Ausbaustufe
+
+`03-produktkonzept.md` führt die Apple Watch als Mikrofon unter "später". Ohne Vorgaben würde diese Funktion das Schutzmodell auf zwei Geräten aushebeln, deshalb stehen die Bedingungen schon jetzt fest.
+
+Was der naheliegende Weg falsch machen würde:
+
+- `AVAudioRecorder` schreibt auf der Uhr direkt in eine Datei, also Klartext-Audio auf einem zweiten Dateisystem, das D4 nicht abdeckt [69].
+- `WCSession.transferFile` legt die Datei auf dem iPhone an einem vom System gewählten Ort ab; die App muss sie im Delegate synchron wegbewegen, sonst löscht das System sie nach Rückkehr der Methode [65]. Bis dahin läge Klartext außerhalb der Kontrolle der App.
+- Ob Apple-Watch-App-Daten über das iPhone in iCloud- oder Kabel-Backups gelangen, ist aus der Sandbox nicht belegbar (Apple-Support-Seiten waren gesperrt, D15); es muss so geplant werden, als wäre es der Fall.
+- Auf Wear OS läuft der Data Layer in den Google-Play-Diensten, und Google schreibt selbst: Bei fehlendem Bluetooth werden Daten "automatically routed through Google Cloud", und man solle annehmen, "that data transmitted using Data Layer may at some point use Google-owned servers" [67]. Die Play-Dienste haben ihre eigene Netzberechtigung; der Verzicht der App auf `INTERNET` hilft dagegen nicht.
+
+**Empfehlung: Uhr-Aufnahmen nur unter den folgenden Bedingungen; sind sie nicht erfüllbar, bleibt die Funktion gestrichen.**
+
+1. **Kein Klartext auf der Uhr.** Aufnahme über `AVAudioEngine.inputNode` (auf watchOS ab Version 4 verfügbar) [66] als PCM im Speicher, Opus-Kodierung und Verschlüsselung mit `crypto_secretstream_xchacha20poly1305` in 64-KiB-Chunks wie auf dem Telefon (D4). `AVAudioRecorder` wird nicht verwendet. Ob libopus und libsodium auf watchOS in akzeptabler Größe laufen, klärt der Spike.
+2. **Schreibschlüssel des Telefons.** Das Telefon erzeugt ein X25519-Schlüsselpaar "Schreibschlüssel". Der private Teil liegt wie der Master-Key im Keychain (`WhenPasscodeSetThisDeviceOnly`), der öffentliche Teil (32 Byte) geht per `updateApplicationContext` an die Uhr; dieser Aufruf ersetzt das vorherige Wörterbuch und liefert es aus, sobald die Gegenseite erreichbar ist [64]. Die Uhr erzeugt pro Aufnahme einen zufälligen 256-Bit-Dateischlüssel (DEK), verschlüsselt das Audio damit und versiegelt den DEK mit `crypto_box_seal` an den öffentlichen Schreibschlüssel. Eine Sealed Box nutzt ein ephemeres Schlüsselpaar, dessen privater Teil sofort nach dem Verschlüsseln gelöscht wird; der Aufschlag beträgt `crypto_box_SEALBYTES` = öffentlicher Schlüssel (32 Byte) + MAC (16 Byte), also 48 Byte je versiegeltem DEK (aus der Header-Definition abgeleitet) [63][68]. Die Uhr besitzt danach nichts, womit sich die Aufnahme öffnen ließe; auch ein Watch-Backup enthält schlimmstenfalls Chiffrat und den öffentlichen Schlüssel.
+3. **Übertragung nur als Chiffrat.** `transferFile` überträgt den fertigen Container (Header mit Schlüssel-Kennung des Schreibschlüssels, versiegelter DEK, secretstream-Nutzlast). Das iPhone bewegt die Datei im Delegate synchron in seinen Container [65]; der temporäre Pfad ist damit unkritisch, weil er nie Klartext enthält. Entsiegelt wird der DEK erst, wenn die App entsperrt ist; dann wird er mit dem Master-Key per `crypto_secretbox` neu gewrappt (Abschnitt 2.2), die versiegelte Kopie gelöscht und die Transkription gestartet. Die Uhr löscht ihre Kopie nach bestätigter Zustellung.
+4. **Schlüsselwechsel.** Bei Gerätewechsel oder "Alles löschen" entsteht ein neuer Schreibschlüssel; die Schlüssel-Kennung im Container-Header erkennt Aufnahmen für einen alten Schlüssel, und die App behält einen abgelösten privaten Schreibschlüssel, bis die Warteschlange der Uhr leer ist. Die Uhr zeigt nie Transkripte oder Eintragslisten, nur den Aufnahmezustand.
+5. **Wear OS bleibt gestrichen**, solange der Data Layer der einzige dokumentierte Übertragungsweg ist. Ein Weg über Google-Server wäre auch mit Chiffrat ein Netzkontakt, den D14 nicht vorsieht, und ließe sich im Flugmodus-Protokoll nicht als "kein Netz" nachweisen. Voraussetzung für eine Wiederaufnahme wäre ein Transport, der das Gerätepaar nachweislich nicht verlässt; keiner der in der Google-Dokumentation beschriebenen Wege leistet das [67][68].
+
+Nebeneffekt: Derselbe Schreibschlüssel ist ein Kandidat für die offene Frage "Aufnahme bei gesperrter App" in `03-produktkonzept.md` (Controls, Widgets). Zum Versiegeln reicht der öffentliche Schlüssel, der ohne Authentifizierung vorliegen darf; der Master-Key wird erst beim nächsten Entsperren gebraucht. D5 bleibt unberührt, weil der DEK am Ende wie jeder andere mit dem Master-Key gewrappt ist.
 
 ## 3. Plattformschutz im Alltag
 
@@ -184,21 +206,23 @@ Dieses Dokument empfiehlt D10 (vollständig offen unter GPLv3) aus Sicherheitssi
 
 Rechtsgrundlage der günstigen Position: Solange keine personenbezogenen Daten den Anbieter erreichen, ist er für die Tagebuchinhalte nicht Verantwortlicher nach Art. 4 Nr. 7 DSGVO; der Nutzer selbst fällt unter die Haushaltsausnahme (Art. 2 Abs. 2 lit. c). Das ist herrschende Lesart, von keiner Aufsichtsbehörde für Tagebuch-Apps ausdrücklich bestätigt (unverifiziert) [44]. Für § 25 TDDDG greift die Ausnahme in Abs. 2 Nr. 2: Speichern von Einträgen, Einstellungen und Transkripten ist "unbedingt erforderlich" für den ausdrücklich gewünschten Dienst; kein Einwilligungsbanner, solange keine Drittzugriffe hinzukommen (Wortlaut aus Spiegel-Quelle mit Stand 2021, aktuelle Fassung unverifiziert) [41]. Das Schweizer nDSG (in Kraft seit 1. September 2023) nimmt Daten "ausschliesslich zum persönlichen Gebrauch" aus; der Anbieter ist bei local-only ebenfalls nicht Verantwortlicher für Inhalte (unverifiziert) [48]. Verantwortlich bleibt der Anbieter für Support-E-Mails, Website und Store-Berichte.
 
-### 5.1 Muss
+### 5.1 Muss (Pflichten P1 bis P11)
+
+Die Kürzel P1 bis P11 bezeichnen Compliance-Pflichten dieses Dokuments; die Muss-Anforderungen M1 bis M12 aus `00-anforderungen.md` sind davon getrennt.
 
 | Nr. | Pflicht | Grundlage | Umsetzung |
 |---|---|---|---|
-| M1 | Datenschutzerklärung, per URL im Store und in der App erreichbar; erklärt Aufbewahrung, Löschung, Kontakt | Apple Guideline 5.1.1(i) [33]; Google User-Data-Richtlinie (unverifiziert) [52] | Text in Abschnitt 6; in der App unter Einstellungen → Datenschutz |
-| M2 | Apple-Label "Es werden keine Daten erfasst", Play Data Safety "Keine Daten erhoben"; bei jeder Änderung aktualisieren | [29][35] | Flugmodus-Protokoll als Beleg |
-| M3 | `PrivacyInfo.xcprivacy` mit Required-Reason-Codes | [30][31] | Abschnitt 4.2 |
-| M4 | `NSMicrophoneUsageDescription`; Android `RECORD_AUDIO` im Kontext des Aufnahme-Tipps anfragen; sichtbare Aufnahmeanzeige | [32][36]; Apple Guideline 2.5.14 [33] | `NSSpeechRecognitionUsageDescription` nur bei `SFSpeechRecognizer`, das nicht verwendet wird [34] |
-| M5 | Exportkontrolle: Frage in App Store Connect beantworten, `ITSAppUsesNonExemptEncryption` setzen | [27][28] | siehe 5.4 |
-| M6 | DSA-Händlerstatus bei Apple und Google mit verifizierter Adresse, Telefon, E-Mail, spätestens vor der Monetarisierung | [38] | Apple veröffentlicht die Angaben in allen EU-Storefronts |
-| M7 | Impressum in der App (§ 5 DDG; Österreich § 5 ECG; Schweiz Art. 3 Abs. 1 lit. s UWG), nicht nur im Store | (unverifiziert) [43] | Einstellungen → Rechtliches |
-| M8 | Altersfreigabe-Fragebögen: Apple (Stufen 4+, 9+, 13+, 16+, 18+; seit September 2026 mit Fragen zu Social-Media-Funktionen), Google IARC | [39] | Reines Tagebuch ohne Empfehlungen: 4+; Zielgruppe im Play Store nicht "Kinder" |
-| M9 | Open-Source-Lizenzhinweise (MIT für Moonshine/WhisperKit, Apache 2.0 für sherpa-onnx mit NOTICE, GPLv3 für den eigenen Code) in der App | Lizenztexte | Einstellungen → Lizenzen |
-| M10 | Keine Gesundheits- oder Diagnoseaussagen, keine automatische Emotionserkennung | MDR/MDCG 2019-11 und BfArM (unverifiziert) [46][47]; Apple Guideline 1.4.1 [33]; AI Act Art. 50 Abs. 3 (unverifiziert) [45] | siehe 5.5 |
-| M11 | Freischaltung nur über Store-In-App-Kauf; der QR-Code darf nichts freischalten | Apple Guideline 3.1.1 [33] | Pairing-Payload enthält nur Schlüsselmaterial |
+| P1 | Datenschutzerklärung, per URL im Store und in der App erreichbar; erklärt Aufbewahrung, Löschung, Kontakt | Apple Guideline 5.1.1(i) [33]; Google User-Data-Richtlinie (unverifiziert) [52] | Text in Abschnitt 6; in der App unter Einstellungen → Datenschutz |
+| P2 | Apple-Label "Es werden keine Daten erfasst", Play Data Safety "Keine Daten erhoben"; bei jeder Änderung aktualisieren | [29][35] | Flugmodus-Protokoll als Beleg |
+| P3 | `PrivacyInfo.xcprivacy` mit Required-Reason-Codes | [30][31] | Abschnitt 4.2 |
+| P4 | `NSMicrophoneUsageDescription`; Android `RECORD_AUDIO` im Kontext des Aufnahme-Tipps anfragen; sichtbare Aufnahmeanzeige | [32][36]; Apple Guideline 2.5.14 [33] | `NSSpeechRecognitionUsageDescription` nur bei `SFSpeechRecognizer`, das nicht verwendet wird [34] |
+| P5 | Exportkontrolle: Frage in App Store Connect beantworten, `ITSAppUsesNonExemptEncryption` setzen | [27][28] | siehe 5.4 |
+| P6 | DSA-Händlerstatus bei Apple und Google mit verifizierter Adresse, Telefon, E-Mail, spätestens vor der Monetarisierung | [38] | Apple veröffentlicht die Angaben in allen EU-Storefronts |
+| P7 | Impressum in der App (§ 5 DDG; Österreich § 5 ECG; Schweiz Art. 3 Abs. 1 lit. s UWG), nicht nur im Store | (unverifiziert) [43] | Einstellungen → Rechtliches |
+| P8 | Altersfreigabe-Fragebögen: Apple (Stufen 4+, 9+, 13+, 16+, 18+; seit September 2026 mit Fragen zu Social-Media-Funktionen), Google IARC | [39] | Reines Tagebuch ohne Empfehlungen: 4+; Zielgruppe im Play Store nicht "Kinder" |
+| P9 | Open-Source-Lizenzhinweise (MIT für Moonshine/WhisperKit, Apache 2.0 für sherpa-onnx mit NOTICE, GPLv3 für den eigenen Code) in der App | Lizenztexte | Einstellungen → Lizenzen |
+| P10 | Keine Gesundheits- oder Diagnoseaussagen, keine automatische Emotionserkennung | MDR/MDCG 2019-11 und BfArM (unverifiziert) [46][47]; Apple Guideline 1.4.1 [33]; AI Act Art. 50 Abs. 3 (unverifiziert) [45] | siehe 5.5 |
+| P11 | Freischaltung nur über Store-In-App-Kauf; der QR-Code darf nichts freischalten | Apple Guideline 3.1.1 [33] | Pairing-Payload enthält nur Schlüsselmaterial |
 
 ### 5.2 Soll
 
@@ -261,6 +285,7 @@ Grundsatz: Behauptungen nur, die technisch stimmen und prüfbar sind. Keine Supe
 9. Store-Labels bei der späteren WLAN-Direktübertragung (Version 1.x): bleibt "keine Daten erfasst" haltbar? Apple-Definition spricht für ja, Sonderfall unverifiziert.
 10. Duress-Modus und zweiter App-Code: Bedarf in der Zielgruppe prüfen, bevor gebaut wird.
 11. Aktuelle Wortlaute von § 25 TDDDG, § 5 DDG, BFSG § 3, nDSG-Artikel, MDCG 2019-11 Rev. 1 und Google-Play-Richtlinien gegen die Primärquellen prüfen (alle in der Sandbox nicht erreichbar).
+12. Uhr-Aufnahmen (Abschnitt 2.7): Landen Watch-App-Daten in iPhone-Backups, und lassen sie sich ausschließen? Laufen libopus und libsodium in tragbarer Größe auf watchOS? Gibt es für Wear OS einen Transport ohne Google-Server? Erst danach wird die Funktion eingeplant.
 
 ## Quellen
 
@@ -316,7 +341,7 @@ Grundsatz: Behauptungen nur, die technisch stimmen und prüfbar sind. Keine Supe
 50. https://cyber.gouv.fr/reglementation-des-moyens-de-cryptologie (nicht abrufbar, unverifiziert)
 51. https://support.google.com/googleplay/android-developer/answer/10787469 (nicht abrufbar, unverifiziert)
 52. https://support.google.com/googleplay/android-developer/answer/10144311 (nicht abrufbar, unverifiziert)
-53. https://github.com/soldair/node-qrcode (QR-Kapazität 2 953 Byte, Version 40, ECC L)
+53. https://github.com/soldair/node-qrcode (QR-Kapazität 2 953 Byte, Version 40, ECC L)
 54. https://github.com/signalapp/Signal-iOS/blob/main/Signal/DeviceTransfer/MultiPeerConnectivity/MPCDeviceTransferSession.swift
 55. https://github.com/cryptomator/docs/blob/main/docs/security/architecture.mdx
 56. https://github.com/standardnotes/app/blob/main/packages/snjs/specification.md
@@ -326,3 +351,10 @@ Grundsatz: Behauptungen nur, die technisch stimmen und prüfbar sind. Keine Supe
 60. https://developer.android.com/privacy-and-security/direct-boot
 61. https://github.com/GrapheneOS/os-issue-tracker/issues/8505 (Auto-Reboot; Apple-Primärquelle zum Inaktivitäts-Neustart nicht abrufbar, unverifiziert)
 62. https://github.com/cryptomator/cryptolib
+63. https://github.com/jedisct1/libsodium-doc/blob/master/public-key_cryptography/sealed_boxes.md (Sealed Boxes: `crypto_box_seal`, ephemeres Schlüsselpaar, X25519 + XSalsa20-Poly1305)
+64. https://developer.apple.com/documentation/watchconnectivity/wcsession/updateapplicationcontext(_:)
+65. https://developer.apple.com/documentation/watchconnectivity/wcsessiondelegate/session(_:didreceive:) (empfangene Datei synchron bewegen, sonst löscht das System sie)
+66. https://developer.apple.com/documentation/avfaudio/avaudioengine/inputnode (watchOS 4.0+)
+67. https://developer.android.com/training/wearables/data/overview (Data Layer: Google Play services, Bluetooth oder Google Cloud, "may at some point use Google-owned servers")
+68. https://developer.android.com/training/wearables/data/data-layer (`Asset` für Sprachaufnahmen); https://github.com/jedisct1/libsodium/blob/master/src/libsodium/include/sodium/crypto_box.h (`crypto_box_SEALBYTES = PUBLICKEYBYTES + MACBYTES`)
+69. https://developer.apple.com/documentation/avfaudio/avaudiorecorder (schreibt in eine Datei-URL; watchOS 4.0+)

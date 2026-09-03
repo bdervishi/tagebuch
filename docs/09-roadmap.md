@@ -2,28 +2,54 @@
 
 Stand: 3. September 2026 · Status: Entwurf
 
-Dieses Dokument ordnet die Arbeit vom ersten technischen Versuch bis zum Store-Start. Es nennt keine Kalenderdaten, sondern Reihenfolge, Ziele, Ergebnisse und Prüfkriterien je Phase sowie grobe Aufwandsklassen. Es setzt `00-anforderungen.md` und die verbindlichen Entscheidungen D1 bis D15 um; die Feature-Stufen stammen aus `03-produktkonzept.md` (Abschnitt 8), die Teststrategie aus `04-technik-architektur.md` (Abschnitt 11), die Rechtspflichten aus `05-sicherheit-und-datenschutz.md`, der Transfer aus `06-geraetewechsel-qr-transfer.md`, der Marktstart aus `07-geschaeftsmodell.md` (Abschnitt 7). Preise stehen nur dort. Der Name ist offen (D11); hier heißt es "die App".
+Dieses Dokument ordnet die Arbeit vom ersten technischen Versuch bis zum Store-Start. Es nennt Reihenfolge, Ziele, Ergebnisse und Prüfkriterien je Phase, Aufwandsklassen mit Stundenschätzung, eine Kapazitätsannahme mit daraus abgeleitetem Zielmonat für Version 1.0 und eine Schnittlinie für Phase 3 (Abschnitt 2). Feste Kalenderdaten gibt es erst nach Phase 1, wenn die Spikes die Rückfallfragen beantwortet haben. Es setzt `00-anforderungen.md` und die verbindlichen Entscheidungen D1 bis D15 um; die Feature-Stufen stammen aus `03-produktkonzept.md` (Abschnitt 8), die Teststrategie aus `04-technik-architektur.md` (Abschnitt 11), die Rechtspflichten aus `05-sicherheit-und-datenschutz.md`, der Transfer aus `06-geraetewechsel-qr-transfer.md`, der Marktstart aus `07-geschaeftsmodell.md` (Abschnitt 7). Preise stehen nur dort. Der Name ist offen (D11); hier heißt es "die App".
 
 ## 1. Leitgedanken der Reihenfolge
 
 1. **Unsicherheit zuerst abbauen.** Die drei Kernversprechen (lokale Transkription auf beiden Plattformen, Verschlüsselung ohne Klartext auf der Platte, Gerätewechsel ohne Cloud) hängen an Annahmen, die keine Recherche ersetzen kann: Apple dokumentiert weder die Hardware-Untergrenze noch die Sprachliste von `SpeechTranscriber` [2][3], für Moonshine Small fehlen belastbare Android-Laufzeitzahlen [7], und ob Play Asset Delivery ohne `INTERNET`-Berechtigung funktioniert, weiß niemand [10]. Deshalb kommen die Spikes vor jeder Oberfläche.
 2. **Jede Phase endet mit einem Nachweis, nicht mit einem Gefühl.** Der Flugmodus-Test aus `04-technik-architektur.md` läuft ab dem ersten durchgehenden Prototyp bei jedem Phasenabschluss.
 3. **Rückfalloptionen sind Teil des Plans.** D1 nennt zweimal nativ als zweite Wahl, D2 den `DictationTranscriber`, D3 den System-Recognizer. Die Roadmap definiert, an welcher Stelle und anhand welcher Zahl umgeschaltet wird.
-4. **Ein Entwickler, kein Team.** Aufwandsklassen sind eigene Schätzungen für eine Person mit Flutter- und etwas Swift/Kotlin-Erfahrung: **S** = wenige Tage, **M** = ein bis drei Wochen, **L** = ein bis zwei Monate, **XL** = mehr als zwei Monate. Sie sind Reihenfolge- und Größenhinweise, keine Zusagen.
+4. **Ein Entwickler, kein Team.** Aufwandsklassen sind eigene Schätzungen für eine Person mit Flutter- und etwas Swift/Kotlin-Erfahrung: **S** = wenige Tage, **M** = ein bis drei Wochen, **L** = ein bis zwei Monate, **XL** = mehr als zwei Monate. Umrechnung in Stunden als Setzung, identisch mit `07-geschaeftsmodell.md` 4.6: ein Personenmonat = 160 Stunden; S = 40, M = 40 bis 120, L = 160 bis 320, XL = 480 bis 640 Stunden. Die Klassen sind Reihenfolge- und Größenhinweise, keine Zusagen; die Stundensumme in Abschnitt 2 ist eine eigene Rechnung ohne externe Quelle.
 
 ## 2. Phasen im Überblick
 
-| Phase | Ziel | Ergebnis | Aufwand |
+| Phase | Ziel | Ergebnis | Aufwand | Stunden (Schätzung) |
+|---|---|---|---|---|
+| 0 Vorbereitung | Entscheidungen des Inhabers, Konten, Geräte, Repository | Beschlossene Punkte aus Abschnitt 13; Testgerätepool; öffentliches Repository mit Konzeptdokumenten | S | 40 |
+| 1 Technische Spikes | Kernannahmen auf echten Geräten prüfen | Messprotokolle, Go/No-go je Spike, ggf. Umschalten auf Rückfalloptionen | L | 160 bis 320 |
+| 2 Durchstich | Ein Eintrag von Aufnahme bis Wiedergabe, verschlüsselt, auf beiden Plattformen | Lauffähiger Prototyp ohne Feinschliff; erster bestandener Flugmodus-Test | M | 40 bis 120 |
+| 3 MVP-Aufbau | Funktionsumfang nach `03-produktkonzept.md` 8.1 | Feature-vollständige App in Deutsch und Englisch | XL | 480 bis 640 |
+| 4 Härtung und interne Alpha | Teststrategie vollständig, Sicherheits-Selbstprüfung, CI mit reproduzierbarem Android-Build | Alpha-Build; Threat-Model und Netzwerk-Null-Nachweis veröffentlicht | L | 160 bis 320 |
+| 5 Beta | TestFlight und Play Closed Testing mit der Privacy-Community | Behobene Blocker, bestätigte Erinnerungs- und Transfer-Zuverlässigkeit, erste Rezensenten | M bis L | 40 bis 320 |
+| 6 Store-Vorbereitung | Listings, Labels, Rechtstexte, Barrierefreiheit, Exportkontrolle | Eingereichte Builds, Launch-Checkliste abgehakt | M | 40 bis 120 |
+| 7 Start und erste Wochen | Gestaffelte Freigabe, Reaktion ohne Telemetrie | Version 1.0 in beiden Stores; F-Droid eingereicht | S bis M | 40 bis 120 |
+| 8 Nach dem Start | Version 1.x nach `03-produktkonzept.md` 8.2 | Eine Geste zum Aufnehmen, Plus-Funktionen, lokale Rückblicke | fortlaufend | nicht enthalten |
+| **Summe bis Version 1.0** | | | | **1.000 bis 2.000 Stunden (6,25 bis 12,5 Personenmonate)** |
+
+Die Summe ist eine eigene Rechnung aus den Klassen oben (Minimal- und Maximalwerte addiert); `07-geschaeftsmodell.md` 4.6 rundet dieselbe Rechnung auf 6 bis 13 Personenmonate. Pflege nach dem Start (jährliche Betriebssystem-Versionen, Modellwechsel, 1.x) ist nicht enthalten. Wartezeiten, die keine Arbeitszeit kosten (DSA-Verifizierung, Beta-App-Review, Store-Review, Angebote für den Krypto-Review), verlängern den Kalender zusätzlich; deshalb beginnt die Checkliste aus Abschnitt 9 schon in Phase 4.
+
+### 2.1 Kapazitätsannahme und Zielmonat
+
+Die Roadmap rechnet mit **einer Person in Vollzeit, 160 Stunden pro Monat** (Setzung, dieselbe wie in `07-geschaeftsmodell.md` 4.6). Daraus folgt:
+
+| Kapazität | Stunden pro Monat | Dauer bis 1.0 bei 1.000 bis 2.000 Stunden | Planungswert (eigene Setzung) |
 |---|---|---|---|
-| 0 Vorbereitung | Entscheidungen des Inhabers, Konten, Geräte, Repository | Beschlossene Punkte aus Abschnitt 13; Testgerätepool; öffentliches Repository mit Konzeptdokumenten | S |
-| 1 Technische Spikes | Kernannahmen auf echten Geräten prüfen | Messprotokolle, Go/No-go je Spike, ggf. Umschalten auf Rückfalloptionen | L |
-| 2 Durchstich | Ein Eintrag von Aufnahme bis Wiedergabe, verschlüsselt, auf beiden Plattformen | Lauffähiger Prototyp ohne Feinschliff; erster bestandener Flugmodus-Test | M |
-| 3 MVP-Aufbau | Funktionsumfang nach `03-produktkonzept.md` 8.1 | Feature-vollständige App in Deutsch und Englisch | XL |
-| 4 Härtung und interne Alpha | Teststrategie vollständig, Sicherheits-Selbstprüfung, CI mit reproduzierbarem Android-Build | Alpha-Build; Threat-Model und Netzwerk-Null-Nachweis veröffentlicht | L |
-| 5 Beta | TestFlight und Play Closed Testing mit der Privacy-Community | Behobene Blocker, bestätigte Erinnerungs- und Transfer-Zuverlässigkeit, erste Rezensenten | M bis L |
-| 6 Store-Vorbereitung | Listings, Labels, Rechtstexte, Barrierefreiheit, Exportkontrolle | Eingereichte Builds, Launch-Checkliste abgehakt | M |
-| 7 Start und erste Wochen | Gestaffelte Freigabe, Reaktion ohne Telemetrie | Version 1.0 in beiden Stores; F-Droid eingereicht | S bis M |
-| 8 Nach dem Start | Version 1.x nach `03-produktkonzept.md` 8.2 | Eine Geste zum Aufnehmen, Plus-Funktionen, lokale Rückblicke | fortlaufend |
+| Vollzeit | 160 | 6,25 bis 12,5 Monate | **12 Monate**: Mitte der Spanne (rund 1.500 Stunden, 9,5 Monate) plus Reserve für einen ausgelösten Rückfall in Phase 1 und eine zweite Beta-Runde |
+| Teilzeit stark, 30 Stunden/Woche | 130 | 7,7 bis 15,4 Monate | 15 Monate |
+| Teilzeit schwach, 15 Stunden/Woche | 65 | 15,4 bis 30,8 Monate | über zwei Jahre |
+
+**Zielmonat:** Version 1.0 in beiden Stores **zwölf Monate nach Beginn von Phase 0**; bei Beginn im Oktober 2026 (Setzung) also Herbst 2027. Bei 15 Stunden pro Woche verschiebt sich 1.0 auf 2028 oder später und das Zeitfenster aus `01-markt-und-wettbewerb.md` Abschnitt 8 (Android-Lücke bei lokaler Deutsch-Transkription, mögliche Google-Journal-App) ist mit hoher Wahrscheinlichkeit zu. Empfehlung: Vollzeit oder mindestens 30 Stunden pro Woche zusagen, sonst den Zielmonat in Abschnitt 13 (Punkt 10) bewusst neu setzen und den Funktionsumfang nach Abschnitt 2.2 von Anfang an kürzen. Der Zielmonat wird am Ende von Phase 1 einmal überprüft und danach nur noch über die Schnittlinie gehalten, nicht über längere Arbeitstage.
+
+### 2.2 Schnittlinie für Phase 3
+
+Phase 3 hat ein Budget von 480 bis 640 Stunden (drei bis vier Vollzeitmonate) für 14 Arbeitspakete plus ein bedingtes (Abschnitt 6). **Kontrollpunkt nach drei Monaten (480 Stunden):** Sind bis dahin die Pakete 1 bis 8 (Aufnahme, Erinnerung, Sperre, Transkript, Suche, Audio-Verwaltung, Backup, Gerätewechsel) nicht fertig und getestet, entfallen für Version 1.0 in dieser Reihenfolge, bis das Restbudget reicht:
+
+1. Paket 14, Kaufgerüst: Plus kommt mit 1.1 (Alternative aus Abschnitt 13, Punkt 4; Beta-Tester erhalten ihre Codes nachträglich).
+2. PDF-Export aus Paket 9: Markdown und JSON bleiben, weil sie die Lock-in-Freiheit sichern; PDF folgt in 1.1.
+3. "Vor einem Jahr" und Monatszahlen aus Paket 5: Volltextsuche und Kalender bleiben.
+4. "Pause bis Datum" und Wochentagsauswahl aus Paket 2: die tägliche Erinnerung mit "In 1 Stunde" und "Heute nicht" bleibt (D7).
+
+Nicht kürzbar sind die Pakete 1 bis 4, 6 bis 8 und 10 bis 13, weil sie die Erfolgskriterien aus `00-anforderungen.md` Abschnitt 5, die Kernversprechen aus D9, D14 und die Barrierefreiheit tragen. Alles Gestrichene bleibt kostenlos und rückt an den Anfang von Phase 8; die Garantie aus D9 ist davon nicht berührt. **Harte Grenze:** Sind nach vier Monaten (640 Stunden) die Pakete 1 bis 8 immer noch nicht fertig, ist das kein Planungs-, sondern ein Architekturproblem (Brücken, Engine, Krypto-Durchsatz); dann entscheidet der Inhaber über Verlängerung mit neuem Zielmonat oder über die Rückfalloption aus D1, nicht die Roadmap. `03-produktkonzept.md` 8.1 sollte die vier kürzbaren Funktionen als "1.0-Reserve" kennzeichnen.
 
 ## 3. Phase 0: Vorbereitung
 
@@ -43,7 +69,7 @@ Jeder Spike ist ein kleines, wegwerfbares Projekt mit einer Messfrage, einem Zie
 | Nr. | Spike | Messfrage | Zielwert | Rückfall, wenn verfehlt | Aufwand |
 |---|---|---|---|---|---|
 | S1 | iOS-Transkription (D2) | Liefert `SpeechTranscriber` auf iOS 26 für de-DE, de-AT, de-CH und en-* nutzbaren Text? Ist `supportedLocales` verlässlich? Wie verhält sich `AssetInventory` beim Erstdownload und nach Wochen Nichtnutzung? | Je Locale ein Validierungslauf mit 3 Minuten Tagebuch-Audio, wie von Apple selbst empfohlen, statt der API zu vertrauen (Apple listete Arabisch fälschlich als unterstützt) [3]; kein Locale-Format-Fehler dank `supportedLocale(equivalentTo:)` [4]; Assets nach Entzug automatisch neu anforderbar; Modelle liegen im Systemspeicher, nicht in der App [5][46] | `DictationTranscriber` mit `.longDictation` als Primärpfad auf betroffenen Locales [6]; falls auch der versagt: WhisperKit large-v3-turbo (626 MB) als Standard statt Zusatzpaket (D2) | M |
-| S2 | Android-Transkription (D3) | Läuft sherpa-onnx mit Moonshine German/English Small Streaming auf dem 4-GB-Samsung? Tatsächliche `.ort`-Dateigrößen, Spitzen-RAM, Echtzeitfaktor (RTF) | RTF ≤ 0,5 auf einem Snapdragon-6/7-Gerät (Zielwert aus dem Android-Bericht, keine öffentlichen Messungen vorhanden) [7][9]; kein Absturz durch die neuen RAM-Limits von Android 17 [60] | Moonshine German Tiny Streaming (34 M Parameter, WER 12,0 %) [7] als Standard auf schwachen Geräten; System-Recognizer nur als Opt-in mit Hinweis (D3) | M |
+| S2 | Android-Transkription (D3) | Läuft sherpa-onnx mit Moonshine German/English Small Streaming auf dem 4-GB-Samsung? Tatsächliche `.ort`-Dateigrößen, Spitzen-RAM, Echtzeitfaktor (RTF). Zusätzlich die Qualität bei **spontaner Sprache**: Die 7,5 % WER von Moonshine German Small sind auf FLEURS + MLS gemessen [7][64], also auf vorgelesener, sauberer Sprache (eigene Einordnung der Testsets); für Abendsprache im Wohnzimmer mit Füllwörtern, Nebengeräuschen und österreichischer oder schweizerischer Färbung gibt es keine veröffentlichte Zahl, und ob Moonshine Interpunktion und Groß-/Kleinschreibung liefert, ist unbekannt. Deshalb Messung an einem **Mini-Korpus**: 10 Sprecher × 3 Minuten spontane Tagebuchsprache (kein Ablesen), darunter mindestens je zwei aus AT und CH in Hochdeutsch, Handy-Mikrofon, Zimmerakustik, mit schriftlicher Einwilligung; Referenz manuell transkribiert. Der Korpus wird in Phase 4 zum Regressionskorpus ausgebaut | RTF ≤ 0,5 auf einem Snapdragon-6/7-Gerät (Zielwert aus dem Android-Bericht, keine öffentlichen Messungen vorhanden) [7][9]; kein Absturz durch die neuen RAM-Limits von Android 17 [60]; **WER ≤ 12 % auf dem Mini-Korpus** (Setzung: die Marke, bei der die Moonshine-Dokumentation selbst nur noch das Tiny-Modell ansiedelt [7]) und **Interpunktion sowie Groß-/Kleinschreibung** im Ergebnis vorhanden oder mit Paket 15 aus Abschnitt 6 erreichbar | Entscheidungsbaum, Ergebnis vor Phase 3: (a) alle Schwellen bestanden: Moonshine Small bleibt Standard (D3). (b) nur RTF verfehlt: Moonshine German Tiny Streaming (34 M, 12,0 % auf FLEURS + MLS) [7] auf schwachen Geräten, sofern Tiny die WER-Schwelle auf dem Korpus ebenfalls hält, sonst (c). (c) WER verfehlt: Entscheidung des Inhabers (Abschnitt 13, Punkt 9) zwischen Parakeet TDT 0.6B v3 int8 als Standard (≈ 640 MB [8]; eine einzelne, unbestätigte Nutzermessung nennt 1,23 GB RAM beim Laden auf iOS [62]) mit Anhebung des Android-Richtwerts aus D13 von 4 auf 6 GB und Verzicht auf die Erzählung "kleines Modell", oder System-Recognizer als Opt-in mit Hinweis (D3) bei 4 GB. (d) keine Interpunktion oder Kasus: Paket 15 in Phase 3 wird aktiv. In jedem Fall gilt: Store-Formulierungen zur Deutsch-Qualität erst nach dieser Messung (Abschnitt 9) | M; der Korpus mit Referenztranskripten kostet etwa eine zusätzliche Woche (Setzung) |
 | S3 | Modellauslieferung und Bezahlung ohne `INTERNET` (D3, D14) | Funktionieren Play Asset Delivery (`fast-follow`, `on-demand`) und die Play Billing Library, wenn die App keine `INTERNET`-Berechtigung deklariert? | Modelle kommen an, Kauf lässt sich abschließen; `dumpsys package` zeigt keine `INTERNET`-Berechtigung [10] | Modelle im APK/AAB bündeln (Größe prüfen) oder Berechtigung bewusst aufnehmen und auf der Transparenzseite erklären; Entscheidung an Inhaber | S |
 | S4 | Verschlüsselung und Schlüsselverwahrung (D4, D5) | Durchsatz von `crypto_secretstream_xchacha20poly1305` in 64-KiB-Chunks aus Dart heraus während der Aufnahme; Argon2id 64 MiB/t=3 auf dem 4-GB-Gerät; nutzt `flutter_secure_storage` 11 StrongBox oder nur TEE; überlebt der iOS-Keychain-Eintrag eine Deinstallation; SQLCipher via `sqlite3` mit `source: sqlcipher` und Raw-Key | Verschlüsselung hält mit der Aufnahme mit, kein Klartext-Audio im Sandbox-Verzeichnis (Scan nach OGG/WAV-Magic-Bytes); Argon2id unter einer Sekunde (libsodium nennt eine Sekunde als akzeptables Maximum) [16][17][18][19][20]; Keystore-Schutzstufe protokolliert [21] | Bei fehlender StrongBox-Anbindung eigene Kotlin-Brücke (D1 c); bei zu langsamer Ableitung Parameter im Rahmen der OWASP-Äquivalente senken (dokumentieren) [17] | M |
 | S5 | Transfer und Container (D6) | Round-Trip Export/Import iOS→Android und Android→iOS mit Testdaten von 131 MB und 197 MB (Rechenbasis D6); QR unter 200 Byte lesbar (ein QR fasst höchstens 2953 Byte) [45]; HKDF im Dart-Paket `sodium` vorhanden; Übergabe per Dateien-App, AirDrop, Quick Share, USB-Stick | Gesamtzeit unter fünf Minuten je Weg (Erfolgskriterium `00-anforderungen.md`); Abschneiden und Umsortieren werden erkannt [16] | Fehlt HKDF: `crypto_kx` mit BLAKE2b (siehe `06-geraetewechsel-qr-transfer.md`); dauert die Übergabe zu lang: Container in Teile splitten | M |
@@ -72,7 +98,7 @@ Empfehlung: Den Durchstich auf Flutter stable 3.47.x (D1) [1] und nicht wegwerfe
 
 **Ziel:** Der Funktionsumfang aus `03-produktkonzept.md` 8.1, in dieser Reihenfolge (jede Zeile ist ein abschließbares Arbeitspaket mit eigenem Test):
 
-1. Aufnahmebildschirm "Heute", Pause, Fertig, mehrere Aufnahmen pro Tag, Nachträge (M1, M3, A4).
+1. Aufnahmebildschirm "Heute", Pause, Fertig, mehrere Aufnahmen pro Tag, Nachträge (M1, M3, A4); Testfall aus `07-geschaeftsmodell.md` 4.3: Hinweis bei 4:30, weicher Stopp bei 5:00 mit "Ergänzen", kein Audio wird verworfen.
 2. Tägliche Erinnerung mit "In 1 Stunde", "Heute nicht", Pause bis Datum, Aufnahme aus der Benachrichtigung (D7).
 3. App-Sperre, Privacy-Overlay, `FLAG_SECURE`, Benachrichtigungen ohne Inhalt (D5).
 4. Transkriptanzeige, Bearbeiten mit Original, neu transkribieren, feste Sprachwahl (D12).
@@ -86,6 +112,7 @@ Empfehlung: Den Durchstich auf Flutter stable 3.47.x (D1) [1] und nicht wegwerfe
 12. Barrierefreiheit über den gesamten Fluss: VoiceOver/TalkBack, Schriftskalierung, Kontrast, Reduce Motion.
 13. Lokalisierung Deutsch (mit Schweizer Orthografie für de-CH) und Englisch.
 14. In-App-Kauf-Gerüst (StoreKit 2, Play Billing) für Plus, sofern der Inhaber Plus zum Start freigibt (Abschnitt 13, Punkt 4).
+15. **Bedingt, Ergebnis S2:** Nachbearbeitung für Interpunktion und Groß-/Kleinschreibung auf Android, falls Moonshine sie nicht liefert. `03-produktkonzept.md` Abschnitt 6 kündigt diese Nachbearbeitung an, ohne sie als Komponente zu benennen; hier ist sie ein eigenes Paket: on-device, Deutsch und Englisch, nach der Erkennung und vor dem Speichern. Ob sherpa-onnx ein für Deutsch taugliches Interpunktionsmodell mitbringt, wurde in der Recherche nicht untersucht (Prüfpunkt in S2); ohne Modell bleibt ein regelbasierter Ansatz (Satzgrenzen aus Sprechpausen, Großschreibung am Satzanfang und über ein Substantivwörterbuch), der sichtbar schwächer ist. Aufwand M (Setzung). Zeigt S2, dass das Modell Interpunktion liefert, entfällt das Paket, und der Satz in `03-produktkonzept.md` ist zu streichen. Ob `SpeechTranscriber` auf iOS Interpunktion und Groß-/Kleinschreibung liefert, prüft S1 im selben Validierungslauf mit; nach heutigem Stand betrifft das Paket nur den Android-Pfad.
 
 **Prüfkriterium:** Jedes Paket hat Unit- oder Integrationstests nach `04-technik-architektur.md` 11; die Erfolgskriterien aus `00-anforderungen.md` 5 sind im Flugmodus-Test nachweisbar (ein Tipp bis Aufnahme; Deutsch und Englisch offline; Eintrag nach Sperre nur mit Code/Biometrie; Gerätewechsel unter fünf Minuten).
 
@@ -168,6 +195,7 @@ Die Checkliste fasst `05-sicherheit-und-datenschutz.md` (Rechtspflichten) und di
 - [ ] Store-Seiten Deutsch (DE, AT, CH) und Englisch; Keyword-Hypothesen aus `07-geschaeftsmodell.md` 7.2.
 - [ ] Screenshots je Gerätetyp: Aufnahme mit einem Tipp, Transkript, Kalender, Transparenzseite "Was verlässt dein Gerät: nichts", Gerätewechsel per QR. Keine Screenshots mit echten Tagebuchtexten; Demo-Daten kennzeichnen.
 - [ ] Garantie im Store-Text: kostenlose Funktionen werden nie kostenpflichtig (D9).
+- [ ] Aussagen zur Deutsch-Qualität ("Deutsch erstklassig" oder Ähnliches) nur, wenn S2 und der Regressionskorpus aus Phase 4 die WER-Schwelle auf spontaner Sprache belegen; sonst neutral formulieren. Wortwahl für das Zusatzpaket nach `07-geschaeftsmodell.md` 4.3 ("größeres Modell für schwierige Aufnahmen", nicht "besseres Deutsch").
 - [ ] Website statisch, ohne Tracking, mit Datenschutzerklärung, Impressum, Pressemappe, Link zum Repository.
 - [ ] Accessibility Nutrition Labels (iOS 26+) ausfüllen; derzeit freiwillig, von Apple als künftige Pflicht angekündigt [28].
 - [ ] Barrierefreiheits-Abnahme: VoiceOver/TalkBack-Durchlauf, Schriftskalierung, Kontrast, Reduce Motion, protokolliert.
@@ -206,26 +234,42 @@ Reihenfolge aus `03-produktkonzept.md` 8.2, sortiert nach Nutzen für das tägli
 | Risiko | Folge | Entschärfung in der Roadmap |
 |---|---|---|
 | `SpeechTranscriber` liefert für de-CH oder auf bestimmten Geräten nichts Brauchbares; Hardware-Untergrenze ist nicht offiziell [2][3] | iOS-Kernversprechen wackelt | S1 vor allem anderen; Validierungslauf je Locale; `DictationTranscriber`-Fallback bereits im Durchstich verdrahtet |
-| Moonshine Small ist auf 4-GB-Android zu langsam oder zu groß [7] | Android-Nutzer warten oder die App stürzt ab | S2 mit RTF-Zielwert; Tiny-Modell als Rückfall; Mindestanforderung D13 ggf. nach oben korrigieren, bevor Store-Texte entstehen |
+| Moonshine Small ist auf 4-GB-Android zu langsam, zu groß oder bei spontaner Sprache deutlich schlechter als die 7,5 % auf vorgelesenem Material [7][64]; Interpunktion und Groß-/Kleinschreibung ungeklärt | Android-Nutzer warten, die App stürzt ab, oder das kostenlose Deutsch-Versprechen trägt nicht; der Rückfall Parakeet (≈ 640 MB [8], unbestätigte Messung 1,23 GB RAM [62]) kippt den 4-GB-Richtwert aus D13 | S2 mit RTF-Zielwert, Mini-Korpus spontaner Sprache (AT, CH, Zimmerakustik) und WER-Schwelle; Entscheidungsbaum mit Inhaberentscheid vor Phase 3 (Abschnitt 13, Punkt 9); bedingtes Paket 15 für Interpunktion; Mindestanforderung und Store-Text erst nach Messung festlegen |
 | Play Asset Delivery oder Billing braucht `INTERNET` [10] | Stärkster Netz-Nachweis auf Android entfällt | S3 in Phase 1; Entscheidung des Inhabers mit beiden Optionen vor Phase 3 |
 | Native Brücken wachsen über ein Plugin hinaus | Flutter-Vorteil schmilzt, Wartung verdoppelt sich | S8 als expliziter Prüfpunkt; Rückfall zweimal nativ vor Phase 3, nicht danach |
 | Datenverlust durch Migration, Aufnahmeabbruch oder Backup, das nicht wiederherstellt [43][44] | Vertrauensbruch, der für ein Tagebuch nicht heilbar ist | Migrationstests ab Version 1 des Schemas; Abbruchfälle in S6; Wiederherstellungstest im Onboarding; Beta-Ausstiegskriterium "kein Datenverlust" |
 | Erinnerungen bleiben auf Hersteller-Android aus [15] | Ritual bricht, Retention der Kategorie ist ohnehin niedrig (30-Tage-Retention von Mental-Health-Apps auf Android im niedrigen einstelligen Prozentbereich; Sekundärquelle, unverifiziert) [57] | S7 auf drei Geräten; Onboarding-Schritt; Beta-Frage 1 auf fremden Geräten |
 | Store-Ablehnung oder falsche Labels (Datenschutz, Exportkontrolle, Altersfreigabe, 3.1.1) | Startverzögerung, im schlimmsten Fall falsche öffentliche Aussage | Checkliste ab Phase 4; Flugmodus-Protokoll als Beleg; QR ohne Freischaltfunktion; Exportkontroll-Einordnung schon in Phase 1 |
 | Rechtsquellen waren in der Recherche nicht erreichbar (D15) | Pflichten könnten anders lauten als beschrieben | Alle als unverifiziert markierten Punkte vor Phase 6 gegen Primärquellen prüfen; Rechtsbausteine budgetieren |
-| Ein Entwickler, Plattformwechsel jedes Jahr | Wartungsschulden, Modelle veralten | Kleiner Funktionsumfang im MVP; STT-Regressionskorpus, CI, jährlicher Pflegeblock in Phase 8 eingeplant |
+| Ein Entwickler, Plattformwechsel jedes Jahr | Wartungsschulden, Modelle veralten; bei Teilzeit verpasst 1.0 das Zeitfenster (Abschnitt 2.1) | Kleiner Funktionsumfang im MVP; Kapazitätsannahme und Zielmonat explizit, Schnittlinie in Phase 3 (Abschnitt 2.2); STT-Regressionskorpus, CI, jährlicher Pflegeblock in Phase 8 eingeplant |
 | Privacy-Publikum reagiert auf nachträgliche Bezahlschranken empfindlich | Rezensionen, Verlust der Kernzielgruppe | Garantie "kostenlose Funktionen bleiben kostenlos" ab Store-Text 1.0 (D9); Plus nur mit neuen Funktionen |
 
 ## 13. Was der Inhaber jetzt entscheiden muss
 
-1. **Name (D11):** Arbeitstitel "Abendton", Alternativen "Tonlade", "Tagschloss". Die manuelle Nachprüfung fand für keinen Favoriten eine App oder Marke gleichen Namens, konnte aber weder App Store, Play Store noch DPMA/EUIPO/Swissreg direkt abfragen; "Tagschloss" ist wegen der vielen "Tagebuch mit Schloss"-Apps schwer abgrenzbar [61]. Vor Phase 3 nötig: Store-Suche, Markenrecherche, Domains (.app, .de, .ch).
+1. **Name (D11):** Arbeitstitel und Alternativen siehe `08-namensfindung.md`, Abschnitt 7; Prüfpflichten dort Abschnitt 8. Die interne Nachprüfung fand für keinen Favoriten eine App oder Marke gleichen Namens, konnte aber weder App Store, Play Store noch DPMA/EUIPO/Swissreg direkt abfragen [61]. Vor Phase 3 nötig: Store-Suche, Markenrecherche, Domains (.app, .de, .ch).
 2. **Lizenz (D10):** GPLv3 mit Store-Builds und Marke beim Inhaber, oder Open Core. Entscheidet über F-Droid, Privacy-Guides-Listung und den Aufbau des Krypto-Kerns als separate Bibliothek; muss vor dem ersten öffentlichen Commit feststehen.
 3. **Rechtsform und veröffentlichte Adresse:** Einzelunternehmen genügt; der DSA-Händlerstatus veröffentlicht Adresse, Telefon und E-Mail in allen EU-Storefronts [31]. Wer die Privatadresse nicht zeigen will, braucht eine c/o-Lösung oder eine Gesellschaft (Kosten siehe `07-geschaeftsmodell.md`).
 4. **Plus zum Start oder in 1.1:** `07-geschaeftsmodell.md` plant Lifetime-Codes für Beta-Tester, `03-produktkonzept.md` legt alle Plus-Funktionen in 1.x. Empfehlung: Kaufgerüst und ein kleines Plus (30-Minuten-Aufnahmen) bereits in 1.0, weil DSA-Status, In-App-Kauf-Review, Billing-ohne-`INTERNET`-Test (S3) und Tester-Codes dann nur einmal durchlaufen werden und die Garantie "kostenlos bleibt kostenlos" von Anfang an sichtbar ist. Alternative: 1.0 vollständig kostenlos, Plus mit 1.1.
 5. **Modellauslieferung, falls S3 scheitert:** Modelle bündeln (größerer Download, saubere Aussage "keine INTERNET-Berechtigung") oder Berechtigung aufnehmen und erklären.
-6. **Budget für externe Prüfung:** Kurz-Review des Krypto-Kerns vor der Beta und Rechtsprüfung der unverifizierten Punkte (Impressum, Exportkontrolle, Play-Richtlinien, MDR-Abgrenzung) vor Phase 6.
-7. **Testgeräte:** Freigabe für den Pool aus Phase 0 (ein neueres und ein älteres iPhone, Pixel, Samsung-Mittelklasse, Xiaomi).
+6. **Budget für externe Prüfung:** Kurz-Review des Krypto-Kerns vor der Beta (5.000 bis 15.000 €) und Rechtsprüfung der unverifizierten Punkte (Impressum, Exportkontrolle, Play-Richtlinien, MDR-Abgrenzung, GPL und Store) vor Phase 6 (1.000 bis 3.000 €); Beträge sind Setzungen aus der Budgettabelle in Abschnitt 13.1, vor Beauftragung Angebote einholen.
+7. **Testgeräte:** Freigabe für den Pool aus Phase 0 (ein neueres und ein älteres iPhone, Pixel, Samsung-Mittelklasse, Xiaomi), 2.000 bis 3.000 € (Setzung, Abschnitt 13.1).
 8. **Beta-Rekrutierung:** Wer spricht die 50 bis 100 Tester aus der Privacy-Community an, und unter welchem Namen, falls der Produktname noch nicht feststeht?
+9. **Rückfall Android-Qualität, falls S2 die WER-Schwelle verfehlt:** Parakeet TDT 0.6B v3 int8 als Standardmodell mit Anhebung des Android-Richtwerts aus D13 auf 6 GB RAM und größerem Erstdownload (≈ 640 MB [8]), oder System-Recognizer als Opt-in mit Hinweis bei 4 GB (D3). Die Entscheidung ändert D13 und den Store-Text und muss vor Phase 3 fallen.
+10. **Kapazität und Zielmonat:** Bestätigung der Annahme "Vollzeit, 160 Stunden pro Monat" aus Abschnitt 2.1 oder Festlegung einer anderen Kapazität mit neu gerechnetem Zielmonat; bei weniger als 30 Stunden pro Woche zugleich Entscheidung, welche Pakete aus Abschnitt 2.2 von vornherein in 1.1 rücken.
+
+### 13.1 Budget für externe Ausgaben
+
+Die Beträge sind Setzungen ohne externe Quelle und stehen wortgleich in `07-geschaeftsmodell.md` 4.6; Änderungen erfolgen nur in beiden Dokumenten gleichzeitig. Arbeitszeit ist nicht enthalten (Abschnitt 2); laufende Kosten (Apple Developer Program 99 $/Jahr, Domain, mit UG oder GmbH zusätzlich ab rund 1.000 €/Jahr) stehen dort.
+
+| Posten | Herkunft der Empfehlung | Betrag |
+|---|---|---|
+| Bezahlter Kurz-Review des Krypto- und Containerkerns | Abschnitt 7 dieses Dokuments; `05-sicherheit-und-datenschutz.md` Abschnitt 4.2 | 5.000 bis 15.000 € (Setzung) |
+| Rechtsprüfung der unverifizierten Punkte (Impressum, Exportkontrolle, Play-Richtlinien, MDR-Abgrenzung, GPL und Store) | Abschnitt 13, Punkt 6; `07-geschaeftsmodell.md` Abschnitt 6 | 1.000 bis 3.000 € (Setzung) |
+| Testgerätepool, fünf Geräte (zwei iPhones, Pixel, Samsung-Mittelklasse, Xiaomi) | Phase 0 | 2.000 bis 3.000 € (Setzung) |
+| Entwicklerkonten und Rechtsbausteine | [41][63] | Apple 99 $/Jahr, Google 25 $ einmalig, Rechtsbausteine rund 300 € |
+| **Summe einmalig, ohne Arbeitszeit** | | **rund 8.000 bis 21.000 €** |
+
+Am Krypto-Review und an der Rechtsprüfung wird nicht gespart, weil beide das Kernversprechen tragen; sparen lässt sich am Gerätepool (gebrauchte Geräte, Leihgeräte aus der Community), nicht an seiner Zusammensetzung.
 
 ## 14. Offene Fragen
 
@@ -236,6 +280,9 @@ Reihenfolge aus `03-produktkonzept.md` 8.2, sortiert nach Nutzen für das tägli
 5. Ob eine zweite Beta-Runde speziell für Schweizer Nutzer (de-CH, Hochdeutsch-Hinweis) sinnvoll ist oder die erste Runde reicht.
 6. Umfang des externen Krypto-Reviews: nur Containerformat und Schlüsselhierarchie oder auch die nativen Brücken.
 7. Wie Erfolg ohne Telemetrie nach dem Start definiert wird (Downloads, Bewertungen, Support-Volumen) und ab welchem Wert Phase 8 priorisiert wird.
+8. Ob Moonshine German Small Streaming Interpunktion und Groß-/Kleinschreibung ausgibt und ob sherpa-onnx ein deutsches Interpunktionsmodell mitbringt; davon hängt Paket 15 in Phase 3 ab (S2).
+9. Ob die WER-Schwelle von 12 % auf spontaner Sprache (Setzung in S2) die richtige Marke ist; ein Vergleichswert wäre der iOS-Pfad auf demselben Mini-Korpus, den S1 deshalb mitmessen sollte.
+10. Kapazität des Entwicklers (Abschnitt 2.1): Vollzeit ist angenommen, nicht bestätigt; bei Teilzeit sind Zielmonat und Schnittlinie neu zu setzen.
 
 ## Quellen
 
@@ -300,3 +347,6 @@ Reihenfolge aus `03-produktkonzept.md` 8.2, sortiert nach Nutzen für das tägli
 59. Apple News, Einreichung für iOS 26 geöffnet (9. 9. 2025): https://developer.apple.com/news/?id=6lxhtioi
 60. Android 17, Verhaltensänderungen (App-Speicherlimits, Native-Libs read-only): https://developer.android.com/about/versions/17/behavior-changes-all
 61. Interne Nachprüfung der Namensfavoriten (3. 9. 2026): `docs/recherche/namensfindung/nachpruefung.md`
+62. sherpa-onnx Issue #2626, einzelne Nutzermessung 1,23 GB RAM beim Laden von parakeet-tdt-0.6b-v3-int8 auf iOS (geschlossen, ohne sichtbare Bestätigung der Maintainer): https://github.com/k2-fsa/sherpa-onnx/issues/2626
+63. Recherchebericht Geschäftsmodell (Rechenannahmen, Fixkosten, Rechtsbausteine): `docs/recherche/geschaeftsmodell.md`
+64. Moonshine, Genauigkeitstabelle (German Small Streaming 7,5 % und Tiny 12,0 % auf FLEURS + MLS, quantisiert ausgeliefert): https://raw.githubusercontent.com/moonshine-ai/moonshine/main/docs/models/accuracy.md

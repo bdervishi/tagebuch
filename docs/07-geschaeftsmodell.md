@@ -4,12 +4,14 @@ Stand: 3. September 2026 · Status: Entwurf
 
 Dieses Dokument beantwortet M10 aus `00-anforderungen.md` (wirtschaftliche Verwertbarkeit) und setzt die verbindlichen Entscheidungen D9 (Preismodell) und D10 (Lizenz) um. Es ist das einzige Konzeptdokument, das Preise nennt und Erlöse rechnet. Marktdaten und Wettbewerber stehen in `01-markt-und-wettbewerb.md`, die rechtlichen Pflichten in `05-sicherheit-und-datenschutz.md` (Abschnitt 5); hier werden sie nur so weit wiederholt, wie das Geschäftsmodell davon abhängt.
 
-Hinweis zur Quellenlage: Eine Faktenprüfung (`verifikation.json`) lag zum Redaktionsschluss nicht vor. Plattformregeln von Apple und Google sind aus Primärquellen belegt. Wettbewerberpreise, Branchen-Benchmarks (RevenueCat, Adapty) und Marktgrößen stammen aus Suchsnippets oder Drittzitaten und sind mit "(unverifiziert)" gekennzeichnet. Alle Erlösrechnungen sind eigene Rechnungen mit offen gelegten Annahmen.
+Hinweis zur Quellenlage: Die Faktenprüfung (`docs/recherche/verifikation.json`) umfasst 30 technische Aussagen; keine Preis-, Benchmark- oder Marktzahl dieses Dokuments war darunter. Plattformregeln von Apple und Google sind aus Primärquellen belegt. Wettbewerberpreise, Branchen-Benchmarks (RevenueCat, Adapty) und Marktgrößen stammen aus Suchsnippets oder Drittzitaten und sind mit "(unverifiziert)" gekennzeichnet. Alle Erlösrechnungen sind eigene Rechnungen mit offen gelegten Annahmen.
 
 ## 1. Ergebnis in Kürze
 
-- **Empfehlung: "Kostenloser Kern für immer + Plus" (D9, Variante B).** Alle Kernversprechen (Aufnahme, lokale Transkription Deutsch/Englisch, Wiedergabe, Suche, Verschlüsselung, Erinnerung, Backup, QR-Gerätewechsel, offener Export) sind dauerhaft kostenlos. Plus kostet 14,99 €/Jahr, 1,99 €/Monat oder 44,99 € einmalig (Lifetime), mit Familienfreigabe und 7-Tage-Test nur im Jahresabo.
-- **Erwartung realistisch halten.** Mit 10.000 Downloads im ersten Jahr und 2 % Zahlern ergibt Variante B rund 3.100 € Auszahlung im ersten und rund 3.600 € im zweiten Jahr (eigene Rechnung, Abschnitt 4). Das Produkt finanziert Nebenkosten und wächst mit den Downloads; ein Vollzeit-Einkommen ist im ersten Jahr nicht zu erwarten. Branchenmediane für Abo-Apps liegen bei rund 500 $ Monatsumsatz (unverifiziert) [12].
+- **Empfehlung: "Kostenloser Kern für immer + Plus" (D9, Variante B).** Alle Kernversprechen (Aufnahme, lokale Transkription Deutsch/Englisch, Wiedergabe, Suche, Verschlüsselung, Erinnerung, Backup, QR-Gerätewechsel, offener Export) sind dauerhaft kostenlos. Plus kostet 14,99 €/Jahr, 1,99 €/Monat oder 44,99 € einmalig (Lifetime, zugleich Unterstützer-Lizenz), mit Familienfreigabe und 7-Tage-Test nur im Jahresabo. Die einzige Grenze im kostenlosen Kern, 5 Minuten, gilt je Aufnahme, nicht je Tag (Abschnitt 4.3).
+- **Plus ab Version 1.0, klein und mit einer greifbaren Hauptleistung je Plattform** (Abschnitt 4.3): Kaufgerüst, 30-Minuten-Aufnahmen und mehrere Tagebücher auf beiden Plattformen, auf Android zusätzlich das Zusatzpaket "Hohe Genauigkeit"; die iOS-Fassung des Pakets, Zusammenfassungen und Gestaltung folgen in 1.x. Das ist die Empfehlung aus `09-roadmap.md` (Abschnitt 13, Punkt 4), hier konkretisiert; `03-produktkonzept.md` ist entsprechend anzupassen.
+- **Erwartung realistisch halten, als Bandbreite.** Die Auszahlung im ersten Jahr liegt je nach Szenario zwischen rund 330 € (3.000 Downloads, 1 % Zahler) und rund 11.200 € (30.000 Downloads, 2,5 %); das Basisszenario (10.000 Downloads, 1,5 %) ergibt rund 2.000 €, die D9-Punktannahmen (10.000, 2 %) rund 3.100 € (eigene Rechnung, Abschnitt 4.3). Branchenmediane für Abo-Apps liegen bei rund 500 $ Monatsumsatz (unverifiziert) [12].
+- **Nebenerwerb mit Unterstützer-Erlösen, kein Geschäft.** Dem stehen nach den Aufwandsklassen aus `09-roadmap.md` rund 6 bis 13 Personenmonate Arbeit und 8.000 bis 21.000 € externe Einmalausgaben (Krypto-Review, Rechtsprüfung, Testgeräte; Bandbreiten als Setzung) gegenüber. Sobald die Arbeitszeit mitgerechnet wird, amortisiert sich die Investition in keinem Szenario unter drei Jahren; nur das optimistische Szenario deckt die externen Ausgaben innerhalb von zwei Jahren (Abschnitt 4.6). M10 ist damit beantwortet: verwertbar als Nebenerwerb mit wachsendem wiederkehrendem Anteil und B2B-Option ab Jahr 2, nicht als Haupterwerb im Planungshorizont.
 - **Bezahlen ohne Datenabfluss ist möglich:** StoreKit 2 und Google Play Billing arbeiten ohne eigenen Server und ohne Drittanbieter-SDK; Kaufbelege werden auf dem Gerät geprüft (Abschnitt 5).
 - **Lizenz (D10): GPLv3 für den Quellcode, Marke und Store-Builds beim Inhaber, Android zusätzlich über F-Droid.** Das kostet Erlöse aus dem F-Droid-Publikum, ist aber Voraussetzung für Listungen bei Privacy Guides und Kuketz und der stärkste Beleg für "es geht nichts ins Netz".
 - **Go-to-Market ohne Werbebudget:** Privacy-Community DACH (Kuketz, heise, Mastodon, Reddit), Verzeichnisse (Privacy Guides, awesome-privacy, AlternativeTo), F-Droid, lokalisierte Store-Seiten mit klaren Keywords.
@@ -63,12 +65,14 @@ Branchenbenchmarks zur Einordnung (RevenueCat 2025/2026, Adapty 2026; alle unver
 
 ### 4.1 Gemeinsame Annahmen
 
-Alle drei Varianten teilen den kostenlosen Kern aus D9. Die Rechnung ist bewusst konservativ und stammt aus dem Recherchebericht; ich habe sie nachgerechnet.
+Alle drei Varianten teilen den kostenlosen Kern aus D9. Die Punktannahmen stammen aus D9 und dem Recherchebericht [15]; ich habe die Rechnung nachgerechnet. Sie ist nicht konservativ, sondern ein Mittelwert nach oben: Die Downloads sind eine Setzung, die Zahlerquote stammt aus nordamerikanischen Daten mit Test- und Hard-Paywall-Trichtern, und der F-Droid-Build enthält alle Plus-Funktionen kostenlos (D10). Deshalb rechnet Abschnitt 4.3 zusätzlich drei Szenarien.
 
 | Annahme | Wert | Herkunft |
 |---|---|---|
-| Downloads im ersten Jahr | 10.000 (organisch, DACH) | D9; Größenordnung eines Indie-Starts ohne Werbebudget |
-| Download-zu-Zahler | 2 % (Abo-Modelle), 3 % (reiner Einmalkauf), 2,5 % (Update-Pass) | RevenueCat-Median 1,7 % bis Top 4,2 % (unverifiziert) [11]; Einmalkauf ohne Test konvertiert erfahrungsgemäß besser |
+| Downloads im ersten Jahr | 10.000 (organisch, DACH) | Setzung aus D9, keine hergeleitete Zahl. Vergleichswerte im eigenen Material: WhisperJournal (Android, kostenlos, kein Ritual) rund 1.100 Downloads; Diarium rund 740.000 Android-Downloads über viele Jahre; der Recherchebericht hält 50.000 bis 200.000 Downloads über drei Jahre für ein Erfolgsszenario (alle unverifiziert) [5][15][45]. Suchvolumen und Reichweite der Privacy-Medien waren nicht prüfbar (offene Frage 2) |
+| Download-zu-Zahler | 2 % (Abo-Modelle), 3 % (reiner Einmalkauf), 2,5 % (Update-Pass); Szenarien 1 %, 1,5 %, 2,5 % | RevenueCat: Median 1,7 %, Top-Apps 4,2 %, Freemium nach 35 Tagen 2,1 %; Daten aus Nordamerika, überwiegend mit Test oder harter Bezahlschranke (unverifiziert) [11]. Hier: großzügiger Gratis-Kern und F-Droid-Build, deshalb Bandbreite nach unten |
+| Lifetime-Anteil an den Zahlern | 25 % (D9-Punktwert); Szenarien 10 bis 25 % | Setzung; 44,99 € liegt über dem Einmalkauf-Anker des Segments (Abschnitt 3), deshalb im pessimistischen Fall 10 % |
+| Erstattungen und unfreiwillige Kündigung | 0 % (D9-Punktwert); Szenarien 5 bis 10 % der Abo-Erlöse | RevenueCat 2025: Erstattungsquote 2,55 % (Productivity) bis 4,71 % (Health & Fitness); RevenueCat 2026: unfreiwillige Kündigung durch Zahlungsfehler iOS 14 %, Android 31 % (unverifiziert) [11]; Abzug als eigene Zusammenfassung beider Effekte |
 | Store-Abgabe | 15 % | Apple Small Business Program (bis 1 Mio. $ Vorjahres-Proceeds) [13]; Google Play 15 % auf die erste Million und alle Abos (unverifiziert) [14] |
 | Mehrwertsteuer im Ladenpreis | 19 % (Deutschland) | D9; Österreich 20 % und Schweiz 8,1 % weichen ab (unverifiziert) |
 | Auszahlung je Euro Ladenpreis | 1/1,19 × 0,85 = 0,714, also rund 71 % | eigene Rechnung |
@@ -86,20 +90,33 @@ Vorteile: höchste Akzeptanz beim Privacy-Publikum (Flint-, Diarium-Muster), ein
 
 ### 4.3 Variante B: kostenloser Kern + Plus (Empfehlung, D9)
 
-Plus: 14,99 €/Jahr, 1,99 €/Monat, Lifetime 44,99 € (dreifacher Jahrespreis als Anker). 7-Tage-Test nur im Jahresabo, Familienfreigabe aktiv.
+Plus: 14,99 €/Jahr, 1,99 €/Monat, Lifetime 44,99 € (dreifacher Jahrespreis als Anker, zugleich als Unterstützer-Lizenz beschrieben). 7-Tage-Test nur im Jahresabo, Familienfreigabe aktiv.
+
+**Rechnung mit den D9-Punktannahmen** (Referenz, eigene Rechnung):
 
 - Jahr 1: 200 Zahler, Mischung 55 % Jahr / 20 % Monat / 25 % Lifetime. 110 × 14,99 € = 1.649 € + 40 × 1,99 € × 5 Monate = 398 € + 50 × 44,99 € = 2.250 €. Summe 4.297 € brutto, Auszahlung rund 3.070 €.
 - Jahr 2: gleiche Neukohorte 4.297 € + 48 Verlängerer × 14,99 € = 726 €. Summe 5.023 € brutto, Auszahlung rund 3.590 €.
-- Jahr 3: 4.297 € + 726 € (Verlängerer aus Jahr 2) + 21 × 14,99 € = 315 € (zweite Verlängerung aus Jahr 1). Summe rund 5.340 € brutto, Auszahlung rund 3.810 € (eigene Rechnung; der Recherchebericht nennt rund 3.900 €).
+- Jahr 3: 4.297 € + 726 € (Verlängerer aus Jahr 2) + 21 × 14,99 € = 315 € (zweite Verlängerung aus Jahr 1). Summe rund 5.340 € brutto, Auszahlung rund 3.810 € (der Recherchebericht nennt rund 3.900 €).
 
-Vorteile: wiederkehrender Anteil wächst; Lifetime bedient Abo-Verweigerer und bringt frühes Geld; die Struktur mit zwei bis drei Plänen entspricht dem, was Nutzer 2026 aus anderen Apps kennen. Nachteile: Abo-Skepsis in Rezensionen ist einzukalkulieren; die Begründung "wofür zahle ich" muss im Store-Text und in der App stehen.
+**Szenarien statt Punktwert** (eigene Rechnung; Rechenweg: Abo-Zahler teilen sich 55:20 in Jahres- und Monatsabo, Monatsabo 5 Monate, Jahresabo verlängert 44 % pro Jahr, Abzug für Erstattungen und unfreiwillige Kündigung nur auf Abo-Erlöse, Auszahlung 71 % des Ladenpreises; Beträge gerundet):
+
+| Szenario | Downloads | Zahler | Lifetime-Anteil | Abzug Abo | Brutto Jahr 1 | Auszahlung Jahr 1 | Jahr 2 | Jahr 3 | Summe 3 Jahre |
+|---|---|---|---|---|---|---|---|---|---|
+| Pessimistisch | 3.000 | 1,0 % = 30 | 10 % | 10 % | ~470 € | ~330 € | ~420 € | ~450 € | ~1.200 € |
+| Basis | 10.000 | 1,5 % = 150 | 20 % | 7,5 % | ~2.860 € | ~2.050 € | ~2.430 € | ~2.600 € | ~7.100 € |
+| D9-Punktwert | 10.000 | 2,0 % = 200 | 25 % | 0 % | 4.297 € | ~3.070 € | ~3.590 € | ~3.810 € | ~10.500 € |
+| Optimistisch | 30.000 | 2,5 % = 750 | 25 % | 5 % | ~15.700 € | ~11.200 € | ~13.100 € | ~13.900 € | ~38.200 € |
+
+Das pessimistische Szenario ist kein Ausreißer, sondern der Fall, dass die Privacy-Community die App lobt, aber über F-Droid oder ohne Plus nutzt. Das optimistische Szenario setzt eine Erwähnung in reichweitenstarken Medien und eine Zahlerquote oberhalb des Freemium-Medians voraus; belegt ist beides nicht.
+
+Vorteile: wiederkehrender Anteil wächst; Lifetime bedient Abo-Verweigerer und bringt frühes Geld; die Struktur mit zwei bis drei Plänen entspricht dem, was Nutzer 2026 aus anderen Apps kennen. Nachteile: Abo-Skepsis in Rezensionen ist einzukalkulieren; die Begründung "wofür zahle ich" muss im Store-Text und in der App stehen; Lifetime liegt über dem Einmalkauf-Anker des Segments (Abschnitt 9).
 
 Der Free/Plus-Schnitt aus D9:
 
 | Kostenlos, dauerhaft garantiert | Plus |
 |---|---|
-| Unbegrenzt viele Einträge | Aufnahmen bis 30 Minuten je Eintrag |
-| Aufnahmen bis 5 Minuten je Eintrag | Zusatzpaket "Hohe Genauigkeit" (große Modelle, D2/D3) |
+| Unbegrenzt viele Einträge | Aufnahmen bis 30 Minuten je Aufnahme |
+| Aufnahmen bis 5 Minuten je Aufnahme, unbegrenzt viele Aufnahmen pro Tag | Zusatzpaket "Hohe Genauigkeit" (große Modelle, D2/D3) |
 | Lokale Transkription Deutsch und Englisch | Gestaltete Rückblicke (Woche, Monat, Jahr) und lokale Zusammenfassungen (ab Version 1.x, D8) |
 | Wiedergabe, Volltextsuche, Kalender, "vor einem Jahr" | Mehrere Tagebücher |
 | Verschlüsselung, App-Sperre | Gestaltetes Jahrbuch-PDF |
@@ -108,6 +125,19 @@ Der Free/Plus-Schnitt aus D9:
 | Export als Markdown, JSON, PDF | |
 
 Der Schnitt ist so gewählt, dass es keinen Lock-in gibt: Wer nie zahlt, verliert nie Daten und kann jederzeit vollständig exportieren oder das Gerät wechseln. Die 5-Minuten-Grenze deckt ein normales Tagesritual (Rechenbasis in D6: 3 Minuten pro Tag) und liegt unter den 10 Minuten von Day One und Journey, aber ohne Internetpflicht. Store-Text und Datenschutzerklärung enthalten die Garantie: **Kostenlose Funktionen werden nie kostenpflichtig.** Diese Selbstverpflichtung ist rechtlich bindend und deshalb bewusst zu formulieren (siehe `05-sicherheit-und-datenschutz.md`).
+
+**Festlegung: Die 5-Minuten-Grenze gilt je Aufnahme, nicht je Tag.** D9 formuliert "je Eintrag"; nach A4 ist ein Eintrag ein Tag mit mehreren Aufnahmen. Gälte die Grenze als Tagessumme, stieße das kostenlose Ritual (Eintrag am Abend plus eine Ergänzung) schon am ersten Tag an die Bezahlschranke, im Widerspruch zur Garantie, dass Kernversprechen nie hinter einer Bezahlschranke liegen. Also: jede einzelne Aufnahme bis 5 Minuten kostenlos, unbegrenzt viele Aufnahmen pro Tag; Plus hebt die Grenze je Aufnahme auf 30 Minuten. Verhalten an der Grenze (für `03-produktkonzept.md`, Abschnitt 2.1, und als Testfall in `09-roadmap.md`, Phase 3): dezenter Hinweis bei 4:30, weicher Stopp bei 5:00 mit sofortigem Angebot "Ergänzen" (neue Aufnahme im selben Tageseintrag); Audio wird nie verworfen; der Hinweis auf Plus erscheint erst nach dem Stopp und höchstens einmal am Tag, nie mitten im Satz. Damit schließt sich die offene Frage 3 aus `03-produktkonzept.md`; die Formulierung "je Eintrag" in D9 ist in diesem Sinn zu lesen.
+
+**Wortwahl für "Hohe Genauigkeit".** Das Paket heißt im Store-Text nicht "besseres Deutsch", sondern "größeres Modell für schwierige Aufnahmen (Nebengeräusche, Akzent, leise Stimme)". Wer für gute deutsche Transkription zahlen müsste, erlebte das kostenlose Versprechen "Deutsch als erstklassige Sprache" als beschnitten; das Standardmodell muss den Alltag tragen, das Paket ist die Reserve.
+
+**Plus ab Version 1.0, nicht erst 1.x.** `03-produktkonzept.md` (Abschnitt 8.2) legt heute alle Plus-Funktionen in 1.x, `09-roadmap.md` (Abschnitt 13, Punkt 4) empfiehlt Kaufgerüst und ein kleines Plus schon in 1.0. Empfehlung: die Roadmap-Variante, mit folgendem Umfang, weil 30-Minuten-Aufnahmen allein für ein Drei-Minuten-Ritual kein Kaufgrund sind und Lifetime-Codes für Beta-Tester (Abschnitt 7.1) ein Plus-Produkt voraussetzen:
+
+1. Kaufgerüst in 1.0: StoreKit 2, Play Billing, "Käufe wiederherstellen", Offer Codes; damit laufen DSA-Händlerstatus, In-App-Kauf-Review und der Billing-ohne-`INTERNET`-Test (Spike S3) nur einmal.
+2. Auf beiden Plattformen in 1.0: Aufnahmen bis 30 Minuten und mehrere Tagebücher (in einer Flutter-Codebasis beides klein; mehrere Tagebücher sind die greifbare Hauptleistung für iOS).
+3. Auf Android zusätzlich in 1.0: Zusatzpaket "Hohe Genauigkeit" mit Parakeet TDT 0.6B v3 über dieselbe sherpa-onnx-Engine als on-demand-Asset, weil dort der Abstand zwischen Standardmodell (Deutsch-WER 7,5 %) und großem Modell (rund 4 %) sichtbar ist (D3; Lizenz und RAM-Bedarf aus Phase 1).
+4. In 1.x: das iOS-Paket (WhisperKit), weil der Gewinn gegenüber `SpeechTranscriber` erst im Spike S1 messbar wird (D2); Zusammenfassungen (D8), Jahrbuch-PDF, weitere Sprachen, Themes und Widgets.
+
+Alternative: 1.0 vollständig kostenlos, Plus mit 1.1. Dann fehlen im ersten Jahr die Monate ohne Plus; bei drei Monaten Abstand (Annahme) sinkt die Auszahlung des ersten Jahres anteilig auf rund 1.500 € (Basis) bzw. rund 2.300 € (D9-Punktwert), und die Beta-Tester erhalten ihre Codes erst nachträglich. `03-produktkonzept.md` (Abschnitt 8) und `09-roadmap.md` (Phase 3, Paket 14; Phase 8) sind an die gewählte Variante anzupassen.
 
 ### 4.4 Variante C: "Kaufen, später Update-Pass"
 
@@ -129,9 +159,52 @@ Vorteile: höchste Glaubwürdigkeit ("Ihr Tagebuch läuft für immer"), planbare
 | Umsetzungsaufwand | gering | mittel | hoch (Datumslogik) |
 | Familienfreigabe | ja | ja | eingeschränkt |
 
-**Empfehlung: Variante B**, weil sie als einzige laufende Pflege finanziert (Modellwechsel, iOS- und Android-Jahresversionen, neue Sprachpakete), ohne den kostenlosen Kern anzutasten, und weil Lifetime die Einmalkauf-Erwartung des Privacy-Publikums bedient. Falls der Inhaber Abos grundsätzlich ablehnt, ist C die zweitbeste Wahl; A nur, wenn kein längerfristiger Weiterbetrieb geplant ist (D9).
+**Empfehlung: Variante B**, weil sie als einzige laufende Pflege finanziert (Modellwechsel, iOS- und Android-Jahresversionen, neue Sprachpakete), ohne den kostenlosen Kern anzutasten. Lifetime liegt bewusst über dem Einmalkauf-Anker des Segments (7 bis 15 $, Abschnitt 3) und ist als Unterstützer-Preis gedacht; die Einmalkauf-Erwartung des Privacy-Publikums wird damit nur teilweise bedient (Risiko in Abschnitt 9, Preisfrage in Abschnitt 11). Falls der Inhaber Abos grundsätzlich ablehnt, ist C die zweitbeste Wahl; A nur, wenn kein längerfristiger Weiterbetrieb geplant ist (D9).
 
-Skalierung: Bei 30.000 Downloads im Jahr verdreifachen sich alle Werte (B: rund 9.200 € im ersten, 10.800 € im zweiten Jahr). Bei 100.000 Downloads (Diarium-Klasse über mehrere Jahre) liegt B bei 30.000 bis 36.000 €/Jahr, oberhalb der Kleinunternehmergrenze, aber weit unter der Schwelle von 1 Mio. $ des Small Business Program. Fixkosten (Apple Developer Program 99 $/Jahr, Google Play einmalig 25 $, Rechtsbausteine rund 300 €) sind in jeder Variante im ersten Quartal gedeckt; die eigentliche Investition ist Arbeitszeit [13][15].
+Skalierung mit den D9-Punktannahmen: Bei 30.000 Downloads im Jahr verdreifachen sich alle Werte (B: rund 9.200 € im ersten, 10.800 € im zweiten Jahr). Bei 100.000 Downloads (Diarium-Klasse über mehrere Jahre) liegt B bei 30.000 bis 36.000 €/Jahr, oberhalb der Kleinunternehmergrenze, aber weit unter der Schwelle von 1 Mio. $ des Small Business Program [13][15]. Die laufenden Fixkosten ohne Einmalausgaben sind klein (Apple Developer Program 99 $/Jahr, Google Play einmalig 25 $, Rechtsbausteine rund 300 €) [13][15]; über die Wirtschaftlichkeit entscheiden aber die Einmalausgaben und die Arbeitszeit, die der folgende Abschnitt beziffert.
+
+### 4.6 Investition und Break-even
+
+Bisher fehlte der Rechnung die Kostenseite. Sie besteht aus drei Teilen: Arbeitszeit einer Person, externe Einmalausgaben, laufende Kosten. Alle Beträge sind eigene Rechnungen mit ausgewiesenen Annahmen; wo keine Quelle existiert, steht "Setzung".
+
+**Arbeitszeit** nach den Aufwandsklassen aus `09-roadmap.md` (Abschnitt 1: S = wenige Tage, M = ein bis drei Wochen, L = ein bis zwei Monate, XL = mehr als zwei Monate). Umrechnung als Setzung: S = 0,25 Monat, M = 0,25 bis 0,75, L = 1 bis 2, XL = 3 bis 4 Monate; ein Personenmonat = 160 Stunden.
+
+| Phase (09) | Klasse | Personenmonate |
+|---|---|---|
+| 0 Vorbereitung | S | 0,25 |
+| 1 Technische Spikes | L | 1 bis 2 |
+| 2 Durchstich | M | 0,25 bis 0,75 |
+| 3 MVP-Aufbau | XL | 3 bis 4 |
+| 4 Härtung und Alpha | L | 1 bis 2 |
+| 5 Beta | M bis L | 0,25 bis 2 |
+| 6 Store-Vorbereitung | M | 0,25 bis 0,75 |
+| 7 Start | S bis M | 0,25 bis 0,75 |
+| **Summe bis Version 1.0** | | **rund 6 bis 13 Personenmonate (1.000 bis 2.080 Stunden)** |
+
+Kalkulatorischer Stundensatz als Setzung ohne Quelle: 50 €/Stunde (untere Grenze, Opportunitätskosten eines Nebenerwerbs) bis 80 €/Stunde (Freiberufler-Niveau). Ergebnis: 50.000 € (6 Monate, 50 €) bis 166.000 € (13 Monate, 80 €); bei 10 Monaten 80.000 bis 128.000 €. Pflege nach dem Start (jährliche Betriebssystem-Versionen, Modellwechsel, 1.x-Funktionen) kommt hinzu und ist hier nicht bewertet.
+
+**Externe Einmalausgaben** (Bandbreiten sind Setzungen; vor Beauftragung Angebote einholen, offene Frage 13):
+
+| Posten | Herkunft der Empfehlung | Betrag |
+|---|---|---|
+| Bezahlter Kurz-Review des Krypto- und Containerkerns | `09-roadmap.md` Abschnitt 7, `05-sicherheit-und-datenschutz.md` Abschnitt 4.2 | 5.000 bis 15.000 € (Setzung) |
+| Rechtsprüfung der unverifizierten Punkte (Impressum, Exportkontrolle, Play-Richtlinien, MDR-Abgrenzung, GPL und Store) | `09-roadmap.md` Abschnitt 13, Punkt 6; Abschnitt 6 dieses Dokuments | 1.000 bis 3.000 € (Setzung) |
+| Testgerätepool, fünf Geräte (zwei iPhones, Pixel, Samsung-Mittelklasse, Xiaomi) | `09-roadmap.md` Phase 0 | 2.000 bis 3.000 € (Setzung) |
+| Entwicklerkonten und Rechtsbausteine | [13][15] | Apple 99 $/Jahr, Google 25 $ einmalig, Rechtsbausteine rund 300 € |
+| **Summe einmalig, ohne Arbeitszeit** | | **rund 8.000 bis 21.000 €** |
+
+**Laufende Kosten ohne Einmalausgaben:** Apple Developer Program 99 $/Jahr plus Domain; mit UG oder GmbH zusätzlich ab rund 1.000 €/Jahr (Schätzung des Rechercheberichts) [15]. Ein Einzelunternehmen mit c/o-Adresse bleibt darunter (Abschnitt 8).
+
+**Break-even** (kumulierte Auszahlung aus der Szenariotabelle in Abschnitt 4.3 gegen die Kosten; eigene Rechnung, laufende Kosten nicht abgezogen):
+
+| Szenario | Auszahlung kumuliert nach 3 Jahren | Externe Einmalausgaben (8.000 bis 21.000 €) gedeckt | Externe Ausgaben plus Arbeitszeit (50.000 bis 166.000 €) gedeckt |
+|---|---|---|---|
+| Pessimistisch | ~1.200 € | nie; mit UG übersteigen schon die laufenden Kosten die Erlöse | nie |
+| Basis | ~7.100 € | frühestens Jahr 4 (untere Grenze), Jahr 9 (obere Grenze) | rechnerisch nach 20 bis 60 Jahren, also nie |
+| D9-Punktwert | ~10.500 € | Jahr 3 bis Jahr 6 | rechnerisch nach 14 bis 40 Jahren, also nie |
+| Optimistisch | ~38.200 € | Jahr 1 bis Jahr 2 | Jahr 4 bis Jahr 13 |
+
+Ergebnis: **Nebenerwerb mit Unterstützer-Erlösen, kein Geschäft.** Sobald die Arbeitszeit mitgerechnet wird, amortisiert sich die Investition in keinem Szenario unter drei Jahren; nur das optimistische Szenario deckt die externen Ausgaben innerhalb von zwei Jahren. Was das Bild ändern würde, sind nicht Preisdetails, sondern Reichweite (Diarium-Klasse, Abschnitt 4.5), B2B-Pakete (Abschnitt 10) oder ein bewusst kleinerer Bau. Am externen Review und an der Rechtsprüfung zu sparen, ist keine Option, weil beides das Kernversprechen trägt. Für den Inhaber heißt das: Die App lohnt sich, wenn er sie ohnehin bauen und selbst nutzen will und die Arbeitszeit nicht als Investition mit Rendite verbucht; als Einkommensprojekt lohnt sie sich im Planungshorizont nicht.
 
 ## 5. Bezahlfunktionen, die die Privatsphäre nicht verletzen
 
@@ -212,7 +285,7 @@ Alle Aussagen müssen technisch stimmen und prüfbar sein (Formulierungsregeln i
 Die vollständige Pflichtenliste (Datenschutzerklärung, Privacy Manifest, Berechtigungstexte, Exportkontrolle, Altersfreigabe) steht in `05-sicherheit-und-datenschutz.md`, Abschnitt 5. Hier nur, was das Geschäftsmodell direkt betrifft.
 
 - **Der Store ist Händler gegenüber dem Kunden.** Apple und Google treten als Kommissionär auf; Apples Finanzberichte definieren "Customer Price" inklusive der Steuern, die Apple einzieht, und "Partner Share" als Kundenpreis minus Steuern minus Kommission [36]. Widerruf und Erstattung wickeln die Stores über ihre Bedingungen ab; der Entwickler muss nur die Store-Regeln einhalten. Bei alternativer Zahlungsabwicklung würde der Inhaber selbst Verkäufer mit vollen Fernabsatzpflichten (unverifiziert) [21][22].
-- **DSA-Händlerstatus ist Pflicht, sobald Geld fließt.** Apple verlangt von Einzelpersonen Adresse oder Postfach, Telefon und E-Mail, jeweils verifiziert, und veröffentlicht sie in allen 27 EU-Storefronts [37]. Google analog (unverifiziert). Konsequenz für die Rechtsform: Einzelunternehmen genügt für den Start; wer Privatadresse nicht veröffentlichen will, braucht eine c/o-Adresse oder eine UG/GmbH (Kosten ab rund 1.000 €/Jahr, Schätzung aus dem Recherchebericht) [15].
+- **DSA-Händlerstatus ist Pflicht, sobald Geld fließt.** Apple verlangt von Einzelpersonen Adresse oder Postfach, Telefon und E-Mail, jeweils verifiziert, und veröffentlicht sie in allen 27 EU-Storefronts [37]. Google analog (unverifiziert). Konsequenz für die Rechtsform: Einzelunternehmen genügt für den Start; wer Privatadresse nicht veröffentlichen will, braucht eine c/o-Adresse oder eine UG/GmbH (Kosten ab rund 1.000 €/Jahr, Schätzung aus dem Recherchebericht) [15]. Wird eine Gesellschaft gegründet, sind Apple- und Play-Entwicklerkonto von Anfang an auf die Gesellschaft anzulegen, nicht auf die Privatperson; eine spätere Übertragung ist bei beiden Stores ein eigener Vorgang mit Prüfung (Ablauf in der Sandbox nicht geprüft).
 - **Impressum in der App** (§ 5 DDG, § 5 ECG in Österreich; Schweiz Art. 3 UWG), nicht nur auf der Store-Seite (unverifiziert) [38].
 - **Steuern, nur als Hinweis, mit Steuerberater klären:** Der Entwickler erbringt umsatzsteuerlich eine Leistung an die irische Apple- bzw. Google-Gesellschaft (Kommissionsmodell, Reverse-Charge); nötig sind USt-IdNr. und Zusammenfassende Meldungen. Die Endkunden-Mehrwertsteuer führt der Store ab. Die Kleinunternehmerregelung (§ 19 UStG, seit 2025: Vorjahr bis 25.000 €, laufendes Jahr bis 100.000 €) ist für Store-Auszahlungen weitgehend neutral, entscheidet aber über Vorsteuerabzug und über Direktverkäufe wie B2B-Pakete (unverifiziert) [39][15].
 - **Freischaltung nur über In-App-Kauf** (Apple 3.1.1); der Transfer-QR darf nichts freischalten [21].
@@ -229,7 +302,11 @@ Die vollständige Pflichtenliste (Datenschutzerklärung, Privacy Manifest, Berec
 | **Play Asset Delivery funktioniert nicht ohne INTERNET-Permission** | offen (Spike) | Modellauslieferung auf Android | Modelle bündeln oder Permission bewusst nur für den Download erklären; F-Droid-Build braucht ohnehin eine Alternative |
 | **Abo-Skepsis in Rezensionen** | hoch | Bewertungsschnitt, Konversion | Lifetime sichtbar neben dem Abo, Garantie im Store-Text, Begründung "wofür" in der App, keine dunklen Muster |
 | **F-Droid-Build kannibalisiert Store-Käufe** | mittel | geringe Erlösminderung | bewusst akzeptiert (Abschnitt 6); Unterstützer-Lizenz anbieten |
-| **Umsatz bleibt niedrig** | hoch | Motivation, Weiterbetrieb | Fixkosten unter 500 €/Jahr; Erwartung "niedrig vierstellig im ersten Jahr" von Anfang an; B2B ab Jahr 2 |
+| **Umsatz bleibt niedrig** | hoch | Motivation, Weiterbetrieb | Laufende Fixkosten ohne Einmalausgaben klein halten (Abschnitt 4.6); Erwartung "Nebenerwerb, niedrig vierstellig im ersten Jahr" von Anfang an; B2B ab Jahr 2 |
+| **Lifetime liegt über dem Einmalkauf-Anker des Segments** (44,99 € gegen 7 bis 15 $ bei Flint, Diarium, Local Journal) | mittel | Lifetime-Quote deutlich unter 25 %, Preiskritik in Rezensionen | Jahresabo als Standardauswahl auf der Kaufseite; Lifetime sichtbar als Unterstützung mit Begründung; Kaufverteilung nach sechs Monaten prüfen und Preis gegebenenfalls anpassen (offene Frage 11) |
+| **Verlust des Store-Kontos** (Sperrung oder Löschung des Play- oder Apple-Entwicklerkontos durch automatisierte Richtlinienprüfung, erfolglose Einsprüche) | niedrig, für einen Solo-Entwickler aber Totalrisiko | Vertrieb und Bezahlung fallen aus; auf Android zusätzlich die Modellauslieferung per Play Asset Delivery, denn F-Droid liefert keine Play-Assets | Signaturschlüssel (Upload-Key, Play-App-Signing) und Store-Metadaten außerhalb des Kontos gesichert; zweiter Verwaltungszugang; GitHub-Releases und F-Droid als Ausweichvertrieb mit im Build gebündelten Modellen; in der App jederzeit "Backup jetzt exportieren"; Konten auf die Rechtsform anlegen (Abschnitt 8) |
+| **Play-Deklaration des Vordergrunddienst-Typs `microphone` wird abgelehnt** | niedrig bis mittel (Ablehnungsquote nicht prüfbar) | Startverzögerung auf Android | Deklaration unter Policy > App content in Phase 6 vorbereiten [43]; kurzes Demovideo bereithalten, das Aufnahme aus Benachrichtigung und Widget mit sichtbarer Dauerbenachrichtigung zeigt, weil Google zu Vordergrunddiensten Nachweise verlangen kann (Art und Umfang in der Sandbox nicht prüfbar, offene Frage 12) |
+| **Testpflicht neuer persönlicher Play-Konten** (geschlossener Test mit Mindestzahl Tester über Mindestzeitraum; Zahlen unverifiziert) | sicher, falls das Konto neu ist | Start um Wochen verzögert | Play-Konto in Phase 0 anlegen (`09-roadmap.md`, Abschnitt 3); das Closed Testing der Beta erfüllt die Pflicht zugleich [44] |
 | **DSA-Veröffentlichung der Privatadresse** | sicher | Privatsphäre des Inhabers | c/o-Adresse oder Rechtsform vor Monetarisierung klären |
 | **Modell-Lizenzen** (Parakeet CC-BY-4.0 unbestätigt; Schweizerdeutsch-Fine-Tunes CC-BY-NC) | mittel | Zusatzpakete nicht verkaufbar | Lizenzen im Spike verifizieren; CC-NC-Modelle für eine bezahlte App tabu [30] |
 | **Ausfall des Solo-Inhabers** | niedrig, aber real | Nutzer verlieren Pflege | Open Source plus reproduzierbarer Build als Kontinuitätsgarantie; Export ist immer kostenlos |
@@ -262,10 +339,13 @@ Die Architektur ohne Server ist im B2B-Umfeld ein Verkaufsargument, kein Hindern
 8. RevenueCat-Originalzahlen für Lifestyle und Health & Fitness in Europa (Report nur über Drittzitate zugänglich).
 9. Modelllizenzen für Zusatzpakete: Parakeet TDT 0.6B v3 (CC-BY-4.0?) und kommerziell nutzbare Schweizerdeutsch-Modelle.
 10. Ob eine sichtbare "Unterstützer-Lizenz" im Store-Build (Lifetime ohne Zusatzfunktionen) den Apple-Richtlinien zu Spenden entspricht oder als normaler Non-Consumable mit Plus-Umfang laufen muss.
+11. Bleibt D9 bei Lifetime 44,99 €, oder prüft der Inhaber den Wert 24,99 €, den der Recherchebericht für die Lifetime-Stufe der Variante C nennt [15]? Die eigenen Benchmarks (Einmalkauf 7 bis 15 $) sprechen für den niedrigeren Wert, die Unterstützer-Logik für den höheren; Entscheidung nach sechs Monaten Kaufverteilung.
+12. Welche Nachweise verlangt die Play Console für den Vordergrunddienst-Typ `microphone` (Beschreibung, Demovideo), und welche Testpflicht gilt für das konkret gewählte Konto (Privatperson oder Organisation) [43][44]?
+13. Angebote für den Krypto-Review und die Rechtsprüfung einholen; die Bandbreiten in Abschnitt 4.6 sind Setzungen ohne Quelle und entscheiden über den Break-even.
 
 ## Quellen
 
-1. Wettbewerbsanalyse Mainstream dieser Sitzung mit Einzelquellen: `01-markt-und-wettbewerb.md`; Daylio: https://www.choosingtherapy.com/daylio-app-review/
+1. Wettbewerbsanalyse Mainstream mit Einzelquellen: `01-markt-und-wettbewerb.md` und `docs/recherche/wettbewerb-mainstream.md`; Daylio: https://www.choosingtherapy.com/daylio-app-review/
 2. Apple Support, Journal iPhone (Transkription nur Englisch): https://support.apple.com/en-kz/guide/iphone/iph492ee70a8/ios
 3. Day One Preise (Silver/Gold, April 2026): https://9to5mac.com/2026/04/08/day-one-journaling-app-introduces-gold-plan-with-ai-summaries-and-daily-chat/ ; https://5typos.net/2026/04/8/day-one-introduces-silver-and-gold-with-price-increases ; Audio-Guide: https://dayoneapp.com/guides/tips-and-tutorials/audio-recording/
 4. Journey Membership und Transkription: https://help.journey.cloud/en/article/journeycloud-membership-k32g8e/ ; https://spokenly.app/blog/voice-journaling
@@ -279,7 +359,7 @@ Die Architektur ohne Server ist im B2B-Umfeld ein Verkaufsargument, kein Hindern
 12. Adapty State of In-App Subscriptions 2026: https://adapty.io/state-of-in-app-subscriptions/
 13. Apple Small Business Program: https://developer.apple.com/app-store/small-business-program/
 14. Google Play Servicegebühr (nicht direkt abrufbar): https://support.google.com/googleplay/android-developer/answer/112622 ; EU-Programm externe Angebote: https://blog.google/around-the-globe/google-europe/complying-with-the-digital-markets-act/
-15. Recherchebericht Geschäftsmodell dieser Sitzung (Rechenannahmen, Fixkosten, Rechtsform, Praxis-Paket): Scratchpad `research/geschaeftsmodell.md`; Journiv-Finanzierung: https://github.com/orgs/journiv/discussions/348
+15. Recherchebericht Geschäftsmodell (Rechenannahmen, Fixkosten, Rechtsform, Praxis-Paket, Variante C mit Lifetime 24,99 €): `docs/recherche/geschaeftsmodell.md`; Journiv-Finanzierung: https://github.com/orgs/journiv/discussions/348
 16. Apple App Privacy Details (Definition "collect"): https://developer.apple.com/app-store/app-privacy-details/
 17. Apple Auto-renewable Subscriptions (Kommission, Family Sharing, Trials): https://developer.apple.com/app-store/subscriptions/
 18. Apple News, Offer Codes für alle In-App-Kauftypen (29.10.2025): https://developer.apple.com/news/?id=r1s3hw2b
@@ -290,20 +370,23 @@ Die Architektur ohne Server ist im B2B-Umfeld ein Verkaufsargument, kein Hindern
 23. Apple Promoting In-App Purchases: https://developer.apple.com/app-store/promoting-in-app-purchases/
 24. Dictus, Grundsatz "free features never become paid": https://github.com/getdictus/dictus-ios/issues/54
 25. Journiv, Reaktion auf nachträgliche Bezahlschranke: https://github.com/orgs/journiv/discussions/425
-26. Recherchebericht Innovationslücken dieser Sitzung (Day-One-Preiskritik, Barrierefreiheit, Kinderprofil, Therapie-Export, Google-Journal-Kritik, Kuketz/heise): Scratchpad `research/innovationsluecken.md`; Kuketz: https://www.kuketz-blog.de/android-miserabler-datenschutz-bei-tagebuch-apps/ ; heise: https://www.heise.de/tests/Sechs-Tagebuch-Apps-im-Test-Digitale-Logbuecher-mit-Sicherheitsluecken-4981737.html ; Google-Journal-Kritik: https://www.techbuzz.ai/articles/google-journal-ai-features-spark-privacy-backlash
+26. Recherchebericht Innovationslücken (Day-One-Preiskritik, Barrierefreiheit, Kinderprofil, Therapie-Export, Google-Journal-Kritik, Kuketz/heise): `docs/recherche/innovationsluecken.md`; Kuketz: https://www.kuketz-blog.de/android-miserabler-datenschutz-bei-tagebuch-apps/ ; heise: https://www.heise.de/tests/Sechs-Tagebuch-Apps-im-Test-Digitale-Logbuecher-mit-Sicherheitsluecken-4981737.html ; Google-Journal-Kritik: https://www.techbuzz.ai/articles/google-journal-ai-features-spark-privacy-backlash
 27. Privacy Guides, Kriterien: https://raw.githubusercontent.com/privacyguides/privacyguides.org/main/docs/about/criteria.md
 28. Kuketz-Blog, Empfehlungsecke: https://www.kuketz-blog.de/empfehlungsecke/
 29. awesome-privacy: https://raw.githubusercontent.com/pluja/awesome-privacy/main/README.md
 30. Lizenzen: Moonshine https://raw.githubusercontent.com/moonshine-ai/moonshine/main/LICENSE ; sherpa-onnx https://github.com/k2-fsa/sherpa-onnx ; WhisperKit https://github.com/argmaxinc/WhisperKit ; whisper.cpp https://github.com/ggml-org/whisper.cpp/blob/master/LICENSE ; Schweizerdeutsch-Fine-Tunes (CC-BY-NC): https://github.com/napoleonmm83/Transkribor/issues/130
 31. Apple App Store Search und Keywords: https://developer.apple.com/app-store/search/
 32. Google Play Store-Eintrag (Zeichenlimits, nicht direkt abrufbar): https://support.google.com/googleplay/android-developer/answer/9866151
-33. Namens-Nachprüfung dieser Sitzung ("Tagebuch mit Schloss"-Kategorie): Scratchpad `naming/nachpruefung.md`
-34. Recherchebericht Nutzerfeedback dieser Sitzung (Export-Schmerz, Konverter-Projekte, Monetarisierungsakzeptanz): Scratchpad `research/nutzerfeedback.md`
+33. Namens-Nachprüfung ("Tagebuch mit Schloss"-Kategorie): `docs/recherche/namensfindung/nachpruefung.md`
+34. Recherchebericht Nutzerfeedback (Export-Schmerz, Konverter-Projekte, Monetarisierungsakzeptanz): `docs/recherche/nutzerfeedback.md`
 35. Apple Journal Export und Konverter: https://support.apple.com/en-us/121822 ; https://github.com/kpod13/journal2day1 ; https://github.com/journiv/journiv-app/issues/253
 36. Apple Financial Report Fields (Customer Price, Partner Share): https://developer.apple.com/help/app-store-connect/reference/financial-report-fields/
 37. Apple, DSA-Händleranforderungen: https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements
-38. § 5 DDG (nicht direkt abrufbar): https://www.gesetze-im-internet.de/ddg/__5.html ; Recherchebericht Recht dieser Sitzung: Scratchpad `research/recht-compliance.md`
+38. § 5 DDG (nicht direkt abrufbar): https://www.gesetze-im-internet.de/ddg/__5.html ; Recherchebericht Recht: `docs/recherche/recht-compliance.md`
 39. Kleinunternehmerregelung § 19 UStG 2025 (ELSTER-Hilfetext): https://raw.githubusercontent.com/dennismenken/elster-form-helper-data/main/Formulare/USt/2025/elster_ust2025_help.md
 40. MDCG 2019-11 (Software-Qualifikation): https://health.ec.europa.eu/system/files/2020-09/md_mdcg_2019_11_guidance_qualification_classification_software_en_0.pdf ; AI Act Art. 50: https://artificialintelligenceact.eu/article/50/
 41. Apple Custom Apps und Apple Business Manager: https://developer.apple.com/custom-apps/
 42. Apple What's New (Volume Purchasing für Abos, Group Purchases, 12-Monats-Bindung): https://developer.apple.com/app-store/whats-new/
+43. Android, Vordergrunddienst-Typen und Deklaration in der Play Console (Policy > App content): https://developer.android.com/develop/background-work/services/fgs/service-types ; https://developer.android.com/about/versions/14/changes/fgs-types-required
+44. Google Play, Testanforderungen für neue persönliche Entwicklerkonten (in der Sandbox nicht geprüft, unverifiziert): https://support.google.com/googleplay/android-developer/answer/14151465
+45. Recherchebericht Voice-first-Wettbewerb (WhisperJournal rund 1.100 Downloads, unverifiziert): `docs/recherche/wettbewerb-voice-first.md` ; AppBrain: https://www.appbrain.com/app/openai-voice-journal/com.kaizoco.whisperjournal

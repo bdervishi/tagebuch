@@ -2,9 +2,9 @@
 
 Stand: 3. September 2026 · Status: Entwurf
 
-Dieses Dokument beschreibt, wie die App technisch gebaut wird: Stack, lokale Spracherkennung auf beiden Plattformen, Audio-Pipeline, Datenmodell, verschlüsselte Speicherung, Suche, optionale lokale Zusammenfassungen, Erinnerungen, Repository-Struktur, CI und Teststrategie. Es setzt die Anforderungen aus `00-anforderungen.md` (M1 bis M12, A1 bis A8) um. Das Containerformat für Backup und Gerätewechsel ist hier nur so weit beschrieben, wie die Speicherschicht davon abhängt; Details stehen in `05-gerätewechsel-backup.md`. Preise werden hier nicht genannt (siehe `07-geschaeftsmodell.md`).
+Dieses Dokument beschreibt, wie die App technisch gebaut wird: Stack, lokale Spracherkennung auf beiden Plattformen, Audio-Pipeline, Datenmodell, verschlüsselte Speicherung, Suche, optionale lokale Zusammenfassungen, Erinnerungen, Repository-Struktur, CI und Teststrategie. Es setzt die Anforderungen aus `00-anforderungen.md` (M1 bis M12, A1 bis A8) um. Das Containerformat für Backup und Gerätewechsel ist hier nur so weit beschrieben, wie die Speicherschicht davon abhängt; Details stehen in `06-geraetewechsel-qr-transfer.md`. Preise werden hier nicht genannt (siehe `07-geschaeftsmodell.md`).
 
-Hinweis zur Quellenlage: Die Faktenprüfung (`verifikation.json`) lag beim Schreiben nicht vor. Zahlen, die in den Rechercheberichten als `mustVerify` markiert sind oder nur aus Sekundärquellen stammen, sind im Text mit "(unverifiziert)" gekennzeichnet.
+Hinweis zur Quellenlage: Die Faktenprüfung (`docs/recherche/verifikation.json`) ist eingearbeitet; wo sie eine Aussage korrigiert hat, steht hier die korrigierte Fassung. Zahlen, die nur aus Sekundärquellen stammen oder in der Prüfung als unklar gelten, sind im Text mit "(unverifiziert)" oder "(Annahme)" gekennzeichnet (D15).
 
 ## 1. Stack-Entscheidung
 
@@ -28,27 +28,27 @@ Die drei nativen Brücken sind bewusst klein gehalten:
 
 ## 2. On-Device-Spracherkennung
 
-Grundsatz aus A1: Transkription läuft ausschließlich auf dem Gerät und muss im Flugmodus funktionieren. Die einzige Netzverbindung ist der einmalige Modell-Download durch das Betriebssystem bzw. den Play Store (D14).
+Grundsatz aus A1: Transkription läuft ausschließlich auf dem Gerät und muss im Flugmodus funktionieren. Die einzigen Netzkontakte sind Modell-Downloads durch das Betriebssystem bzw. den Play Store (D14); die Modelle werden bei Bedarf geladen und vom System beziehungsweise vom Store aktualisiert, nicht nur einmalig (siehe 2.1).
 
 ### 2.1 iOS
 
-**Empfehlung: `SpeechTranscriber` (iOS 26+) als Primärpfad**, weil das Modell im Systemspeicher liegt, außerhalb des App-Prozesses läuft, keine App-Größe und keinen App-RAM kostet, von Apple aktualisiert wird und kein Längenlimit dokumentiert ist [1][3]. Das alte `SFSpeechRecognizer` scheidet aus: dokumentiertes Ein-Minuten-Limit und Abhängigkeit von manuell aktivierten Diktat-Sprachen [4].
+**Empfehlung: `SpeechTranscriber` (iOS 26+) als Primärpfad**, weil das Modell im Systemspeicher liegt, außerhalb des App-Prozesses läuft, keine App-Größe und keinen App-RAM kostet, von Apple aktualisiert wird und kein Längenlimit dokumentiert ist [1][3]. Das alte `SFSpeechRecognizer` scheidet aus: kein `SpeechAnalyzer`-Streaming, und Apple warnt selbst, dass On-Device-Anfragen (`requiresOnDeviceRecognition`) weniger genau sind als die Servererkennung [4]. Das oft zitierte Ein-Minuten-Limit und die Tageskontingente gelten laut Apple nur für die serverbasierte Erkennung, nicht für den On-Device-Modus (WWDC 2019, Session 256) [83]; sie sind daher kein Argument gegen `SFSpeechRecognizer`, wohl aber ein Grund, den Servermodus nie zu verwenden.
 
 Ablauf im Plugin:
 
 1. Locale über `SpeechTranscriber.supportedLocale(equivalentTo:)` aus der Nutzerwahl (de-DE, de-AT, de-CH, en-*) auflösen; nie `Locale.current` direkt verwenden (Unterstrich-Falle `en_US`) [8].
-2. Prüfen, ob das Asset installiert ist (`AssetInventory`), sonst `assetInstallationRequest` auslösen; der Download kommt von Apple-Servern, wird im Onboarding erklärt und braucht WLAN [2].
+2. Prüfen, ob das Asset installiert ist (`AssetInventory`), sonst `assetInstallationRequest` auslösen; der Download kommt von Apple-Servern, wird im Onboarding erklärt und braucht WLAN [2]. Das System verwaltet die Assets selbst: Es aktualisiert sie automatisch, teilt sie mit anderen Apps und kann ungenutzte Assets wieder entfernen; pro App gibt es nur eine begrenzte Zahl locale-spezifischer Asset-Reservierungen [2]. Die App muss den Installationsstand deshalb vor jeder Transkription prüfen, nicht nur im Onboarding.
 3. `SpeechAnalyzer` mit `SpeechTranscriber` (Preset `.transcription`, optional `.progressiveTranscription` für eine Live-Vorschau) und `SpeechDetector` (VAD, `SensitivityLevel.medium`) aufsetzen [3][5].
 4. PCM-Puffer als `AsyncSequence<AnalyzerInput>` einspeisen; Ergebnisse mit `audioTimeRange` und Konfidenz in Segmente schreiben.
 5. Pro Locale einmalig einen kurzen Validierungslauf durchführen, weil `supportedLocales` nachweislich schon falsche Einträge enthielt (Arabisch, Januar 2026) [7].
 
-Sprachabdeckung: Apple veröffentlicht keine statische Liste. Eine empirische Abfrage (VoiceInk, macOS 26.4) zeigt unter anderem de-DE, de-AT, de-CH sowie en-AU/CA/IN/IE/NZ/SG/ZA/GB/US [6]. `de-CH` ist Standarddeutsch mit Schweizer Orthografie, kein Mundart-Modell (D12).
+Sprachabdeckung: Apple veröffentlicht keine statische Liste. Eine empirische Abfrage (VoiceInk, macOS 26.4) zeigt unter anderem de-DE, de-AT, de-CH sowie en-AU/CA/IN/IE/NZ/SG/ZA/GB/US [6]. `de-CH` ist nach unserer Annahme Standarddeutsch mit Schweizer Orthografie und kein Mundart-Modell (D12); Apple macht dazu keine Aussage, die Annahme ist plausibel, aber unbelegt und wird im Spike S1 mit Mundart- und Standardaudio geprüft. Weil `supportedLocales` über die iOS-26.x-Versionen nicht stabil war, gilt der Test nur für die getestete OS-Version [7].
 
 **Fallback 1: `DictationTranscriber` (Preset `.longDictation`)** auf iOS-26-Geräten, auf denen `SpeechTranscriber.isAvailable` false ist. Nach Forenberichten betrifft das iPhone 11, 11 Pro, 11 Pro Max und iPhone SE (2. Gen.); die Erklärung "16-Kern-Neural-Engine ab A14 nötig" ist nicht von Apple bestätigt (unverifiziert) [9]. `DictationTranscriber` nutzt die Systemdiktat-Modelle, hat kein Ein-Minuten-Limit mehr und verlangt keine manuelle Sprachaktivierung [11].
 
-**Optionales Zusatzpaket "Hohe Genauigkeit": WhisperKit** (MIT, Release v1.1.0 vom 6. August 2026) mit dem Modell `large-v3-v20240930_626MB` (626 MB Download) [23][24]; laut Gerätematrix des Projekts laden A14 und neuer alle Modelle unter 1 GB [25]. Sprache fest setzen, VAD-Chunking nutzen, weil bei Auto-Detect für Deutsch Sprachwechsel und Halluzinationen berichtet werden [26]. Nur im Vordergrund oder mit `audio`-Background-Mode ausführen, weil die Neural Engine im Hintergrund nicht garantiert ist [27]. Kein Whisper-Zwang im MVP.
+**Optionales Zusatzpaket "Hohe Genauigkeit": WhisperKit** (MIT, Release v1.1.0 vom 6. August 2026) mit dem Modell `large-v3-v20240930_626MB` (626 MB Download, von Argmax als Standard für maximale mehrsprachige Genauigkeit empfohlen) [23][24]. Gerätegrenze: Laut `fallbackModelSupportConfig` in `Models.swift` ist dieses Modell erst ab A15 (iPhone 13) freigegeben; A14 (iPhone 12) erhält höchstens `small`, A12/A13 (iPhone 11, SE 2) nur `tiny`/`base` [25]. Die ältere Maintainer-Aussage "A14 and newer can run all models" [84] widerspricht dem Code; maßgeblich ist die Remote-Config (`config.json` im Hugging-Face-Repository), der Fallback greift nur ohne diese. Das Zusatzpaket wird deshalb auf iOS ab iPhone 13 (A15) angeboten; ob die Remote-Config A14 doch freigibt, prüft der Spike S1. Sprache fest setzen, VAD-Chunking nutzen, weil bei Auto-Detect für Deutsch Sprachwechsel und Halluzinationen berichtet werden [26]. Nur im Vordergrund oder mit `audio`-Background-Mode ausführen, weil die Neural Engine im Hintergrund nicht garantiert ist [27]. Kein Whisper-Zwang im MVP.
 
-Mindestanforderung: iOS 26, empfohlen iPhone 12 oder neuer (D13).
+Mindestanforderung: iOS 26, empfohlen iPhone 12 oder neuer (D13); das Zusatzpaket "Hohe Genauigkeit" auf iOS ab iPhone 13 (A15), siehe oben.
 
 ### 2.2 Android
 
@@ -167,7 +167,7 @@ Das MVP enthält keine generative KI (D8). Für Version 1.x gilt:
 **iOS: Apple Foundation Models (iOS 26+), nur mit Opt-in und nur auf Apple-Intelligence-Geräten.**
 
 - Verfügbarkeit zur Laufzeit über `SystemLanguageModel.default.availability` prüfen (`.deviceNotEligible`, `.appleIntelligenceNotEnabled`, `.modelNotReady`); bei Nichtverfügbarkeit wird die Funktion ausgeblendet, nicht ausgegraut [62].
-- Modell: 3 Milliarden Parameter, 2-Bit-quantisiert; Kontextfenster 4 096 Token pro Session, ein Token entspricht etwa drei bis vier Zeichen [63][64]. Transkripte über etwa 12 000 Zeichen werden in mehrere Sessions gestückelt.
+- Modell: 3 Milliarden Parameter, 2-Bit-quantisiert [63]. Kontextfenster: 4 096 Token pro Session beim 26.x-Modell [64]; unter iOS 27 liefert `SystemLanguageModel().contextSize` auf neueren Geräten 8 192 (welche Geräte, sagt Apple nicht genau) [82]. Der Wert wird deshalb zur Laufzeit per `contextSize` (ab 26.4, back-deployed) abgefragt, nicht fest kodiert. Apples Faustregel "ein Token entspricht drei bis vier Zeichen" gilt für "Latin alphabet languages such as English"; für deutsche Komposita ist sie nur eine Näherung, die Stückelung langer Transkripte in mehrere Sessions rechnet deshalb mit `tokenCount(for:)` statt mit Zeichen [64].
 - Sprache: `supportsLocale(_:)` prüfen; Instruktion "The person's locale is de_DE" plus "You MUST respond in German" [65]. Deutsch ist nach Vorwissen seit iOS 18.4 unterstützt; Geräteliste iPhone 15 Pro/Pro Max und neuer (unverifiziert, Apple-Support-Artikel nicht erreichbar) [66].
 - Guardrails: Tagebuchthemen (Trauer, Krankheit, Krisen) können `guardrailViolation` oder `refusal` auslösen; die App fängt beides ab und zeigt eine neutrale Meldung ohne Wertung. `permissiveContentTransformations` für reine Zusammenfassungen prüfen [67].
 - Drei Modellversionen (26.0 bis 26.3, 26.4, 27.0): Prompts werden je Version getestet [62].
@@ -186,7 +186,7 @@ Eine tägliche Erinnerung zu einer frei wählbaren Uhrzeit, mit den Aktionen "Au
 - `UNCalendarNotificationTrigger(dateMatching: [hour, minute], repeats: true)`; bei Änderung der Uhrzeit wird die Anfrage ersetzt [71].
 - `UNNotificationCategory` mit drei Aktionen; "Aufnehmen" öffnet die App in den Aufnahmezustand (ein Tipp, dann läuft die Aufnahme, M3). "In 1 Stunde" plant einen einmaligen `UNTimeIntervalNotificationTrigger`.
 - Interruption Level `timeSensitive` nur nach ausdrücklicher Nutzerwahl; benötigt die Capability `com.apple.developer.usernotifications.time-sensitive` [72].
-- Zusätzliche Einstiege ohne Benachrichtigung: Control (Sperrbildschirm, Action Button) mit `AudioRecordingIntent`, der eine Live Activity starten muss, sonst stoppt iOS die Aufnahme [73].
+- Zusätzliche Einstiege ohne Benachrichtigung: Control (Sperrbildschirm, Action Button). Der Intent muss `AudioRecordingIntent` adoptieren (Pflicht, eine Live Activity zu starten und aktiv zu halten, sonst stoppt iOS die Aufnahme [73]) und zugleich `LiveActivityIntent`, damit das System den App-Prozess ohne Öffnen der App startet [80]. Apple dokumentiert die Kombination nicht ausdrücklich, und ein Forumsbericht (Thread 815725) meldet, dass ein Kaltstart der Aufnahme aus dem Hintergrund per Intent scheitert, solange die Audio-Session nicht zuvor im Vordergrund lief [81]. Der Spike testet das auf dem Gerät; scheitert es, öffnet das Control die App per `openAppWhenRun` direkt im Aufnahmezustand (ein Tipp mehr, M3 bleibt erfüllt).
 
 ### 8.2 Android
 
@@ -262,13 +262,15 @@ Ziel: Der Build beweist, dass die App nichts sendet, und die CI selbst verarbeit
 2. Tatsächliche `.ort`-Dateigrößen, RAM-Bedarf und RTF von Moonshine Small auf einem Snapdragon-6/7-Gerät; Zielwert RTF ≤ 0,5.
 3. Modelllizenz Parakeet TDT 0.6B v3 (CC-BY-4.0?) und Attributionspflichten in der App.
 4. Offizielle Hardware-Untergrenze und Locale-Liste für `SpeechTranscriber`; Verhalten von `AssetInventory`, wenn das System ungenutzte Assets wieder entfernt.
-5. Gemessene Deutsch-WER von `SpeechTranscriber` gegen Moonshine Small und WhisperKit large-v3-turbo auf identischem Tagebuch-Audio.
+5. Gemessene Deutsch-WER von `SpeechTranscriber` gegen Moonshine Small und WhisperKit large-v3-turbo auf identischem Tagebuch-Audio; dabei auch prüfen, wie `de-CH` mit Standard- und Mundartaudio umgeht (Annahme aus 2.1).
 6. Standardbitrate 16 oder 24 kbit/s: Hörprobe und Transkriptionsvergleich.
 7. Nutzt `flutter_secure_storage` 11 auf Android StrongBox oder nur TEE? Entscheidet über den Umfang von Brücke (c).
 8. Play-Policy-Einordnung für `USE_EXACT_ALARM` als Erinnerungs-App.
-9. Exportkontrolle: libsodium und SQLCipher sind keine Betriebssystem-Kryptografie; `ITSAppUsesNonExemptEncryption` und ein möglicher Self-Classification-Report sind mit `03-recht-compliance.md` abzustimmen [79].
+9. Exportkontrolle: libsodium und SQLCipher sind keine Betriebssystem-Kryptografie; `ITSAppUsesNonExemptEncryption` und ein möglicher Self-Classification-Report sind mit `05-sicherheit-und-datenschutz.md`, Abschnitt 5.4, abzustimmen [79].
 10. Modellauslieferung für den F-Droid-Build ohne Play Asset Delivery.
-11. Apple-Intelligence-Geräteliste und Refusal-Quote des Foundation-Modells bei typischen Tagebuchthemen in Deutsch (nur für Version 1.x relevant).
+11. Apple-Intelligence-Geräteliste, Refusal-Quote des Foundation-Modells bei typischen Tagebuchthemen in Deutsch und welche Geräte unter iOS 27 `contextSize` 8 192 melden (nur für Version 1.x relevant).
+12. WhisperKit: Gibt die Remote-Config (`config.json`) das 626-MB-Modell auf A14 (iPhone 12) frei, oder bleibt es bei der Fallback-Grenze A15? Entscheidet über die Geräteuntergrenze des Zusatzpakets auf iOS.
+13. Kaltstart der Aufnahme aus Control oder Action Button bei gesperrtem Gerät (`AudioRecordingIntent` + `LiveActivityIntent`): funktioniert er auf iOS 26/27, oder braucht es den Umweg über `openAppWhenRun`?
 
 ## Quellen
 
@@ -351,3 +353,8 @@ Ziel: Der Build beweist, dass die App nichts sendet, und die CI selbst verarbeit
 77. https://github.com/signalapp/Signal-Android/blob/main/reproducible-builds/README.md
 78. https://github.com/signalapp/Signal-iOS/issues/641
 79. https://developer.apple.com/documentation/security/complying-with-encryption-export-regulations
+80. https://developer.apple.com/documentation/appintents/liveactivityintent
+81. https://developer.apple.com/forums/thread/815725
+82. https://developer.apple.com/videos/play/wwdc2026/319/
+83. https://developer.apple.com/videos/play/wwdc2019/256/
+84. https://github.com/argmaxinc/argmax-oss-swift/discussions/391

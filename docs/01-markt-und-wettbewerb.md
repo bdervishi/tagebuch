@@ -10,13 +10,21 @@ Stand: 3. September 2026 · Status: Entwurf
 - Der serverlose Gerätewechsel per verschlüsselter Datei und QR-Code ist in keiner untersuchten App belegt. Wettbewerber nutzen iCloud, eigene Cloud-Tresore oder bieten gar keinen Transfer an [1][12][13].
 - Marktbewegung: keine Übernahme oder Einstellung einer großen Tagebuch-App 2025/2026 gefunden. Die Signale sind Preiserhöhungen (Day One), separate KI-Tarife, Wagniskapital für Cloud-KI-Journale (Rosebud) und Sherlocking durch Apple (Journal auf iPad und Mac, SpeechAnalyzer als System-API) [9][14][15][16].
 
-Positionierung in einem Satz: **Die App ist das tägliche Sprach-Tagebuch für iPhone und Android, das Aufnahme, Transkription in Deutsch und Englisch und Ablage vollständig auf dem Gerät hält, ohne Konto und ohne Server, mit verschlüsseltem Gerätewechsel per QR-Code statt Cloud-Sync.**
+Positionierung in einem Satz (Arbeitsfassung, Wortlaut in `08-namensfindung.md` und im Store-Text zu schärfen): **Sprich deinen Tag. Er bleibt auf deinem Handy.**
+
+Der Satz steht auf drei Belegen, die jeder Nutzer selbst prüfen kann:
+
+1. **Flugmodus-Test:** Aufnahme, Transkription und Wiedergabe funktionieren ohne Netz; der Nachweis ist Teil der Teststrategie (D14, Erfolgskriterium in `00-anforderungen.md`).
+2. **Keine INTERNET-Berechtigung auf Android:** Die App fordert `android.permission.INTERNET` nicht an; das ist im Play-Listing und im Manifest sichtbar (D3, D6).
+3. **Offener Code:** Quellcode unter GPLv3, Android zusätzlich über F-Droid mit reproduzierbarem Build (D10).
+
+Brückenkopf: **Android-Nutzer im DACH-Raum, die ein privates Sprach-Tagebuch ohne Google-Konto wollen.** Zweiter Ring: **iPhone-Nutzer in Mischhaushalten und Umsteiger von Apple Journal.** Begründung in Abschnitt 8. Der QR-Gerätewechsel, das verschlüsselte Backup und der Export sind Vertrauensbeweise, die diese Positionierung stützen; sie sind keine Schlagzeile, weil niemand danach sucht.
 
 ## 2. Methodik und Quellenlage
 
 Die Recherche lief am 3. September 2026 über Websuche mit Snippet-Auswertung. App Store, Google Play und die meisten Herstellerseiten waren aus der Recherche-Umgebung nicht abrufbar (D15). Direkt gelesen wurden GitHub-Repositories (DailyVox, WhisperJournal, VoiceInk, Konverter-Projekte) und developer.apple.com.
 
-Konsequenz für dieses Dokument: Eine Faktenprüfung (`verifikation.json`) lag zum Redaktionsschluss nicht vor. **Alle Preise, Sternebewertungen, Download- und Nutzerzahlen in den Tabellen stammen aus Suchsnippets und gelten als unverifiziert**, bis sie gegen die Store-Seiten geprüft sind. Im Fließtext ist dies je Zahl mit "(unverifiziert)" markiert. Preise sind US-Dollar-Angaben der Quellen; DACH-Preise in Euro weichen ab. Mehrere "Review 2026"-Seiten werden von Wettbewerbern betrieben (reflection.app, mindsera.com, dayora.ai, spokenly.app) und wurden nur herangezogen, wo keine bessere Quelle vorlag.
+Faktenprüfung (`docs/recherche/verifikation.json`, Stand 3. 9. 2026) eingearbeitet; als korrigiert markierte Aussagen sind in der dortigen Fassung übernommen. Die 30 geprüften Aussagen betreffen die Technikberichte zu iOS und Android; für dieses Dokument relevant sind die Bestätigung, dass SpeechTranscriber vollständig auf dem Gerät arbeitet (Grundlage der Sherlocking-Einschätzung in Abschnitt 7), und die Präzisierung zu den Apple-Locales (Tabelle 4.2, Diarly). Marktzahlen waren nicht Gegenstand der Prüfung. **Alle Preise, Sternebewertungen, Download- und Nutzerzahlen in den Tabellen stammen daher weiterhin aus Suchsnippets und gelten als unverifiziert**, bis sie gegen die Store-Seiten geprüft sind. Im Fließtext ist dies je Zahl mit "(unverifiziert)" markiert. Preise sind US-Dollar-Angaben der Quellen; DACH-Preise in Euro weichen ab. Mehrere "Review 2026"-Seiten werden von Wettbewerbern betrieben (reflection.app, mindsera.com, dayora.ai, spokenly.app) und wurden nur herangezogen, wo keine bessere Quelle vorlag.
 
 ## 3. Drei Gruppen von Wettbewerbern
 
@@ -45,7 +53,7 @@ Legende: OD = On-Device-Transkription; Cloud = Server-Transkription; "?" = nicht
 | Day One (Automattic) [9][10][22][23] | iOS, iPadOS, macOS, watchOS, Android, Windows, Linux, Web | Basic kostenlos; Silver 49,99 $/J; Gold 74,99 $/J mit KI (April 2026); Altkunden 24,99 $/J | Konto Pflicht für Sync; E2E (AES-GCM-256, RSA-2048) | OD nur auf iOS 26 mit Apple Intelligence, sonst Apple-Server; Android nicht dokumentiert (vermutlich Server) | Gerätesprache | eigener Sync; Export JSON-ZIP mit Medien, TXT, CSV, PDF | täglich, Streaks, "On This Day" | Transkript-Limit 10 Minuten; Internet erforderlich; Verdopplung des Neukundenpreises; Server-Skepsis in DE-Rezensionen |
 | Journey (Two App Studio) [11][24] | Android, iOS, macOS, Windows, Linux, ChromeOS, Web | Membership 49,99 $/J; Lifetime 199 $ | Google Drive, Dropbox oder Journey Cloud; Konto | nur iOS, nur bis 10 Minuten, keine importierten Audios | ? | Cloud-Sync; Export DOCX/PDF/JSON/ZIP; Audio als MP3 | ja | Android-Nutzer bekommen keine Transkription; Cloud-Bindung |
 | Diarium (Timo Partl, DE) [25][26][27] | Windows, Android, iOS, macOS | Pro 14,99 $ einmalig je Plattform; Windows 19,99 $ | lokal; Sync über eigene Cloud-Speicher (OneDrive, Drive, Dropbox, iCloud, WebDAV); V5: Datenbankverschlüsselung mit Passphrase | Diktat über System-Spracherkennung; keine Nachtranskription von Aufnahmen | Systemabhängig | Export PDF/DOCX/HTML/TXT/JSON; Import aus Day One, Daylio, Journey, Apple Journal | ja | Text-App mit Diktat; Android-Diktat läuft typischerweise über Google; ca. 740 000 Android-Downloads, 4,86 Sterne (AppBrain) zeigen DACH-Nachfrage nach Einmalkauf |
-| Diarly [12][28] | iPhone, iPad, Mac, Apple Watch | unter 2 $/Monat bzw. unter 24 $/J; separates Abo "AI+" für Transkription | iCloud Drive des Nutzers, keine eigenen Server; optionale Passwort-Verschlüsselung | OD mit Apple-Modell ab iOS 26 (SpeechTranscriber) | ja (Apple-Locales) | iCloud; Export Markdown, PDF | ja | kein Android; iCloud-Bindung; Transkription hinter zweitem Abo |
+| Diarly [12][28] | iPhone, iPad, Mac, Apple Watch | unter 2 $/Monat bzw. unter 24 $/J; separates Abo "AI+" für Transkription | iCloud Drive des Nutzers, keine eigenen Server; optionale Passwort-Verschlüsselung | OD mit Apple-Modell ab iOS 26 (SpeechTranscriber) | ja (de-DE/de-AT/de-CH laut Laufzeitabfrage von `supportedLocales`; Apple veröffentlicht keine feste Liste) | iCloud; Export Markdown, PDF | ja | kein Android; iCloud-Bindung; Transkription hinter zweitem Abo |
 | Daylio (Relaxio) [29][30] | iOS, Android | Premium 35,99 $/J | lokal; verschlüsselte Backups in Drive/iCloud; PIN/Biometrie | keine | entfällt | Backup-Datei; CSV-Export | ja | Sprachmemos ohne Transkript; Nutzerklage "nur auf einem Gerät" |
 
 ### 4.3 Voice-first-Apps
@@ -129,7 +137,19 @@ Die Lücke lässt sich in vier Sätzen beschreiben:
 
 ## 8. Folgerungen für das Konzept
 
-Empfehlung: Die App positioniert sich nicht gegen Apple Journal oder Day One, sondern neben ihnen als das Sprach-Tagebuch für Menschen, die (a) Android nutzen oder Android und iPhone mischen, (b) Deutsch sprechen und (c) kein Konto anlegen wollen. Begründung: Auf allen drei Achsen gibt es heute kein Angebot, und jede Achse ist für Nutzer prüfbar (Store-Listing, Flugmodus, Datenschutzlabel).
+Empfehlung: Die App positioniert sich nicht gegen Apple Journal oder Day One, sondern neben ihnen, und sie startet mit einem klaren Brückenkopf statt mit fünf gleichrangigen Zielgruppen.
+
+**Brückenkopf (primär): Android-Nutzer im DACH-Raum, die ein privates Sprach-Tagebuch ohne Google-Konto wollen.** Begründung:
+
+1. Auf Android ist die Lücke dokumentiert und breit: Ohne Pixel oder aktuelles Galaxy gibt es keine konto- und cloudfreie System-Transkription, die Voice-first-Apps mit Deutsch sind Einzelprojekte ohne Tagebuch-Ritual, und Journey, Diarium, Daylio transkribieren auf Android gar nicht (Abschnitt 6) [6][7][11][25][29].
+2. Auf iOS konkurriert die App mit einem vorinstallierten, kostenlosen Apple Journal, das dieselbe System-Engine nutzt wie Notizen und Sprachmemos; letztere transkribieren Deutsch bereits lokal [4][16]. Dass Journal selbst laut Support-Dokumentation nur Englisch transkribiert, kann Apple mit einem Punkt-Update ändern. Der iOS-Vorsprung ist also geliehen.
+3. Die Belege der Positionierung (kein `INTERNET`, F-Droid-Build, reproduzierbarer Build) sind auf Android sichtbar und für das Privacy-Publikum (Kuketz-Blog, Privacy Guides) anschlussfähig; auf iOS gibt es dafür kein Gegenstück außer dem Datenschutzlabel (D10, D14).
+
+**Zweiter Ring (sekundär): iPhone-Nutzer in Mischhaushalten und Umsteiger von Apple Journal.** Sie kommen über den Gerätewechsel iOS↔Android (D6), über den Export aus dem Apple-Journal-ZIP und über den Ärger mit fehlender deutscher Transkription und iCloud-Bindung [5][17][18]. Der iOS-Teil ist technisch günstig (D2) und bleibt Teil des MVP (M9); er ist aber nicht der Ort, an dem die App zuerst gefunden wird.
+
+**Später:** Menschen mit Schreibhürden, Schweizer Mundart, Praxen und Coaches (Zielgruppentabelle und Go-to-Market-Reihenfolge in `07-geschaeftsmodell.md`, Abschnitte 2 und 7.1, sind auf diese Reihenfolge auszurichten).
+
+Das Zeitfenster spricht für einen schnellen, Android-geführten Start: Apple hat die lokale Deutsch-Transkription in Notizen und Sprachmemos bereits ausgerollt [4][16], und eine Google-Journal-App mit On-Device-KI wird als Risiko geführt (`07-geschaeftsmodell.md`, Risikotabelle; Kritik an den KI-Funktionen 2026 unverifiziert) [61]. Jeder Monat, in dem die Android-Lücke offen bleibt, ist ein Monat Vorsprung.
 
 Aus den Schwächen der Wettbewerber ergeben sich konkrete Vorgaben, die in den Folgedokumenten umgesetzt sind:
 
@@ -153,6 +173,7 @@ Alternativen zur empfohlenen Positionierung, kurz bewertet:
 - **"Privates KI-Journal" wie CortexOS**: höherer wahrgenommener Wert, aber schwere Modelle, Flaggschiff-Geräte und ein Versprechen, das auf Android ohne Gemini Nano in Deutsch nicht einlösbar ist (D8). Nicht empfohlen für den Start.
 - **Reines Sprachmemo-Werkzeug wie Offscript**: breiterer Markt, aber bereits besetzt und ohne das tägliche Ritual, das den Auftrag ausmacht (M1, M2). Nicht empfohlen.
 - **iOS-only wie Diarly/DailyVox**: technisch am billigsten, verfehlt aber M9 und die größte Lücke (Android). Nicht empfohlen.
+- **Beide Plattformen gleichrangig bewerben** (frühere Fassung dieses Dokuments): verwässert die Botschaft, weil die Belege der Positionierung auf iOS schwächer sichtbar sind und dort ein kostenloser Systemstandard sitzt. Beide Plattformen werden gebaut (M9), aber nur eine trägt den Marktstart.
 
 ## 9. Offene Fragen
 
@@ -164,6 +185,8 @@ Alternativen zur empfohlenen Positionierung, kurz bewertet:
 6. Status von Jour 2026 (Relaunch als "jour: AI Journal"?), Bestätigung der Reflectly-Übernahme, Hintergrund der Journify-Delistung.
 7. Euro-Preise von Day One, Journey, Diarium, Diarly, Daylio in den DACH-Stores.
 8. Wörtliche Rezensionen (DE/AT/CH) zu Sync-Ausfällen, Datenverlust und Abo-Ärger bei Day One, Journey, Apple Journal; die vorliegende Stichprobe stammt überwiegend aus GitHub-Issue-Trackern und ist technisch verzerrt.
+9. Größe des Brückenkopfs: Der Anteil von Android-Nutzern in Deutschland, Österreich und der Schweiz ist in den Rechercheberichten nicht belegt und wird hier bewusst nicht beziffert; vor der Marketingplanung aus einer Primärquelle (z. B. Statistikämter, StatCounter) nachtragen.
+10. Wortlaut des Positionierungssatzes: "Sprich deinen Tag. Er bleibt auf deinem Handy." ist eine Arbeitsfassung; für die Schweizer Storefront prüfen, ob "Handy" oder "Telefon" besser trägt, und den Satz gegen den gewählten Namen (D11) testen.
 
 ## Quellen
 
@@ -227,3 +250,4 @@ Alternativen zur empfohlenen Positionierung, kurz bewertet:
 58. personaldevelopmentapps.com, Stoic Review 2026: https://personaldevelopmentapps.com/stoic-review ; Mindsera-Review: https://blog.mylifenote.ai/mindsera-review/
 59. Untold, App Store: https://apps.apple.com/us/app/untold-voice-journal/id6451427834
 60. Straits Research, Digital Journal Apps Market: https://straitsresearch.com/report/digital-journal-apps-market
+61. TechBuzz, Kritik an KI-Funktionen von Google Journal (2026, Sekundärquelle, unverifiziert): https://www.techbuzz.ai/articles/google-journal-ai-features-spark-privacy-backlash
