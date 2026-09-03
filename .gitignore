@@ -1,0 +1,16 @@
+# Betriebssystem
+.DS_Store
+Thumbs.db
+
+# Editoren
+.idea/
+.vscode/
+*.swp
+
+# Später: Build-Artefakte der App
+build/
+.dart_tool/
+.gradle/
+*.xcuserstate
+DerivedData/
+node_modules/
