@@ -2,9 +2,9 @@
 
 Stand: 3. September 2026 · Status: Entwurf
 
-Dieses Dokument beschreibt, wie ein Tagebuch ohne Cloud von einem Gerät auf ein anderes kommt (Anforderung M8) und wie dieselbe Datei als verschlüsseltes Offline-Backup dient (Annahme A8). Es setzt die verbindliche Entscheidung D6 um und baut auf der Speicherschicht aus `04-technik-architektur.md` auf (Envelope-Verschlüsselung, secretstream-Audiodateien, SQLCipher). Preise werden hier nicht genannt.
+Dieses Dokument beschreibt, wie ein Tagebuch ohne Cloud von einem Gerät auf ein anderes kommt (Anforderung M8) und wie dieselbe Datei als verschlüsseltes Offline-Backup dient (Annahme A8). Es setzt die verbindliche Entscheidung D6 um und baut auf der Speicherschicht aus `04-technik-architektur.md` auf (Envelope-Verschlüsselung, chunkweise AEAD-verschlüsselte AAC-Audiodateien, SQLCipher). Preise werden hier nicht genannt.
 
-Hinweis zur Quellenlage: Die Faktenprüfung (`verifikation.json`) lag beim Schreiben nicht vor. Zahlen, die in den Rechercheberichten nur aus Sekundärquellen oder Presse-Spiegeln stammen, sind mit "(unverifiziert)" gekennzeichnet. Eigene Rechnungen sind als solche ausgewiesen.
+Hinweis zur Quellenlage: Die Faktenprüfung (`docs/recherche/verifikation.json`, 30 Aussagen: 18 bestätigt, 12 präzisiert) liegt vor; sie prüft Transkriptions- und Plattformaussagen der Technikberichte und enthält keine der in diesem Dokument verwendeten Zahlen [43]. Zahlen, die nur aus Sekundärquellen oder Presse-Spiegeln stammen und nicht in der Faktenprüfung enthalten sind, bleiben deshalb mit "(unverifiziert)" gekennzeichnet (D15). Eigene Rechnungen sind als solche ausgewiesen. Die Nachrecherche zum Audio-Container [41] hat am 3. September 2026 D4 von Opus/secretstream auf AAC-LC in M4A mit Chunk-AEAD umgestellt; die Datenmengen in diesem Dokument rechnen seitdem mit AAC-LC 32 kbit/s als MVP-Basis, die Opus-Werte stehen als späterer Opus-Pfad daneben. Der Transfer-Container selbst bleibt bei libsodium secretstream (D6).
 
 ## 1. Was M8 verlangt und wie es gelesen wird
 
@@ -17,32 +17,37 @@ M8 lautet: "Optionaler Gerätewechsel/Zweitgerät: komprimierte, verschlüsselte
 
 Ein Zweitgerät erhält eine Kopie zu einem Zeitpunkt. Es gibt keinen laufenden Abgleich; wer auf zwei Geräten aufnimmt, überträgt bei Bedarf erneut, und der Import führt nach Eintragskennungen zusammen (Abschnitt 5.6). Diese Grenze wird im Store-Text und im Onboarding ehrlich benannt, wie es der Wettbewerbsbericht empfiehlt.
 
+Einordnung im Wettbewerb: Seit August 2026 gibt es mit DailyVox (iOS, kostenlos, MIT) einen deutschsprachigen, vollständig lokalen Wettbewerber (Deutsch mit v1.10.0, Cloud-Fallback mit v1.11.0 entfernt); eine Android-Version existiert nicht, die Nachfrage danach ist dokumentiert (Issue #4, 3. August 2026) [42][46]. Der in diesem Dokument beschriebene verschlüsselte Gerätewechsel mit Offline-Backup gehört damit auf iOS zu den Punkten, in denen sich die App unterscheidet (neben Verschlüsselung, Erinnerungslogik und Produktreife), und ist zusammen mit der Android-Version der plattformübergreifende Unterschied: Er funktioniert iOS↔Android, was ein reines iOS-Produkt nicht bieten kann.
+
 ## 2. Datenmengen: warum der QR-Code die Daten nicht tragen kann
 
 Ein QR-Code der Version 40 (177×177 Module) fasst im Byte-Modus höchstens 2 953 Byte bei Fehlerkorrekturstufe L und 2 331 Byte bei Stufe M [1][2]. Auf Smartphone-Displays werden so dichte Codes unzuverlässig gelesen; das TXQR-Experiment fand den brauchbaren Bereich bei 550 bis 900 Byte je Bild (Stufe M) bzw. 1 800 bis 2 000 Byte (Stufe L mit Fountain-Codes) und erreichte als Bestwert rund 25 kbit/s (etwa 3,1 kB/s) bei 12 Bildern/s; typisch sind 1 bis 3 kB/s [3][4].
 
-Datenmengen des Tagebuchs (eigene Rechnung nach D4 und D6; Annahmen: 3 Minuten Sprache täglich, mono, konstante Bitrate ohne DTX-Gewinn, 365 Tage):
+Datenmengen des Tagebuchs (eigene Rechnung nach D4 und D6; Annahmen: 3 Minuten Sprache täglich, mono, konstante Bitrate, 365 Tage; MVP-Codec AAC-LC 32 kbit/s in M4A, dasselbe Format, das Signal für Sprachnachrichten nutzt [45], Hörtest 24 bis 48 kbit/s im Spike; Opus ist der spätere Optimierungspfad [41]):
 
 | Inhalt | Rechnung | Pro Tag | Pro Jahr |
 |---|---|---|---|
-| Audio Opus 16 kbit/s | 16 000 bit/s ÷ 8 × 60 s = 0,12 MB/min | 0,36 MB | ≈ 131 MB |
-| Audio Opus 24 kbit/s | 0,18 MB/min | 0,54 MB | ≈ 197 MB |
+| **Audio AAC-LC 32 kbit/s (MVP-Basis)** | 32 000 bit/s ÷ 8 × 60 s = 0,24 MB/min | **0,72 MB** | **≈ 263 MB** |
+| Audio AAC-LC 24 bzw. 48 kbit/s (Hörtest-Spanne) | 0,18 bzw. 0,36 MB/min | 0,54 bzw. 1,08 MB | ≈ 197 bzw. 394 MB |
+| Audio Opus 16 kbit/s (späterer Opus-Pfad) | 0,12 MB/min | 0,36 MB | ≈ 131 MB |
+| Audio Opus 24 kbit/s (späterer Opus-Pfad) | 0,18 MB/min | 0,54 MB | ≈ 197 MB |
 | Transkript roh | ≈ 1 KB/min (120 bis 150 Wörter/min, ≈ 7 Byte/Wort) | ≈ 3 KB | ≈ 1,1 MB |
 | Transkript mit Segment-Zeitstempeln | Faktor 2 bis 3 | ≈ 6 bis 9 KB | 2 bis 3 MB |
 | Text nach zstd | Verhältnis ≈ 3 bis 4 bei natürlicher Sprache | | 0,3 bis 1 MB |
 
-Mit VBR und DTX sinken die Audiowerte um weitere 10 bis 20 % [11]. Opus ist bereits komprimiert und wird im Container nicht erneut komprimiert; nur Text und Metadaten laufen durch zstd (Silesia-Verhältnis 2,9 bei 510 MB/s [10]).
+AAC-LC läuft mit konstanter Bitrate, die Größe ist damit exakt planbar; erst der spätere Opus-Pfad senkt die Werte mit VBR und DTX um weitere 10 bis 20 % [11]. AAC-LC ist bereits komprimiert und wird im Container nicht erneut komprimiert (dasselbe gilt später für Opus); nur Text und Metadaten laufen durch zstd (Silesia-Verhältnis 2,9 bei 510 MB/s [10]). Die Verschlüsselung der Audiodateien (Chunk-AEAD, 28 bis 40 Byte je 32-KiB-Chunk) trägt rund 0,1 % auf und ist hier vernachlässigt.
 
 Umgerechnet in animierte QR-Bilder (eigene Rechnung, 1 800 Byte Nutzlast je Bild plus 20 % Fountain-Redundanz):
 
 | Nutzlast | Bilder | Dauer bei 1 bis 3 kB/s |
 |---|---|---|
 | Pairing-Payload, unter 200 Byte | 1 | ein Scan |
-| Ein Tag Audio, 0,36 MB | ≈ 200 (≈ 240 mit Redundanz) | 2 bis 6 Minuten |
+| Ein Tag Audio, 0,72 MB (AAC-LC) | ≈ 400 (≈ 480 mit Redundanz) | 4 bis 12 Minuten |
 | Ein Jahr Text, 0,5 MB | ≈ 280 (≈ 340 mit Redundanz) | 3 bis 8 Minuten |
-| Ein Jahr Audio, 131 MB | ≈ 73 000 (≈ 88 000 mit Redundanz) | 12 bis 36 Stunden |
+| Ein Jahr Audio, 263 MB (AAC-LC, MVP) | ≈ 146 000 (≈ 175 000 mit Redundanz) | 24 bis 73 Stunden |
+| Ein Jahr Audio, 131 MB (späterer Opus-Pfad) | ≈ 73 000 (≈ 88 000 mit Redundanz) | 12 bis 36 Stunden |
 
-Ein Jahr Audio hieße also, die Kamera 12 bis 36 Stunden ruhig vor ein Display zu halten; bei 24 kbit/s das Anderthalbfache. Ein einzelner Tag wäre zwar möglich, aber ein Gerätewechsel betrifft das ganze Tagebuch. Animierte QR-Codes scheiden für Audio deshalb aus (D6). Für reinen Text bleiben sie als Notfallweg denkbar (Abschnitt 9.3).
+Ein Jahr Audio hieße also, die Kamera 24 bis 73 Stunden ruhig vor ein Display zu halten; selbst der spätere Opus-Pfad bliebe bei 12 bis 36 Stunden. Ein einzelner Tag wäre zwar möglich, aber ein Gerätewechsel betrifft das ganze Tagebuch. Animierte QR-Codes scheiden für Audio deshalb aus (D6). Für reinen Text bleiben sie als Notfallweg denkbar (Abschnitt 9.3).
 
 ## 3. Verfahren im Überblick
 
@@ -61,7 +66,7 @@ Die Rollen:
 
 1. Auf dem **neuen** Gerät: App installieren, im Onboarding "Tagebuch von einem anderen Gerät übernehmen" wählen. Das Gerät zeigt einen QR-Code und darunter "Code als Wörter anzeigen" für den Fall, dass die Kamera des alten Geräts nicht funktioniert.
 2. Auf dem **alten** Gerät: Einstellungen → "Auf ein neues Gerät übertragen" → QR-Code scannen. Die App zeigt, was übertragen wird (Anzahl Einträge, Zeitraum, Größe in MB) und fragt: "Audio mitnehmen?" (Standard: ja) sowie "Nur Einträge ab …" (Standard: alle).
-3. Das alte Gerät packt die Datei. Fortschrittsanzeige; bei 131 bis 197 MB dauert das nach eigener Einschätzung wenige Sekunden bis Minuten (Messung im Spike).
+3. Das alte Gerät packt die Datei. Fortschrittsanzeige; bei rund 263 MB (ein Jahr Audio bei AAC-LC 32 kbit/s) dauert das nach eigener Einschätzung wenige Sekunden bis Minuten, weil die Audiodateien nur kopiert und nicht umverschlüsselt werden (Messung im Spike).
 4. Das alte Gerät öffnet das System-Teilen-Blatt. Der Nutzer wählt AirDrop, Quick Share, "In Dateien sichern", einen USB-Stick oder einen anderen Weg (Abschnitt 7). Auf beiden Geräten steht ein sechsstelliger Prüfcode.
 5. Auf dem **neuen** Gerät: Die Datei kommt an (AirDrop/Quick Share öffnen sie direkt in der App) oder wird über "Datei auswählen" geöffnet. Die App zeigt Prüfcode, Anzahl Einträge, Zeitraum und Herkunftsgerät und fragt "Übernehmen?".
 6. Import läuft; danach "Fertig. 412 Einträge übernommen." Das neue Gerät schlägt vor, auf dem alten Gerät zu löschen.
@@ -126,14 +131,14 @@ Eine Datei, Endung vorläufig `.tagebuch` (folgt dem endgültigen Namen, D11), e
 | Schlüsselprüfwert | 8 Byte | BLAKE2b(K_c ‖ "check"), unterscheidet "falsche Passphrase" von "Datei beschädigt" |
 | secretstream-Header | 24 Byte | `crypto_secretstream_xchacha20poly1305_HEADERBYTES` [7] |
 
-**Nutzlast** als secretstream in 64-KiB-Chunks (17 Byte Overhead je Chunk, also rund 0,03 % [7]; bei 131 MB rund 2 000 Chunks und 34 KB Overhead, eigene Rechnung). secretstream erkennt Abschneiden, Entfernen, Umsortieren, Duplizieren und Verändern von Chunks [7]. Innerhalb des Stroms liegt ein einfaches sequentielles Archiv aus Datensätzen "Typ, Länge, Bytes":
+**Nutzlast** als secretstream in 64-KiB-Chunks (17 Byte Overhead je Chunk, also rund 0,03 % [7]; bei 263 MB rund 4 000 Chunks und 68 KB Overhead, eigene Rechnung). secretstream erkennt Abschneiden, Entfernen, Umsortieren, Duplizieren und Verändern von Chunks [7]. Es ist strikt sequenziell und ohne wahlfreien Zugriff; das passt zum Container, der in einem Durchgang geschrieben und gelesen wird, nicht aber zu den Audiodateien im Ruhezustand, die seekbar sein müssen und deshalb nach D4 chunkweise mit AEAD verschlüsselt sind [41]. Innerhalb des Stroms liegt ein einfaches sequentielles Archiv aus Datensätzen "Typ, Länge, Bytes":
 
 1. `manifest.json.zst`: Schema- und App-Version, Herkunftsgerät (Name, Plattform), Erstellzeit, Anzahl Einträge und Aufnahmen, Zeitraum, Gesamtgröße, Liste aller folgenden Dateien mit Größe und BLAKE2b-256, sowie je Aufnahme den Dateischlüssel (DEK) im Klartext dieses verschlüsselten Stroms.
-2. `db.ndjson.zst`: Export der Tabellen `journal`, `entry`, `recording`, `transcript`, `transcript_segment`, `tag`, `entry_tag` und der übertragbaren `setting`-Zeilen (Erinnerungszeit, Sprache, Audio-Aufbewahrung) als NDJSON, mit zstd komprimiert; FTS-Index wird nicht exportiert, sondern beim Import neu gebaut.
-3. `audio/<recording_id>.opus.enc`: die Audiodateien **unverändert im Ruheformat** (secretstream mit dem jeweiligen DEK, vgl. `04-technik-architektur.md` Abschnitt 5).
+2. `db.ndjson.zst`: Export der Tabellen `journal`, `entry`, `recording` (einschließlich `codec`, `container`, `sample_rate`, `bitrate` und der 100 Wellenform-Werte je Aufnahme, damit der spätere Opus-Pfad neben M4A-Altdateien bestehen kann und die Wellenform nicht neu berechnet werden muss), `transcript`, `transcript_segment`, `tag`, `entry_tag` und der übertragbaren `setting`-Zeilen (Erinnerungszeit, Sprache, Audio-Aufbewahrung) als NDJSON, mit zstd komprimiert; FTS-Index wird nicht exportiert, sondern beim Import neu gebaut.
+3. `audio/<recording_id>.m4a.enc`: die AAC-LC/M4A-Audiodateien **unverändert im Ruheformat**, also chunkweise AEAD-verschlüsselt nach Cryptomator-Muster (Dateikopf mit Kopf-Nonce und gewrapptem DEK, 32-KiB-Chunks mit je eigener Nonce und Auth-Tag, AAD = Chunk-Nummer + Kopf-Nonce; vgl. `04-technik-architektur.md` Abschnitt 5.1) [41][44]. Der Container transportiert diese Dateien als opake Bytefolgen; das M4A wird weder entschlüsselt noch transkodiert.
 4. Trailer mit `TAG_FINAL`: BLAKE2b-256 über alle vorangegangenen Klartext-Datensätze ("Manifest-Hash") und die Anzahl geschriebener Dateien.
 
-**Empfehlung: Audiodateien im Ruheformat übernehmen, DEKs im Manifest mitliefern**, weil so weder Export noch Import die Audiodaten ent- und neu verschlüsseln müssen, jede Audiodatei ihre eigene Chunk-Integrität behält und der Import eine Datei einfach an ihren Zielort kopieren und den DEK mit dem neuen Master-Key wrappen kann. Die Kopplung an das Ruheformat ist vertretbar, weil beide Formate in derselben Bibliothek `diary_crypto` liegen und ein späteres Kommandozeilenwerkzeug beide ohnehin kennt. Alternative: Audio in den Container entschlüsseln und mit `K_c` neu verschlüsseln; das macht den Container unabhängig vom Ruheformat, kostet aber doppelte Kryptoarbeit und einen zweiten Codepfad.
+**Empfehlung: Audiodateien im Ruheformat übernehmen, DEKs im Manifest mitliefern**, weil so weder Export noch Import die Audiodaten ent- und neu verschlüsseln müssen, jede Audiodatei ihre eigene Chunk-Integrität behält, auf dem neuen Gerät sofort seekbar abspielbar ist und der Import eine Datei einfach an ihren Zielort kopieren und den DEK mit dem neuen Master-Key wrappen kann. Der im Dateikopf mit dem alten Master-Key gewrappte DEK wird dabei durch den neu gewrappten ersetzt; die Chunks bleiben unberührt. Die Kopplung an das Ruheformat ist vertretbar, weil beide Formate auf derselben Schlüsselbibliothek `diary_crypto` aufsetzen und in den Schwesterpaketen `diary_chunkfile` und `diary_container` liegen und ein späteres Kommandozeilenwerkzeug beide ohnehin kennt. Alternative: Audio in den Container entschlüsseln und mit `K_c` neu verschlüsseln; das macht den Container unabhängig vom Ruheformat, kostet aber doppelte Kryptoarbeit und einen zweiten Codepfad.
 
 Warum zusätzlich ein Manifest-Hash, obwohl secretstream schon Integrität liefert: Er prüft die Konsistenz zwischen Ankündigung (Manifest) und tatsächlichem Inhalt, dient als stabile Container-Kennung für Duplikaterkennung und wird als "Prüfsumme" angezeigt.
 
@@ -206,7 +211,9 @@ Die Parameter entsprechen D5 und dem libsodium-Preset INTERACTIVE (64 MiB); das 
 
 Ablauf: Einstellungen → "Backup erstellen" → Passphrase zweimal eingeben → Datei erzeugen (wie 5.4, ohne QR) → Ziel wählen (Dateien-App, SAF, Stick). Direkt danach führt die App einen **Wiederherstellungstest** durch: Sie leitet den Schlüssel aus der eingegebenen Passphrase erneut ab, öffnet die geschriebene Datei und liest das Manifest. Erst dann gilt das Backup als erstellt. Der Nutzerfeedback-Bericht zeigt, warum: Backups, die sich nicht wiederherstellen lassen, sind die häufigste Klage in Tagebuch-Apps [40].
 
-Die App erinnert monatlich an ein Backup (D6), zeigt das Datum des letzten Backups an und bietet an, alte Backups zu ersetzen. Backups enthalten wahlweise Audio oder nur Text.
+Die Nachrecherche zu Store-Rezensionen präzisiert die Muster hinter dieser Klage [42][47]: Nutzer finden die Backup-Datei auf dem Gerät nicht wieder (Easy Diary, Issue #184), ein OS-Update bricht die Backup-Funktion (Android 13 Scoped Storage, Issue #200), es gibt keine Möglichkeit, eine Backup-Datei manuell auszuwählen (Issue #111), und eine Änderung der Biometrie sperrt den Nutzer aus dem eigenen Tagebuch aus (Issue #197). Daraus folgen vier Regeln für dieses Dokument: (1) Der Nutzer wählt den Speicherort selbst über den Systemdialog, und die App zeigt nach dem Erstellen den vollständigen Zielpfad an und merkt ihn sich für die Backup-Erinnerung; (2) es gibt immer "Datei auswählen" für den Import, kein automatisches Suchen; (3) der Dateiweg läuft über Teilen-Blatt, Dokumenten-Picker und Storage Access Framework, die keine Speicherberechtigung brauchen und deshalb von Berechtigungsänderungen des Betriebssystems unabhängig sind; (4) das Passphrase-Backup ist der einzige Weg zurück, wenn ein an die Biometrie gebundener Schlüssel nach einer Biometrie-Änderung ungültig wird (D5), weshalb die App beim Einschalten der Biometrie-Sperre auf ein aktuelles Backup hinweist.
+
+Die App erinnert monatlich an ein Backup (D6), zeigt Datum und Speicherort des letzten Backups an und bietet an, alte Backups zu ersetzen. Backups enthalten wahlweise Audio oder nur Text.
 
 ### 6.2 Wiederherstellung
 
@@ -241,9 +248,9 @@ Das Verfahren ist überall gleich; nur die Systemwege für die Datei unterscheid
 | Drittanbieter-Übertragungs-App (z. B. LocalSend) | ja | ja | ja; die App selbst braucht dafür kein Netz [13] |
 | Mail, Messenger | technisch ja | technisch ja | technisch ja; nicht empfohlen, weil Chiffrat bei Dritten verbleibt |
 
-Für iOS↔Android ohne kompatible Geräte für Quick Share/AirDrop ist der USB-Stick oder ein Rechner der zuverlässige Weg; das Onboarding sagt das, bevor der Nutzer anfängt. Eine Messung der Gesamtzeit je Weg mit 131 und 197 MB gehört in den Spike; Ziel bleibt unter fünf Minuten.
+Für iOS↔Android ohne kompatible Geräte für Quick Share/AirDrop ist der USB-Stick oder ein Rechner der zuverlässige Weg; das Onboarding sagt das, bevor der Nutzer anfängt. Eine Messung der Gesamtzeit je Weg mit 263 MB (ein Jahr AAC-LC) und 131 MB (späterer Opus-Pfad) gehört in den Spike; Ziel bleibt unter fünf Minuten.
 
-Bluetooth als eingebauter Weg wurde verworfen: iOS bietet keinen Dateiversand per Bluetooth an, und ein eigener BLE-Kanal schafft nach Messungen 39 bis 80 kB/s (unverifiziert, Projektmessungen) [28], also 30 bis 60 Minuten für 131 MB (eigene Rechnung).
+Bluetooth als eingebauter Weg wurde verworfen: iOS bietet keinen Dateiversand per Bluetooth an, und ein eigener BLE-Kanal schafft nach Messungen 39 bis 80 kB/s (unverifiziert, Projektmessungen) [28], also rund 55 bis 110 Minuten für 263 MB und 30 bis 60 Minuten für 131 MB (eigene Rechnung).
 
 ## 8. Sicherheitsbewertung
 
@@ -258,7 +265,7 @@ Bluetooth als eingebauter Weg wurde verworfen: iOS bietet keinen Dateiversand pe
 | Angreifer im selben WLAN (erst bei der Direktübertragung in 1.x relevant) | Man-in-the-Middle, Abhören, Störung | TLS mit selbstsigniertem Zertifikat, dessen SHA-256-Fingerabdruck im QR steht ("Trust-on-QR"), Vergleich in konstanter Zeit nach Signal-Vorbild [14]; darunter bleibt der Container zusätzlich verschlüsselt, ein TLS-Bruch liefert nur Chiffrat. Störung (DoS) ist möglich; Rückfall auf die Datei. Discovery verrät Gerätename und Anwesenheit im Netz. |
 | Verlorenes neues Gerät mit offener Sitzung | privater Schlüssel liegt auf dem Gerät | Schlüssel in Keychain/Keystore-gewrappt, Ablauf nach 24 Stunden, Gerätesperre |
 
-Nicht abgedeckt und bewusst nicht versprochen: Schutz vor einem Angreifer, der beide entsperrten Geräte in der Hand hat, sowie Forensik gegen das Gerät selbst (siehe Bedrohungsmodell in `04-technik-architektur.md`).
+Nicht abgedeckt und bewusst nicht versprochen: Schutz vor einem Angreifer, der beide entsperrten Geräte in der Hand hat, sowie Forensik gegen das Gerät selbst (siehe Bedrohungsmodell in `05-sicherheit-und-datenschutz.md`, Abschnitt 1.3).
 
 ## 9. Ausbaustufen
 
@@ -267,7 +274,7 @@ Nicht abgedeckt und bewusst nicht versprochen: Schutz vor einem Angreifer, der b
 Vorbild ist LocalSend: Discovery per UDP-Multicast an 224.0.0.167:53317 mit HTTP-Fallback, Registrierung, Upload über HTTPS mit selbstgeneriertem Zertifikat, Fingerabdruck = SHA-256 des Zertifikats, optionale PIN; bekannte Hürden sind Firewalls und AP-Isolation in Gäste- und Hotelnetzen [12][13]. Übertragen auf die App:
 
 - Der QR-Code erhält zusätzlich den Zertifikat-Fingerabdruck und die lokale Adresse des Empfängers; das alte Gerät verbindet sich, prüft den Fingerabdruck und schiebt denselben Container durch die Verbindung. Der Container bleibt unverändert, nur der Kanal ist neu; bei Abbruch kann ab dem letzten vollständigen Chunk fortgesetzt werden.
-- Zeitbudget für 131 MB im WLAN nach Rechnung des Technikberichts 7 bis 30 s bei konservativ 5 bis 20 MB/s (unverifiziert, Messung im Spike).
+- Zeitbudget im WLAN bei konservativ 5 bis 20 MB/s (Ansatz des Technikberichts, eigene Rechnung): 13 bis 53 s für 263 MB (AAC-LC), 7 bis 30 s für 131 MB (späterer Opus-Pfad); Durchsatz unverifiziert, Messung im Spike.
 - Preis: Auf Android muss die App `android.permission.INTERNET` anfordern; damit fällt das vom Betriebssystem erzwungene "kann nichts senden" weg (D3, D14). Auf iOS kommen `NSLocalNetworkUsageDescription`, `NSBonjourServices` und der Systemdialog für das lokale Netz hinzu; der Netz-Wächter im Build (`04-technik-architektur.md`, Abschnitt 10) wird bewusst und sichtbar angepasst. Der Nachweis "es geht nichts ins Netz" stützt sich dann auf den Flugmodus- und Proxy-Test statt auf die fehlende Berechtigung. Empfehlung: die Direktübertragung erst einführen, wenn der Dateiweg im Feld Schwächen zeigt, und den F-Droid-Build wahlweise ohne diese Funktion und ohne `INTERNET` anbieten (offene Frage 3).
 - Nicht verwenden: Multipeer Connectivity, das Apple vollständig als veraltet erklärt hat (TN3213, Xcode 27); stattdessen Network framework mit `peerToPeerIncluded(true)` für iOS↔iOS [23][24]. Bei AP-Isolation kann Android einen `startLocalOnlyHotspot()` öffnen, dem iOS per `NEHotspotConfigurationManager` beitritt; die Zugangsdaten stünden dann im QR-Code, weshalb der Prüfcode hier zur Pflicht wird [33][34][35].
 
@@ -290,7 +297,7 @@ Für den Fall, dass gar kein Dateiweg zur Verfügung steht, kann der reine Text 
 
 ## 11. Verworfene Alternativen (kurz)
 
-- **Animierte QR-Codes für Audio**: 12 bis 36 Stunden je Jahr (Abschnitt 2).
+- **Animierte QR-Codes für Audio**: 24 bis 73 Stunden je Jahr bei AAC-LC, 12 bis 36 Stunden selbst beim späteren Opus-Pfad (Abschnitt 2).
 - **7z/AES**: kein AEAD, keine Chunk-Integrität, Schlüsselableitung mit 2^19 SHA-256-Runden [38]; ein Standardformat mit Drittwerkzeugen wäre zwar bequem, aber hier zu schwach.
 - **Bluetooth LE als Hauptweg**: 39 bis 80 kB/s (unverifiziert) [28].
 - **Quick Share/AirDrop-Interoperabilität als Kernpfad**: nur bestimmte Geräte, "Jeder"-Modus, keine API (unverifiziert) [25][27].
@@ -300,13 +307,13 @@ Für den Fall, dass gar kein Dateiweg zur Verfügung steht, kann der reine Text 
 ## 12. Offene Fragen
 
 1. Exportiert `package:sodium` 4.1 `crypto_kdf_hkdf_sha256`? Sonst `crypto_kx` (BLAKE2b) als Ableitung festlegen [32].
-2. Gemessene Dauer des kompletten Wechsels je Übergabeweg mit 131 und 197 MB auf iPhone und zwei Android-Geräten (Ziel unter fünf Minuten); Argon2id-Laufzeit mit 64 MiB auf einem 4-GB-Android-Gerät.
+2. Gemessene Dauer des kompletten Wechsels je Übergabeweg mit 263 MB (ein Jahr AAC-LC 32 kbit/s) und 131 MB (späterer Opus-Pfad) auf iPhone und zwei Android-Geräten (Ziel unter fünf Minuten); Argon2id-Laufzeit mit 64 MiB auf einem 4-GB-Android-Gerät.
 3. Bau-Variante für Version 1.x: eine App mit `INTERNET` oder zwei Varianten (Store mit Direktübertragung, F-Droid ohne)? Kann ein Dynamic-Feature-Modul die Berechtigung nachträglich beitragen?
 4. Verhalten von AirDrop und Quick Share mit einem unbekannten Dateityp: Wird die App zuverlässig als Ziel ("Öffnen mit") angeboten? UTI/MIME-Registrierung testen, auch bei Zustellung in die Dateien-App.
 5. Dateiendung und UTI folgen dem endgültigen Namen (D11).
 6. Prüfcode: Pflicht oder Empfehlung im MVP? Vorschlag: anzeigen, aber nicht erzwingen; Pflicht erst beim Hotspot-Weg.
 7. Ob ein optionaler 64-stelliger Wiederherstellungsschlüssel zusätzlich zur Passphrase angeboten wird.
-8. Standardbitrate 16 oder 24 kbit/s (Entscheidung im Audio-Spike) verändert die Containergröße um den Faktor 1,5.
+8. Standardbitrate 24, 32 oder 48 kbit/s AAC-LC (Hörtest im Audio-Spike, D4) verändert die Containergröße für ein Jahr zwischen rund 197, 263 und 394 MB; der spätere Opus-Pfad (16 bis 24 kbit/s) halbiert sie etwa. Der Import muss M4A- und spätere Ogg/Opus-Dateien nebeneinander akzeptieren (Felder `codec`/`container` je Aufnahme).
 9. Wi-Fi Aware iOS 26 ↔ Android 14+: Interoperabilitäts-Prototyp vor jeder Planung.
 10. Einordnung der Container-Kryptografie (libsodium) für `ITSAppUsesNonExemptEncryption` und Exportkontrolle, abgestimmt mit dem Rechtsdokument.
 
@@ -352,3 +359,10 @@ Für den Fall, dass gar kein Dateiweg zur Verfügung steht, kann der reine Text 
 38. 7-Zip, Methods.txt und 7zAes.cpp (Schlüsselableitung 2^19 SHA-256, CBC): https://raw.githubusercontent.com/ip7z/7zip/main/DOC/Methods.txt ; https://raw.githubusercontent.com/ip7z/7zip/main/CPP/7zip/Crypto/7zAes.cpp
 39. Ars Technica, Apple und Wi-Fi Aware (25.11.2025): https://arstechnica.com/gadgets/2025/11/the-eu-made-apple-adopt-new-wi-fi-standards-and-now-android-can-support-airdrop/
 40. Easy Diary, Issue #252 (Backup nicht wiederherstellbar, 25.08.2026) und #234 (Wunsch nach verschlüsseltem Backup): https://github.com/hanjoongcho/aaf-easydiary/issues/252 ; https://github.com/hanjoongcho/aaf-easydiary/issues/234
+41. Nachrecherche Audio-Container, Aufnahme-Pipeline und Wiedergabe (3. September 2026; Grundlage der Umstellung von D4 auf AAC-LC/M4A und Chunk-AEAD, secretstream nur für den Transfer): `docs/recherche/nachrecherche-audio-container.md`; Primärquellen dort u. a. Apple `AudioFileTypeID` (kein Ogg-Dateityp), developer.apple.com/forums/thread/128434 (Ogg nicht abspielbar), AOSP `MediaRecorder.java` (OGG/OPUS), Media3 "Supported formats" (CAF nicht gelistet)
+42. Nachrecherche Nutzerstimmen und Store-Kennzahlen (3. September 2026), Abschnitte 1.3 und 4: `docs/recherche/nachrecherche-nutzerstimmen-stores.md`
+43. Faktenprüfung der Rechercheberichte (30 Aussagen, 18 bestätigt, 12 präzisiert; nur Transkriptions- und Plattformaussagen): `docs/recherche/verifikation.json`
+44. Cryptomator, Vault-Format (Dateikopf, 32-KiB-Chunks mit Nonce und Tag, AAD = Chunk-Nummer + Kopf-Nonce; Vorbild für die Audiodateien im Ruhezustand): https://github.com/cryptomator/docs/blob/develop/docs/security/vault.mdx
+45. Signal Android, `AudioCodec.java` (Sprachnachrichten als AAC-LC, 32 kbit/s, mono): https://github.com/signalapp/Signal-Android/blob/main/app/src/main/java/org/thoughtcrime/securesms/audio/AudioCodec.java
+46. DailyVox (iOS, MIT): README und Release-Notizen v1.10.0 (Deutsch, Spanisch, Französisch, Italienisch) und v1.11.0 (kein Cloud-Fallback), Issue #4 "Any plans for Android Release?" (3. August 2026): https://github.com/intrepidkarthi/dailyvox ; https://github.com/intrepidkarthi/dailyvox/issues/4
+47. Easy Diary, archivierte Play-Store-Rezensionen: Issue #184 (Backup-Speicherort nicht auffindbar, 28.12.2021), #200 (Backup nach Android-13-Update blockiert, 11.11.2022), #197 (Aussperrung nach Hinzufügen eines Fingerabdrucks, 16.08.2022), #111 (keine manuelle Auswahl der Backup-Datei, 22.03.2020): https://github.com/hanjoongcho/aaf-easydiary/issues/184 ; https://github.com/hanjoongcho/aaf-easydiary/issues/200 ; https://github.com/hanjoongcho/aaf-easydiary/issues/197 ; https://github.com/hanjoongcho/aaf-easydiary/issues/111
