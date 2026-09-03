@@ -63,7 +63,7 @@ Diese Punkte sind meine Lesart des Auftrags. Sie sind bewusst als Annahmen marki
 
 | Thema | Optionen | Wer entscheidet |
 |-------|----------|-----------------|
-| Name | Shortlist in `06-namensfindung.md` | Inhaber |
+| Name | Shortlist in `08-namensfindung.md` | Inhaber |
 | Lizenz des Quellcodes | Proprietär mit öffentlichem Repo, Open Core, vollständig Open Source (z. B. AGPL) | Inhaber; Empfehlung im Geschäftsmodell |
 | Technologie-Stack | Zweimal nativ, Kotlin Multiplatform, Flutter | Empfehlung im Technikkonzept |
 | Preismodell | Einmalkauf, Abo, Hybrid | Empfehlung im Geschäftsmodell |

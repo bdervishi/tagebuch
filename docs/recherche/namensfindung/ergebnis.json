@@ -1,0 +1,251 @@
+{
+ "totalCandidates": 41,
+ "viableCount": 38,
+ "ranking": [
+  {
+   "name": "Abendton",
+   "avg": 7.3,
+   "style": "Wortverschmelzung (Abend + Ton), klingt wie ein alter Musikbegriff",
+   "rationale": "Verweist auf das feste Ritual zur selbst gewählten Uhrzeit, die für die meisten der Abend sein wird. Klingt wie ein eingeführter Musikbegriff, den es aber nicht gibt; keine Kollision gefunden (nur eine eingestellte Event-App namens „Abend“).",
+   "taglineDE": "Der Tag, in einem Satz gesprochen.",
+   "taglineEN": "The day, said out loud. Just for you.",
+   "risk": 1,
+   "appStore": "NICHT PRÜFBAR (Store-Zugriff blockiert). Keine Aussage möglich.",
+   "play": "NICHT PRÜFBAR. Ersatzsignale: pub.dev 0, npm 0.",
+   "domains": "abendton.app, .com, .de, .ch, .io, .net, .org, .eu, .at: sämtlich kein DNS-Eintrag – sehr wahrscheinlich alle frei. Keine Hinweise auf frühere Registrierungen in den Expired-Domain-Listen auf GitHub.",
+   "trademark": "Markenregister NICHT PRÜFBAR. GitHub: 0 Repos, Code-Treffer (9) ausschließlich in Literaturkorpora (Hans Sachs, Jean-Paul-Texte, Zeitungs-OCR) – 'Abendton' ist ein poetisches Wort, kein Produkt-/Firmenname gefunden.",
+   "meaning": "DE: keine (poetisch, positiv). EN: 'abend'/'ABEND' ist IT-Jargon für 'abnormal end' (Programmabsturz) – für technikaffine Zielgruppe leicht negativ konnotiert; sonst nicht lesbar. FR/IT/ES: keine Bedeutung, Aussprache 'Abend-ton' unproblematisch. Keine anstößigen Lesarten.",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 8 – Poetisch, ruhig, sofort verständlich; „Ich nutze Abendton“ klingt selbstverständlich und macht neugierig. Starkes Bild fürs Icon (Horizont + Welle). Schwäche: legt sich auf den Abend fest, drei Silben, für Englischsprachige undurchsichtig.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 6 – Sauber (risk=1), in DE-Store-Suche unverwechselbar, poetisch ohne Kitsch. International kaum lesbar, EN-IT-Jargon ABEND, engt auf den Abend ein, obwohl die Uhrzeit frei wählbar ist; kein Datenschutzsignal.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 8 – Nur poetische Belege, keine Firma, App oder Marke; als Kunstwort gut schützbar, keine anstößigen Lesarten in fünf Sprachen. Kleine Abzüge: 'ABEND' ist IT-Jargon für Programmabsturz (technikaffine Zielgruppe), und 'Abend' ist für EN-Sprecher nicht intuitiv auszusprechen."
+   ]
+  },
+  {
+   "name": "Tonlade",
+   "avg": 7.3,
+   "style": "Neologismus (Ton + Lade, wie Schublade)",
+   "rationale": "Eine Lade ist die Schublade, in die man etwas legt und wieder zuschiebt, hier für die eigene Stimme. Klingt altmodisch-solide, lässt sich als kleine Schublade mit Schloss ikonisieren; keine Kollision gefunden (Spanischsprachige hören „tonelada“, was harmlos ist).",
+   "taglineDE": "Eine Schublade für deine Stimme. Abschließbar.",
+   "taglineEN": "A drawer for your voice. With a lock.",
+   "risk": 1,
+   "appStore": "NICHT PRÜFBAR (Store-Zugriff blockiert). Keine Aussage möglich.",
+   "play": "NICHT PRÜFBAR. Ersatzsignale: pub.dev 0, npm 0.",
+   "domains": "tonlade.app, .com, .de, .ch, .io, .net, .org, .eu, .at: sämtlich kein DNS-Eintrag – sehr wahrscheinlich alle frei. Expired-Domain-Listen auf GitHub zeigen tonlade-Domains, die 2007/2011/2013/2019 verfielen (früher registriert, heute frei).",
+   "trademark": "Markenregister NICHT PRÜFBAR. GitHub: 0 Repos; 119 Code-Treffer sind Zufalls-Substrings ('ladestasjon', polnische Übersetzungsdateien, generierte Domainlisten). Keine Firma, Marke oder Software namens Tonlade gefunden. Suffix '-lade' erinnert an Orgelbau (Windlade, Schleiflade) – klingt fachlich, ist aber kein belegter Begriff.",
+   "meaning": "DE: keine; 'Lade' regional (Süd/AT) für Schublade, leicht altertümlich. EN: keine Bedeutung; 'lade' archaisch für 'beladen'; Betonung unklar ('ton-laid'). ES: klingt wie 'tonelada' (Tonne, Gewichtseinheit) – harmlos, evtl. Assoziation 'schwer'. IT: Nähe zu 'tonnellata', harmlos. FR: keine Bedeutung. Keine anstößigen Lesarten.",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 6 – Charmant altmodisch, das Schubladenbild ist ein exzellentes Icon (Lade mit Schloss). Klanglich etwas schräg, „Lade“ regional, im Empfehlungstest folgt sicher die Rückfrage – die aber eine gute Geschichte auslöst.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 7 – Nirgends belegt (risk=1), Store-Suche exklusiv, Domain/Repo vermutlich frei; die abschließbare Schublade trägt das Datenschutzversprechen ohne Jargon. International Aussprache unklar, ES/IT hören 'Tonne'.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 9 – Keine Firma, Marke, App oder Software gefunden (nur Zufalls-Substrings); Kunstwort mit guter Schutzfähigkeit. In allen fünf Sprachen problemlos aussprechbar, keine negativen Lesarten; ES/IT-Anklang an 'tonelada/tonnellata' ist harmlos. Einzig die EN-Betonung ist unklar."
+   ]
+  },
+  {
+   "name": "Leiseton",
+   "avg": 7.3,
+   "style": "Neologismus (leise + Ton, nach „Flüsterton“)",
+   "rationale": "Wie „Flüsterton“, nur ohne Umlaut: der leise Ton, in dem man nur mit sich selbst spricht. Weich, unaufgeregt, passt zu einem schlichten Icon (kleine Welle); keine App oder Marke gefunden.",
+   "taglineDE": "Im leisen Ton. Nur für dich.",
+   "taglineEN": "In a quiet voice. Kept for you alone.",
+   "risk": 1,
+   "appStore": "NICHT PRÜFBAR (App Store blockiert). Ersatzprüfungen: GitHub-Repo-Suche 'Leiseton' und '\"leise ton\" OR leiseton OR leise-ton' 0 Treffer; GitHub-Code-Suche '\"Leiseton\" OR \"LeiseTon\"' über alle Dateien 0 Treffer; npm 0; crates.io 0. Keinerlei Spur des Namens in den erreichbaren Quellen.",
+   "play": "NICHT PRÜFBAR (Play Store blockiert). Keine Hinweise in den Ersatzquellen (0 Treffer überall).",
+   "domains": "DNS: leiseton.app, leiseton.com, leiseton.de, leiseton.ch und leiseton.io haben ALLE keinen DNS-Eintrag – sehr wahrscheinlich sämtlich unregistriert (WHOIS/RDAP blockiert, daher kein endgültiger Beleg). Einziger Name der Liste ohne jede belegte Domain.",
+   "trademark": "NICHT PRÜFBAR (DPMA/TMview blockiert). Keine Firma, Marke, Software oder Domain in den erreichbaren Quellen gefunden; Vorrecherche des Auftraggebers ebenfalls ohne Treffer.",
+   "meaning": "DE: keine negative Bedeutung; Nähe zu 'Flüsterton' gewollt, klingt aber auch wie 'leiser Ton' = schwaches Signal/Unauffälligkeit (könnte als 'leise Stimme im Markt' gelesen werden). EN: keine Bedeutung; 'lei-se-ton' wird eher als 'Lee-seton' (Nachname Seton) gelesen. FR: klanglich 'laisse ton…' (lass dein…), harmlos. IT/ES: keine Bedeutung, keine Anstößigkeit.",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 6 – Weich, ruhig, sehr nah an der gewünschten Tonalität. Doch als Neubildung neben „Flüsterton“ wirkt es leicht konstruiert und ein wenig schwach – „leiser Ton“ kann auch „kaum hörbar“ heißen. Icon simpel.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 8 – Null Treffer in allen erreichbaren Quellen, Store-Suche exklusiv, Domain und Repo vermutlich frei, international lesbar (FR-Anklang harmlos); leises Sprechen nur für sich passt zur Positionierung. Schwäche: drei Silben, 'leise' kann als schwaches Signal gelesen werden.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 8 – Keinerlei Spur in Repos, Registries oder Domains – so sauber wie kaum ein anderer Kandidat; Kunstwort, gut schützbar, keine negativen Bedeutungen. Abzüge nur für drei Silben, die EN-Fehllesung 'Lee-seton' und den leicht schwachen Beiklang 'leiser Ton'."
+   ]
+  },
+  {
+   "name": "Tagschloss",
+   "avg": 7.3,
+   "style": "beschreibend, Zweiwort-Kompositum (Tag + Schloss)",
+   "rationale": "Doppelt lesbar: das Schloss, das den Tag verschließt, und 'der Tag schloss' – das ruhige Zumachen am Abend. Beschreibt die lokale Verschlüsselung ohne Tech-Jargon; keine App oder Marke gefunden, GitHub frei, und das Icon liegt auf der Hand (Vorhängeschloss mit Sonnenscheibe).",
+   "taglineDE": "Den Tag aussprechen. Abschließen. Fertig.",
+   "taglineEN": "Speak the day. Lock it. Done.",
+   "risk": 0,
+   "appStore": "Nicht prüfbar (Apple-Endpunkte und Suchmaschinen gesperrt, WebSearch-Kontingent aufgebraucht). Keine indirekten Hinweise auf eine App.",
+   "play": "Nicht prüfbar (play.google.com gesperrt). GitHub: 0 Code-Treffer, also keine Android-Ressourcen.",
+   "domains": "tagschloss.app: kein DNS. tagschloss.com: kein DNS. tagschloss.de: kein DNS. tagschloss.ch: kein DNS. tagschloss.io: kein DNS. Alle fünf TLDs ohne Auflösung - nach Datenlage frei/unbenutzt.",
+   "trademark": "Markenregister nicht abrufbar. GitHub: 0 Repositories und 0 Code-Treffer für 'Tagschloss' - der Begriff ist im indexierten Web-Code nicht existent; keine Firma, Marke oder Software erkennbar.",
+   "meaning": "DE: 'Schloss' doppeldeutig (Verschluss/Gebäude), beide unschädlich; als Kunstwort ungewohnt. EN: 'schloss' für Englischsprachige schwer auszusprechen, keine negative Bedeutung. FR/IT/ES: keine Bedeutung, keine negativen Assoziationen.",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 5 – Der Doppelsinn „der Tag schloss“ ist schön, aber die Konsonantenkette g-schl macht den Namen sperrig, und das Vorhängeschloss-Icon gehört den Passwort-Managern. Klingt nach Sicherheitsprodukt, nicht nach Tagebuch.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 8 – Null Treffer überall (risk=0), exklusive Auffindbarkeit, Domain/Repo praktisch sicher frei; Schloss = Verschlüsselung ohne Tech-Jargon, stärkster Datenschutz-Fit im Feld. Abzug für Konsonantencluster 'gschl' in EN/FR/IT/ES.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 9 – 0 Repositories, 0 Code-Treffer, keine Domain-Hinweise – im indexierten Web praktisch nicht existent, keine Firma oder Marke. Kunstwort, hoch unterscheidungskräftig, keine negativen Bedeutungen. Einziger Stolperstein ist der Anlaut 'schl' für EN/FR/IT/ES-Sprecher."
+   ]
+  },
+  {
+   "name": "Kveld",
+   "avg": 6.7,
+   "style": "nordische Wurzel, abstrakt-bedeutungsvoll",
+   "rationale": "Norwegisch/altnordisch für „Abend“ – die Stunde, in der man den Tag kurz Revue passieren lässt; einsilbig, weich im Auslaut und mit nordischer Ruhe statt Wellness-Ton. Websuche: nur eine norwegische Kultur-App („Kultur i Kveld“) und ein Musikprojekt, keine App oder Marke namens „Kveld“; GitHub-Name frei.",
+   "taglineDE": "Ein paar Sätze am Abend. Nur für dich.",
+   "taglineEN": "A few words each evening. Yours alone.",
+   "risk": 2,
+   "appStore": "NICHT PRÜFBAR: apps.apple.com und itunes.apple.com sind in dieser Session durch die Egress-Policy gesperrt (HTTP 403 auf CONNECT), WebSearch-Budget (200/200) war vor Beginn dieser Aufgabe aufgebraucht. Aus Vorwissen: keine App namens „Kveld“ bekannt; „kveld“ ist ein norwegisches Alltagswort (Abend), daher zahlreiche norwegische Apps mit „kveld“ als Bestandteil (z.B. „Kultur i Kveld“, „God kveld“-Formate), keine davon Tagebuch/Notizen/Audio. Nachprüfung im Store zwingend.",
+   "play": "NICHT PRÜFBAR (play.google.com gesperrt). Aus Vorwissen keine Play-Store-App „Kveld“ bekannt; Treffer erwartbar nur für norwegische Komposita.",
+   "domains": "DNS-Prüfung (getent, 03.09.2026): kveld.app KEIN DNS-Eintrag (vermutlich frei oder ungenutzt); kveld.com nur als www.kveld.com auflösbar (193.69.155.15, norwegischer IP-Block → registriert, Inhalt nicht abrufbar); kveld.de, kveld.ch, kveld.io KEIN DNS. Inhalte konnten nicht geladen werden (Proxy-Sperre).",
+   "trademark": "NICHT PRÜFBAR (EUIPO/TMview/USPTO gesperrt). Vorwissen: keine bekannte Software-/App-/Medienmarke „Kveld“; „Kveld“ existiert als Name kleiner Musikprojekte/Bands. GitHub: 22 Treffer mit „kveld“ im Namen, alle norwegische Hobby-/Kursprojekte (KveldsKos, KursKveld, UU-kveld, kveld-morphe-patches = Android-Patches), keine Tagebuch-/Notiz-Software. npm: Paket „kveld“ frei, PyPI frei.",
+   "meaning": "DE/EN/FR/IT/ES: keine Bedeutung, keine negative Assoziation. Aussprache-Hürde: Anlaut „kv“ + Auslaut „ld“ ist für FR/IT/ES-Sprecher ungewohnt („Kewld“/„Kveldé“). In NO/IS/DA ist „kveld“ ein beschreibendes Alltagswort (Abend) → in Skandinavien als Marke schwach/beschreibend, dort viele Namensvettern.",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 8 – Eine Silbe, weich im Auslaut, nordisch ruhig ohne Wellness-Zucker; sehr merkfähig und unterscheidbar, das K/Abendlinie-Icon fast von selbst. „Ich nutze Kveld“ klingt wie eine gute Designmarke. Kleines Risiko: Skandi-Klischee, Schreibweise wird nachgefragt.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 6 – Einsilbig, in DE/EN-Stores unverwechselbar, GitHub/npm/PyPI frei. In Skandinavien beschreibendes Alltagswort (viele Namensvettern, .no-Domains weg), Aussprachehürde in FR/IT/ES, kein Datenschutzsignal.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 6 – Keine Marke oder App, npm/PyPI frei, keine negativen Bedeutungen. In NO/DA/IS aber beschreibendes Alltagswort (dort schwach und viele Namensvettern), und der Anlaut 'kv' plus Auslaut 'ld' ist für EN/FR/IT/ES-Sprecher eine echte Aussprachehürde."
+   ]
+  },
+  {
+   "name": "Tonbuch",
+   "avg": 6.7,
+   "style": "beschreibend, Zweiwort-Kompositum (Ton + Buch)",
+   "rationale": "Erinnert an Tonband und Notizbuch zugleich und beschreibt genau das Produkt: ein Buch, das man bespricht statt beschreibt. Keine Kollision mit bekannten Apps gefunden, GitHub frei; für Englischsprachige mühelos als 'tone-book' lesbar, ohne peinliche Nebenbedeutungen in FR/IT/ES.",
+   "taglineDE": "Gesprochen statt geschrieben. Bleibt bei dir.",
+   "taglineEN": "Spoken, not typed. Stays with you.",
+   "risk": 2,
+   "appStore": "Nicht prüfbar: apps.apple.com/itunes.apple.com und alle Suchmaschinen durch den Egress-Proxy gesperrt, WebSearch-Kontingent der Session (200/200) aufgebraucht. Kein Treffer aus indirekten Quellen (GitHub-Code-Suche zeigt keine App-Ressourcen/Manifeste mit diesem Namen).",
+   "play": "Nicht prüfbar (play.google.com gesperrt). GitHub-Code-Suche: keine strings.xml/AndroidManifest-Treffer mit 'Tonbuch'.",
+   "domains": "tonbuch.app: kein DNS (frei/unbenutzt). tonbuch.com: DNS auf 2001:8d8:100f:f000::200 (IONOS-Standardadresse, typisch für geparkte Domains; Inhalt nicht abrufbar). tonbuch.de: DNS auf 2a01:238:20a:202:1158:: (Strato-Netz; Inhalt nicht abrufbar). tonbuch.ch: kein DNS. tonbuch.io: kein DNS. Domains 'tonbuch.*' tauchen 2011 und 2022 in Listen abgelaufener Domains auf (hohe Fluktuation, kein etabliertes Produkt erkennbar).",
+   "trademark": "Markenregister nicht abrufbar. 'Tonbuch' ist in der Musikwissenschaft ein Fachbegriff (Treffer in RISM-Muscat-Richtlinien, Beethovens Werkstatt, historischen Musiktraktaten) - beschreibende Verwendung, keine Firma/Software erkennbar. GitHub: 0 Repositories mit 'tonbuch' im Namen.",
+   "meaning": "DE: 'Ton' auch = Lehm/Erde ('Tonbuch' = Buch aus Ton) - unschädlich, eher charmant. EN: 'ton' = Tonne (1000 kg), Lesart 'tone book' funktioniert. FR: 'ton' = dein/Ton, 'buch' bedeutungslos. IT/ES: keine Bedeutung, keine negativen Assoziationen.",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 6 – Ehrlich, ruhig, sofort verständlich (Tonband + Notizbuch), Icon liegt auf der Hand. Aber es klingt wie eine Kategoriebezeichnung, wenig Markenfunke; man empfiehlt eine Sache, keinen Namen.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 7 – 0 Repos, nur obskure musikwissenschaftliche Nutzung, in Store-Suche exklusiv; beschreibt das Produkt (Buch zum Besprechen) sofort. EN 'tone book' passabel, Datenschutzsignal fehlt, Domain nicht geprüft.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 7 – 0 Repositories, keine App-Manifeste, nur ein obskurer musikwissenschaftlicher Fachbegriff. Keine negativen Bedeutungen in fünf Sprachen. Abzug: als 'tone book' für ein besprochenes Tagebuch grenzwertig beschreibend (Eintragungshürde in Klasse 9 möglich), EN-Lesart 'ton' = Tonne."
+   ]
+  },
+  {
+   "name": "Tagschatz",
+   "avg": 6.7,
+   "style": "beschreibend-warm, Zweiwort-Kompositum (Tag + Schatz)",
+   "rationale": "Verbindet das Festhalten des Tages mit dem Bild des gehüteten Schatzes – 'Schatz' meint Wertvolles und Verschlossenes zugleich und klingt im Deutschen zusätzlich liebevoll. Kein bekannter Markenkonflikt, GitHub frei; kurz, weich und für ein Icon (kleine Truhe, Schlüsselloch) sehr geeignet.",
+   "taglineDE": "Was du sagst, wird gehütet.",
+   "taglineEN": "What you say is kept safe.",
+   "risk": 1,
+   "appStore": "Nicht prüfbar (Apple-Endpunkte und Suchmaschinen gesperrt, WebSearch-Kontingent aufgebraucht). Keine indirekten Hinweise auf eine App.",
+   "play": "Nicht prüfbar (play.google.com gesperrt). GitHub: keine Android-Ressourcen mit 'Tagschatz'.",
+   "domains": "tagschatz.app: kein DNS. tagschatz.com: kein DNS. tagschatz.de: kein DNS. tagschatz.ch: kein DNS. tagschatz.io: kein DNS. Alle fünf TLDs ohne Auflösung - nach Datenlage frei/unbenutzt. 'tagschatz.*' erscheint 2017 einmal in einer Liste abgelaufener Domains.",
+   "trademark": "Markenregister nicht abrufbar. GitHub: 0 Repositories, nur 3 Code-Treffer, allesamt historische Texte (Reichstagsprotokoll 1878, Dresdner Ratsinformation) - keine Firma, Marke oder Software erkennbar.",
+   "meaning": "DE: 'Schatz' positiv (Kostbarkeit, Kosewort); keine negative Lesart. EN: 'tag' + 'schatz' ohne Bedeutung, Aussprache 'sch' für Englischsprachige unklar. FR/IT/ES: keine Bedeutung, keine negativen Assoziationen.",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 5 – Warm gemeint, aber es kippt ins Niedlich-Naive (Kinder-App, Sparkassenprodukt); die Schatztruhe als Icon ist abgenutzt. Im Freundeskreis eher „süß“ als „vertrauenswürdig“.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 7 – Nirgends besetzt (risk=1), Store-exklusiv, Icon-stark, 'gehütet' passt zur Positionierung; international schwach ('sch', 'tag' = Etikett), für DACH-first aber solide.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 8 – Nur drei historische Textbelege, keine Firma, Marke oder Software; Kunstwort mit guter Schutzfähigkeit, 'Schatz' durchweg positiv, keine negativen Lesarten in fünf Sprachen. Abzug allein für die Lautfolge 'sch'+'tz', die EN/IT/ES-Sprecher stolpern lässt."
+   ]
+  },
+  {
+   "name": "Tagton",
+   "avg": 6.3,
+   "style": "Wortverschmelzung (Tag + Ton), zwei Silben",
+   "rationale": "Beschreibt das Produkt in zwei Silben: der Ton des Tages, einmal täglich gesprochen. „Tag“ und „tone“ sind auch im Englischen lesbar; die Suche ergab keine App oder Marke dieses Namens, nur entfernte Treffer wie „Tag-It“ oder „Tagged“.",
+   "taglineDE": "Jeden Tag ein Ton. Nur auf deinem Gerät.",
+   "taglineEN": "One tone a day. Only on your device.",
+   "risk": 3,
+   "appStore": "NICHT PRÜFBAR (apps.apple.com und iTunes-Search-API vom Egress-Proxy blockiert, WebSearch-Kontingent aufgebraucht). Keine Aussage möglich.",
+   "play": "NICHT PRÜFBAR (play.google.com, APKPure, APKCombo, AppBrain, F-Droid blockiert). Ersatzsignale: pub.dev (Flutter) 0 Treffer, npm 0, crates.io 0, Docker Hub 0, Packagist 0 (nur unverwandte Namen), RubyGems 0.",
+   "domains": "tagton.com: registriert, DNS zeigt auf 13.248.169.48 / 76.223.54.146 (typische AWS-Global-Accelerator-IPs von GoDaddy/Afternic-Verkaufs-/Parkseiten) – vermutlich geparkt bzw. zum Verkauf, kein aktives Produkt erkennbar (Inhalt nicht abrufbar). tagton.app, .de, .ch, .io, .net, .org, .eu, .at: kein DNS-Eintrag (sehr wahrscheinlich frei). GitHub-Code-Suche zeigt tagton-Domains in Listen abgelaufener Domains (2020) – frühere Registrierungen sind verfallen.",
+   "trademark": "Markenregister (DPMA, EUIPO, TMview, Swissreg, USPTO) NICHT PRÜFBAR (blockiert). GitHub: kein Repo namens Tagton; ähnlich: capable-average/tagTonic (Go-Tagging-Tool, 33 Sterne), rtomrud/tagtoname (Audio-Tag-Umbenennung). GitHub-User-Handles TAGTON, TagTones, tagtony existieren (Privatpersonen, kein Produkt erkennbar). Keine Firma/Marke gefunden – Aussage aber nur auf Entwickler-Ökosystem gestützt.",
+   "meaning": "DE: keine. EN: liest sich als Ortsname (-ton wie Taunton), die Bedeutung Ton/tone geht verloren; 'tag' = Etikett/Schlagwort, wirkt wie ein Tagging-Tool. FR: 'tag' = Graffiti-Tag, 'ton' = dein – 'tag ton …' klingt wie ein Satzfragment, harmlos. IT/ES: keine Bedeutung, unauffällig. Keine anstößigen Lesarten gefunden.",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 5 – Zwei harte Silben, klingt eher nach Takt/Technik als nach Tagebuch; im Empfehlungstest flach und ohne Wärme. Icon (Sonne + Welle) machbar, aber der Name trägt keine Geschichte.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 7 – Einzigartige Zeichenkette, in Stores und Dev-Ökosystem praktisch unbesetzt, EN mühelos aussprechbar (wie Ortsname). Abzug: 'tag' wird in EN als Tagging-Tool gelesen, kein Datenschutzsignal, Handles TAGTON/tagTonic als Nachbarn.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 7 – Keine Produkt- oder Markenkollision gefunden (nur tagTonic, tagtoname, private Handles). Kunstwort, gut schützbar. Abzug: 'tag' wird in EN/FR als Etikett/Graffiti gelesen und rückt den Namen in die Nähe von Tagging-Tools und Marken wie 'Tagged'; EN liest '-ton' als Ortsnamen, die Ton-Bedeutung geht verloren."
+   ]
+  },
+  {
+   "name": "Tonschatz",
+   "avg": 6.3,
+   "style": "Wortverschmelzung (Ton + Schatz, nach „Wortschatz“)",
+   "rationale": "Angelehnt an „Wortschatz“: Was man über Monate hineinspricht, wird zu einem Schatz aus Tönen, und „Schatz“ ist zugleich ein Kosewort. Nur ein Musiker nutzt den Namen, keine App oder Marke; Icon-Idee: kleine Truhe oder Schatulle.",
+   "taglineDE": "Gesammelt, verschlossen, deins.",
+   "taglineEN": "Collected, locked, yours.",
+   "risk": 2,
+   "appStore": "NICHT PRÜFBAR: apps.apple.com und die iTunes-Search-API sind in dieser Sitzung durch den Egress-Proxy blockiert; das WebSearch-Kontingent (200/200) war bereits vor Beginn aufgebraucht. Ersatzprüfungen: GitHub-Repo-Suche (in:name, description, readme) 0 Treffer; GitHub-Code-Suche in strings.xml/Info.plist 0 Treffer; npm 0; crates.io 0. Keine Hinweise auf eine iOS-App dieses Namens, aber kein direkter Store-Beleg.",
+   "play": "NICHT PRÜFBAR: play.google.com, AppBrain, APKPure, APKMirror, F-Droid blockiert. Ersatzprüfung GitHub-Code-Suche nach 'Tonschatz' in Android-strings.xml: 0 Treffer.",
+   "domains": "DNS-Auflösung (nicht Inhalt, Ziel-Domains blockiert): tonschatz.com und tonschatz.de lösen auf (registriert, vermutlich der vom Auftraggeber genannte Musiker); tonschatz.app, tonschatz.ch, tonschatz.io ohne DNS-Eintrag (sehr wahrscheinlich frei). RDAP/WHOIS blockiert.",
+   "trademark": "NICHT PRÜFBAR: DPMAregister, TMview (tmdn.org) und USPTO blockiert. Keine Firma/Marke in den erreichbaren Quellen (GitHub, npm, crates.io). Laut Vorrecherche des Auftraggebers nutzt ein Musiker den Namen (Musik/Unterhaltung, andere Branche).",
+   "meaning": "DE: keine negative Bedeutung; 'Ton' kann auch Lehm bedeuten (Ton-Schatz = Lehmschatz), harmlos. EN: 'ton' (Gewichtseinheit) + 'schatz' ohne Bedeutung; 'sch' für Englischsprachige schwer auszusprechen. FR: 'ton' = dein/Ton, unproblematisch. IT/ES: keine Bedeutung, keine Anstößigkeit.",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 6 – Warm, das Wortschatz-Echo funktioniert, „Schatz“ gibt Nähe. Aber die Truhe als Icon ist ein Klischee und der Name kippt leicht ins Niedliche; „sch“ für Nicht-Deutsche schwer.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 6 – Nur ein Musiker als Namensvetter, sonst frei und gut unterscheidbar; Schatz-Metapher (verschlossen, wertvoll) passt zur Positionierung. 'sch' für EN sperrig, international schwer zu tippen.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 7 – Nur ein Musiker nutzt den Namen (andere Branche), sonst 0 Treffer überall; Kunstwort, gut schützbar, keine anstößigen Bedeutungen. Abzug für 'sch'+'tz', das EN/FR/IT/ES-Sprecher stolpern lässt, und die EN-Lesart 'ton' = Tonne."
+   ]
+  },
+  {
+   "name": "Sagbar",
+   "avg": 6,
+   "style": "Kurzes deutsches Adjektiv als Name",
+   "rationale": "Sagbar ist, was man aussprechen kann, und hier ist alles sagbar, weil nichts das Gerät verlässt. Zwei Silben mit klarem Datenschutzbezug ohne Technikwort; nur ein Musikprojekt und ein Buchtitel („Weil es sagbar ist“) nutzen das Wort, keine App.",
+   "taglineDE": "Hier ist alles sagbar.",
+   "taglineEN": "Here, everything can be said.",
+   "risk": 2,
+   "appStore": "NICHT PRÜFBAR (App Store blockiert). Ersatzprüfungen: GitHub-Repo-Suche liefert 2 Treffer, beide irrelevant: tatzelbrumm/DieGrenzenDesSagbaren (Chatprotokoll, TeX) und den GitHub-Nutzer 'sagbar' (Hagital-Training, HTML-Übung) – 'Sagbar' ist also auch ein Personenname/Handle. GitHub-Code-Suche in strings.xml/Info.plist/package.json/pubspec: 7 Treffer, alle nur als deutsches Wort ('sagbar'/'unsagbar') in Übersetzungsdateien (LLM-Hub, pocketclaw, ANOTHERpass, CoffeeShotTimer u. a.), kein App-Name. npm 0, crates.io 0.",
+   "play": "NICHT PRÜFBAR (Play Store blockiert). Keine Android-App namens 'Sagbar' in den Ersatzquellen.",
+   "domains": "DNS: sagbar.com, sagbar.de und sagbar.ch lösen auf (registriert, Inhalte nicht abrufbar); sagbar.app und sagbar.io ohne DNS-Eintrag (sehr wahrscheinlich frei).",
+   "trademark": "NICHT PRÜFBAR (DPMA/TMview blockiert). Keine Software/Firma in den erreichbaren Quellen. Laut Vorrecherche des Auftraggebers: ein Musikprojekt und der Buchtitel 'Weil es sagbar ist' (Carolin Emcke, Essayband) – beides andere Branchen.",
+   "meaning": "DE: neutral bis positiv; starke Assoziation zum politischen Diskurs 'Grenzen des Sagbaren' (Debatte um Meinungsfreiheit/Rechtspopulismus) – kann ungewollt politisch wirken. EN: liest sich als 'sag bar' (durchhängende Stange) – schwach negativ, kaum relevant. FR/IT/ES: keine Bedeutung, keine Anstößigkeit. 'Sagbar' kommt zudem als Nachname/Nutzername vor (GitHub-Handle 'sagbar').",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 7 – Zwei klare Silben, modern als Adjektivname, der Datenschutzgedanke steckt drin, minimalistisches Icon (Sprechblase) liegt nahe. Risiko: Anklang an die politische Debatte um die „Grenzen des Sagbaren“ kann im Gespräch ablenken.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 5 – Store-technisch frei, Datenschutzbezug ('alles sagbar, weil nichts das Gerät verlässt') gut. Politische Färbung 'Grenzen des Sagbaren', Personenname/GitHub-Handle, EN liest 'sag bar'.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 6 – Keine Software-/Markenkollision (nur Buchtitel, Musikprojekt, GitHub-Handle, Nachname). Abzüge: starke Assoziation zum politischen Diskurs 'Grenzen des Sagbaren' (kann ungewollt politisch wirken), EN-Lesart 'sag bar' (durchhängend), als Adjektiv tendenziell beschreibend für eine Sprech-App."
+   ]
+  },
+  {
+   "name": "Sorla",
+   "avg": 6,
+   "style": "erfunden, skandinavisch inspiriert",
+   "rationale": "Erfunden aus schwedisch „sorl“ (das leise Gemurmel vieler Stimmen) plus weicher a-Endung – klingt wie ein Name, nicht wie ein Produkt, und trägt das Bild des leisen Sprechens. Keine Bedeutung in DE/EN/FR/IT/ES; GitHub frei; Websuche nicht mehr verfügbar, App-Store-Prüfung nachholen.",
+   "taglineDE": "Sprich. Der Rest bleibt hier.",
+   "taglineEN": "Just talk. It stays right here.",
+   "risk": 3,
+   "appStore": "App Store nicht erreichbar – NICHT verifiziert. GitHub: keine App namens Sorla (nur Demo 'SORLA – Soleilware Reflector navigation demo', Profil-Repos, 'sorla.github.io – All about Sorla'). Keine Swift-Repos. Kein Notiz-/Audio-Bezug gefunden.",
+   "play": "Play Store nicht erreichbar – NICHT verifiziert. Keine Android-Repos namens Sorla gefunden.",
+   "domains": "sorla.app -> 198.185.159.145 (Squarespace; aktive Website, Inhalt nicht abrufbar – vermutlich belegt). sorla.com -> 69.163.176.237 (DreamHost, aktiv). sorla.de -> 89.31.143.93 (aktiv). sorla.ch: kein DNS (vermutlich frei). sorla.io -> Cloudflare (aktiv). sorla.net -> Vercel. sorla.se aktiv. sorla.at / sorla.eu / sorlaapp.com: kein DNS.",
+   "trademark": "Register nicht erreichbar – NICHT verifiziert. Software-Namensvetter: Greentic 'SoRLa' (Crates greentic-sorla, sorla-provider-core etc. – eine Sprache/IR für 'System of Record' Workflows, Entwicklerwerkzeug, kein Endnutzerprodukt). npm 'sorla-db' (Browser-Mini-DB). Squarespace-Site unter sorla.app deutet auf eine kleine Firma/Person hin (unbekannte Branche).",
+   "meaning": "SV: 'sorla' ist tatsächlich ein existierendes schwedisches Verb (= murmeln, plätschern – von Stimmen oder Bächen), nicht nur erfunden; passt inhaltlich sehr gut. NO/IS: 'Sörla þáttr' (altnordische Erzählung). DE/EN/FR/IT: keine Bedeutung. ES: entfernte Klangnähe zu 'zorra' (Füchsin; vulgär: Schlampe) – bei lateinamerikanischem Seseo 'sorra' vs. 'sorla', nur schwache Assoziation. Keine anstößige Bedeutung.",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 7 – Klingt wie ein Name, nicht wie ein Produkt: weich, ruhig, das Gemurmel-Bild passt genau. Gut merkfähig, S-Monogramm als Icon. Leichte Start-up-Beliebigkeit und die ferne „zorra“-Nähe im Spanischen kosten Punkte.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 5 – Schwedisches Verb (murmeln) passt inhaltlich, GitHub frei. Aber sorla.app bereits vergeben (Squarespace-Site), Greentic-SoRLa-Crates, ES 'zorra'-Anklang.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 6 – Kein Endnutzerprodukt gleichen Namens; Entwicklerwerkzeug 'SoRLa' (Greentic) und eine Squarespace-Site sorla.app sind aber Namensvettern in Software-Nähe. Existierendes schwedisches Verb (murmeln) – dort beschreibend. In DE/EN/FR/IT sauber, ES-Klangnähe zu 'zorra' nur entfernt. Aussprache überall leicht."
+   ]
+  },
+  {
+   "name": "Tacita",
+   "avg": 5.7,
+   "style": "lateinische Wurzel, klassisch-weich",
+   "rationale": "Lateinisch „die Schweigende“ – Dea Tacita war die römische Göttin der Verschwiegenheit; eine Stimme, die zuhört und nichts weitererzählt, ist die Kernidee der App. Auf Spanisch bedeutet „tacita“ zusätzlich „Tässchen“ (harmlos, eher charmant); GitHub nur durch kleine Hobby-Repos belegt, App-Store-Prüfung nachholen.",
+   "taglineDE": "Sie hört zu. Und schweigt.",
+   "taglineEN": "Listens. Never tells.",
+   "risk": 4,
+   "appStore": "NICHT PRÜFBAR (App Store gesperrt). Vorwissen: keine bekannte App „Tacita“ in Notizen/Tagebuch/Audio; da „tacita“ im Spanischen Alltagswort ist (Tässchen), sind spanischsprachige Café-/Gastro-Apps und „La Tacita“-Shops im Store wahrscheinlich (andere Branche). Store-Nachprüfung nötig.",
+   "play": "NICHT PRÜFBAR (Play Store gesperrt). Erwartbar: spanische Gastro-/Kaffee-Apps mit „Tacita“ im Namen; keine bekannte Notiz-/Tagebuch-App.",
+   "domains": "DNS (03.09.2026): tacita.app AUFLÖSBAR (217.70.184.38 = Gandi-Standard-/Weiterleitungs-IP → registriert, vermutlich Platzhalter oder Redirect); tacita.com auflösbar (15.197.162.184 = AWS Global Accelerator, typisch GoDaddy/Afternic-Parking → wahrscheinlich geparkt/zum Verkauf); tacita.de auflösbar (64.190.63.222 = Bodis/Sedo-Parking → geparkt); tacita.io auflösbar (162.240.216.237 = Bluehost/Unified-Layer Shared Hosting → kleine Website möglich); tacita.ch KEIN DNS. Fazit: .app/.com/.de/.io vergeben (überwiegend geparkt), .ch vermutlich frei.",
+   "trademark": "NICHT PRÜFBAR (Markenregister gesperrt). Vorwissen: „Tacita“ ist in ES ein häufiger Gastro-/Kaffee-Name (Cafés, Kaffeeröster, Keramik) → Namensvettern in anderer Branche sehr wahrscheinlich, Markeneintragungen für Lebensmittel/Gastro (Klasse 30/43) plausibel; keine bekannte Software-/Medienmarke. GitHub: 58 Treffer; Quantika14/Tacita (APK-Malware-Analyse), ideatrino/tacita (E2E-verschlüsselter P2P-Messenger, Aug 2026 – Privacy-Kontext!), episode6/tacita (Podcast-Downloader, Audio-Kontext), pxinxyz/Tacita (Rust-GUI), tuxerrante/tacita (Go) – mehrere sehr junge Projekte (2025/26) mit demselben Namen, keines mit Reichweite. npm/PyPI: „tacita“ frei.",
+   "meaning": "ES: „tacita“ = Tässchen (Alltagswort, Diminutiv von taza; „la Tacita de Plata“ = Beiname von Cádiz) → in ES/LatAm wirkt der Name nicht wie eine Marke, sondern wie „Tässchen“; charmant, aber kaum unterscheidungskräftig. IT: „tacita“ = stillschweigend/unausgesprochen („tacita intesa“, „tacito consenso“) → positiv passend, aber Adjektiv. LAT: „die Schweigende“ (Dea Tacita). DE/EN/FR: keine Bedeutung; EN-Assoziation „tacit“ (stillschweigend) positiv; bekannte Namensträgerin: Künstlerin Tacita Dean. Keine negativen Bedeutungen.",
+   "reasons": [
+    "Markenwirkung, Klang, Merkfähigkeit, Icon-Tauglichkeit, Tonalität (ruhig, vertrauenswürdig, persönlich) – Empfehlungstest: „Ich nutze …“ abends unter Freunden: 7 – Elegant, weich, die Dea-Tacita-Geschichte („sie hört zu und schweigt“) ist ein Geschenk fürs Storytelling und ein T-Monogramm-Icon. Abzug: klingt nach Persona/Assistentin, auf Spanisch „Tässchen“, drei Silben.",
+    "Auffindbarkeit und Marktfit: App-Store-Suche (DE/EN), Verwechslungsgefahr, Internationalisierbarkeit, Eignung als Domain und GitHub-Repo, Passung zur Datenschutz-Positionierung: 5 – Semantisch ideal ('die Schweigende'), aber ES-Alltagswort (Stores in ES/LatAm voller Cafés und Shops), mehrere junge Software-Projekte gleichen Namens (E2E-Messenger, Podcast-Tool), Künstlerin Tacita Dean.",
+    "Rechts- und Kollisionsrisiko, negative Konnotationen in DE/EN/FR/IT/ES, Aussprache-Stolperfallen, Verwechslung mit bekannten Marken (hohe Punktzahl = geringes Risiko): 5 – Spanisches Alltagswort (Tässchen, Beiname von Cádiz) – in ES/LatAm kaum unterscheidungskräftig, Gastro-Marken sehr wahrscheinlich. Mehrere junge Software-Projekte gleichen Namens, darunter ein E2E-Messenger (Privacy) und ein Podcast-Downloader (Audio). Keine negativen Bedeutungen, Aussprache überall leicht."
+   ]
+  }
+ ],
+ "rejected": [
+  {
+   "name": "Murmel",
+   "risk": 9,
+   "why": "App Store (apps.apple.com / iTunes-API) in dieser Umgebung nicht erreichbar (Egress-Proxy blockiert, Websuche-Budget erschöpft) – iOS-Store NICHT verifiziert. Umfeld-Befunde: (1) murmel.eu – kommerzieller Speech-to-Text-API-Anbieter 'Murmel' (Niederlande; offizielles PyPI-SDK 'murmel' v0.1.1 vom 02.09.2026, 'optimiert für Niederländisch'). (2) Skeptomenos/Murmeln – Push-to-talk-Diktier-App für macOS (Menüleiste, on-device Parakeet v3, DMG-Releases, MIT) plus 'Murmeln-archive' ('open-source alternative to Wispr'). (3) Dubbicode/murmel – 'lokale Speech-to-Text Desktop-App, 100% offline' für Windows mit fertigen Releases. (4) dotcore/murmel – Push-to-talk-Diktat für Linux/Wayland, vollständig lokal. (5) Inniag 'Murmel – the mood sonar app' (Hackathon, devpost). Der Name ist im Diktier-/Transkriptions-Segment also bereits mehrfach besetzt – exakt die Nische der geplanten App. | Markenregister (DPMA/EUIPO/TMview/USPTO) nicht erreichbar – NICHT verifiziert. Faktisch relevante Namensinhaber im Software-/Audio-Bereich: 'Murmel' Speech-to-Text (murmel.eu, kommerziell, aktiv Sept. 2026); Murmel/Murmeln Open-Source-Diktier-Tools (macOS/Windows/Linux); rust-bitcoin 'murmel'; 'jmurmel' (Lisp). 'MURMEL' ist außerdem ein TU-Berlin-Forschungsprojekt (Robotik). Als deutsches Alltagswort ist der Begriff für Spielwaren (Klasse 28) sicher vielfach belegt; für Software (Kl. 9/42) besteht durch murmel.eu eine reale Kollisionsgefahr im EU-Raum."
+  },
+  {
+   "name": "Susurra",
+   "risk": 7,
+   "why": "App Store nicht erreichbar – NICHT verifiziert. Kritische Nähe: 'Susurr' (susurrapp.com, GitHub arzuappsco/susurrapp-website) – 'a private, on-device reading companion for iOS', Support hello@susurrapp.com, App-Store-Badge vorbereitet; identische Privacy-/On-device-Positionierung, Name unterscheidet sich nur um das End-a. Außerdem großes Cluster 'Susurro' im Diktierbereich: brianshen0522/Susurro ('Local-first dictation and transcription for macOS'), danilobrando/susurro ('Local-first voice dictation, your audio never leaves your machine'), mtwomey/susurro (Push-to-talk-Diktat macOS), BraisonCrece/susurro (Diktat via Groq), benatespina/susurro (TTS-Menüleiste), CrispStrobe/Susurrus (Speech-to-Text-GUI, 29 Sterne), BernardUriza/susurro (STT/TTS-Gateway). Exakt 'Susurra': VidyaBodepudi/Susurra (Chat-App, 0 Sterne), leaox77/susurra (leer). | Register nicht erreichbar – NICHT verifiziert. Keine große Marke 'Susurra' bekannt; aber dichtes Umfeld gleichnamiger Whisper-/Diktier-Tools ('Susurro' als spanische Übersetzung von 'Whisper' ist bei OpenAI-Whisper-Wrappern ein Standardname) und die iOS-App 'Susurr' mit gleicher Privacy-Positionierung. 'susurradores.com' (Mixxy-Studio) existiert."
+  },
+  {
+   "name": "Leise",
+   "risk": 8,
+   "why": "NICHT LIVE PRÜFBAR (Stores/Suchmaschinen blockiert, Search-Budget erschöpft). VERIFIZIERT auf GitHub: 'Leise – a 100% local dictation app for macOS' (ramonfeng/leise, GPL-3, Version 2.1, Repo Sept 2026, Verteilung über GitHub-Releases, Claim 'Deine Aufnahmen und Transkripte verlassen diesen Mac nie') – identische Positionierung (Sprache + lokal + Datenschutz), Kategorie Produktivität/Audio, nicht im Mac App Store. Zusätzlich 'leise-mac' (abdelilahDR, Jan 2026): macOS-Menubar-Diktier-App mit Whisper. Aus Vorwissen: keine bekannte iOS-App exakt 'Leise' im Store, aber Name ist im Sprach-/Ruhe-Segment offensichtlich beliebt. | Markenregister nicht erreichbar. Verifiziert: Open-Source-Diktier-Apps 'Leise' (macOS, 2026) und 'leise-mac' im Sprach-/Transkriptionsbereich, Notiz-App 'Leiser'. Aus Vorwissen: 'Leise' ist skandinavischer Frauenvorname (Kurzform von Elisabeth) und deutscher Familienname; diverse Kleinfirmen (Akustik, Design, Coaching) nutzen 'leise'. Beschreibend für eine Ruhe-/Datenschutz-App, Wortmarke schwach. Bedeutungen: DE positiv; EN keine Bedeutung, Aussprache unklar ('lease'/'lies'/'lay-zuh'); FR klanglich nahe 'laisse' (lass/Leine), harmlos; IT/ES keine Bedeutung."
+  }
+ ]
+}
