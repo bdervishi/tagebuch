@@ -23,16 +23,18 @@ enum AeadId {
   final int tagLength;
 
   static AeadId fromCode(int code) => values.firstWhere(
-        (v) => v.code == code,
-        orElse: () => throw FormatException('Unbekannte AEAD-Kennung: $code'),
-      );
+    (v) => v.code == code,
+    orElse: () => throw FormatException('Unbekannte AEAD-Kennung: $code'),
+  );
 }
 
 /// Wird geworfen, wenn ein Auth-Tag nicht stimmt (manipuliert, falscher
 /// Schlüssel, falsche Zusatzdaten). Der Klartext wird in diesem Fall nie
 /// herausgegeben.
 class AuthenticationException implements Exception {
-  const AuthenticationException([this.message = 'Authentifizierung fehlgeschlagen']);
+  const AuthenticationException([
+    this.message = 'Authentifizierung fehlgeschlagen',
+  ]);
   final String message;
 
   @override

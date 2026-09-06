@@ -5,28 +5,48 @@ import 'package:test/test.dart';
 
 void main() {
   group('KeyWrap', () {
-    final wrap = KeyWrap(CryptographyAead.xchacha20Poly1305(), SequentialRandomSource(9));
+    final wrap = KeyWrap(
+      CryptographyAead.xchacha20Poly1305(),
+      SequentialRandomSource(9),
+    );
     final master = SequentialRandomSource(200).bytes(32);
     final fileKey = SequentialRandomSource(50).bytes(32);
 
     test('Round-Trip', () async {
-      final blob = await wrap.wrap(masterKey: master, key: fileKey, purpose: 'recording');
+      final blob = await wrap.wrap(
+        masterKey: master,
+        key: fileKey,
+        purpose: 'recording',
+      );
       expect(blob.length, 24 + 32 + 16);
-      final back = await wrap.unwrap(masterKey: master, wrapped: blob, purpose: 'recording');
+      final back = await wrap.unwrap(
+        masterKey: master,
+        wrapped: blob,
+        purpose: 'recording',
+      );
       expect(back, fileKey);
     });
 
     test('anderer Verwendungszweck scheitert', () async {
-      final blob = await wrap.wrap(masterKey: master, key: fileKey, purpose: 'recording');
+      final blob = await wrap.wrap(
+        masterKey: master,
+        key: fileKey,
+        purpose: 'recording',
+      );
       expect(
-        () => wrap.unwrap(masterKey: master, wrapped: blob, purpose: 'database'),
+        () =>
+            wrap.unwrap(masterKey: master, wrapped: blob, purpose: 'database'),
         throwsA(isA<AuthenticationException>()),
       );
     });
 
     test('zu kurzer Blob scheitert', () {
       expect(
-        () => wrap.unwrap(masterKey: master, wrapped: Uint8List(10), purpose: 'recording'),
+        () => wrap.unwrap(
+          masterKey: master,
+          wrapped: Uint8List(10),
+          purpose: 'recording',
+        ),
         throwsA(isA<AuthenticationException>()),
       );
     });
@@ -51,9 +71,21 @@ void main() {
     const kdf = Argon2idKdf();
     final salt1 = SequentialRandomSource(1).bytes(16);
     final salt2 = SequentialRandomSource(2).bytes(16);
-    final a = await kdf.derive(passphrase: 'korrekt pferd batterie', salt: salt1, params: Argon2Params.testing);
-    final b = await kdf.derive(passphrase: 'korrekt pferd batterie', salt: salt1, params: Argon2Params.testing);
-    final c = await kdf.derive(passphrase: 'korrekt pferd batterie', salt: salt2, params: Argon2Params.testing);
+    final a = await kdf.derive(
+      passphrase: 'korrekt pferd batterie',
+      salt: salt1,
+      params: Argon2Params.testing,
+    );
+    final b = await kdf.derive(
+      passphrase: 'korrekt pferd batterie',
+      salt: salt1,
+      params: Argon2Params.testing,
+    );
+    final c = await kdf.derive(
+      passphrase: 'korrekt pferd batterie',
+      salt: salt2,
+      params: Argon2Params.testing,
+    );
     expect(a, b);
     expect(a, isNot(c));
     expect(a.length, 32);

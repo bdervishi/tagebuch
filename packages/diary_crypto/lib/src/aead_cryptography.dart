@@ -8,17 +8,17 @@ import 'aead.dart';
 /// (reines Dart, plattformunabhängig, für Tests und als Rückfall).
 class CryptographyAead implements Aead {
   CryptographyAead.xchacha20Poly1305()
-      : id = AeadId.xchacha20Poly1305,
-        _algorithm = c.Xchacha20.poly1305Aead();
+    : id = AeadId.xchacha20Poly1305,
+      _algorithm = c.Xchacha20.poly1305Aead();
 
   CryptographyAead.aes256Gcm()
-      : id = AeadId.aes256Gcm,
-        _algorithm = c.AesGcm.with256bits();
+    : id = AeadId.aes256Gcm,
+      _algorithm = c.AesGcm.with256bits();
 
   factory CryptographyAead.forId(AeadId id) => switch (id) {
-        AeadId.xchacha20Poly1305 => CryptographyAead.xchacha20Poly1305(),
-        AeadId.aes256Gcm => CryptographyAead.aes256Gcm(),
-      };
+    AeadId.xchacha20Poly1305 => CryptographyAead.xchacha20Poly1305(),
+    AeadId.aes256Gcm => CryptographyAead.aes256Gcm(),
+  };
 
   @override
   final AeadId id;
@@ -26,10 +26,18 @@ class CryptographyAead implements Aead {
 
   void _check(Uint8List key, Uint8List nonce) {
     if (key.length != id.keyLength) {
-      throw ArgumentError.value(key.length, 'key', 'erwartet ${id.keyLength} Byte');
+      throw ArgumentError.value(
+        key.length,
+        'key',
+        'erwartet ${id.keyLength} Byte',
+      );
     }
     if (nonce.length != id.nonceLength) {
-      throw ArgumentError.value(nonce.length, 'nonce', 'erwartet ${id.nonceLength} Byte');
+      throw ArgumentError.value(
+        nonce.length,
+        'nonce',
+        'erwartet ${id.nonceLength} Byte',
+      );
     }
   }
 

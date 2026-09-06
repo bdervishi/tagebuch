@@ -17,12 +17,12 @@ workspace:
   - packages/diary_keys
   - packages/diary_reminders
 
-# Native SQLite für package:sqlite3 (drift). Für Entwicklung und Tests auf Linux die
-# Systembibliothek; für die Zielplattformen vorerst die von package:sqlite3 gelieferten
-# Binaries. Spike S4 stellt die Zielplattformen auf `sqlcipher` um (D4, docs/04 Abschnitt 5.1).
+# Native SQLite für package:sqlite3 (drift). Der Hook von sqlite3 3.5.x erwartet hier einen
+# einzelnen Wert (sqlite3 | sqlite3mc | sqlcipher | system | process | executable).
+# Entwicklung und Tests laufen auf Linux gegen die Systembibliothek. Spike S4 stellt für die
+# Zielplattformen auf `sqlcipher` um (D4, docs/04 Abschnitt 5.1); bis dahin nutzt die App
+# diary_storage noch nicht.
 hooks:
   user_defines:
     sqlite3:
-      source:
-        linux: system
-        default: sqlite3
+      source: system

@@ -1,14 +1,9 @@
-include: package:flutter_lints/flutter.yaml
+# Statische Analyse des Pakets diary_storage. Empfohlene Lints aus
+# package:lints (Dev-Abhängigkeit `lints`), ergänzt um den Ausschluss der von
+# drift_dev generierten Dateien, die selbst `// ignore_for_file` setzen.
+
+include: package:lints/recommended.yaml
 
 analyzer:
   exclude:
     - build/**
-    - android/**
-    - ios/**
-    - web/**
-    - windows/**
-    - macos/**
-    - linux/**
-
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options

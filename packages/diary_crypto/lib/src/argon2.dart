@@ -17,10 +17,18 @@ class Argon2Params {
   });
 
   /// Empfehlung aus docs/05 (Mobile-RAM-Budget).
-  static const standard = Argon2Params(memoryKiB: 65536, iterations: 3, parallelism: 1);
+  static const standard = Argon2Params(
+    memoryKiB: 65536,
+    iterations: 3,
+    parallelism: 1,
+  );
 
   /// Nur für Tests: schnell, unsicher.
-  static const testing = Argon2Params(memoryKiB: 64, iterations: 1, parallelism: 1);
+  static const testing = Argon2Params(
+    memoryKiB: 64,
+    iterations: 1,
+    parallelism: 1,
+  );
 
   final int memoryKiB;
   final int iterations;
@@ -50,7 +58,11 @@ class Argon2idKdf implements PassphraseKdf {
     required Argon2Params params,
   }) async {
     if (salt.length != params.saltLength) {
-      throw ArgumentError.value(salt.length, 'salt', 'erwartet ${params.saltLength} Byte');
+      throw ArgumentError.value(
+        salt.length,
+        'salt',
+        'erwartet ${params.saltLength} Byte',
+      );
     }
     final algorithm = c.Argon2id(
       memory: params.memoryKiB,
@@ -58,7 +70,10 @@ class Argon2idKdf implements PassphraseKdf {
       iterations: params.iterations,
       hashLength: params.hashLength,
     );
-    final key = await algorithm.deriveKeyFromPassword(password: passphrase, nonce: salt);
+    final key = await algorithm.deriveKeyFromPassword(
+      password: passphrase,
+      nonce: salt,
+    );
     return Uint8List.fromList(await key.extractBytes());
   }
 }
