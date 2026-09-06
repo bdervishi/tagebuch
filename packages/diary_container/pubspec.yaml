@@ -1,0 +1,17 @@
+name: diary_container
+description: Export- und Transfer-Container (QR + Datei, Backup mit Passphrase) mit Kopf, Manifest und Rahmung.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  diary_crypto:
+    path: ../diary_crypto
+  meta: ^1.16.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6

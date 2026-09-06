@@ -1,0 +1,24 @@
+name: diary_audio
+description: Aufnahme- und Wiedergabe-Schnittstellen (PCM-Abgriff, Pegel, Wellenform, Player) mit Fakes; native Umsetzung folgt in Spike S3/S6.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.47.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  diary_core:
+    path: ../diary_core
+  diary_chunkfile:
+    path: ../diary_chunkfile
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:

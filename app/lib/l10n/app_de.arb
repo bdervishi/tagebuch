@@ -1,0 +1,155 @@
+{
+  "@@locale": "de",
+
+  "appTitle": "Tagebuch",
+  "@appTitle": {"description": "Name der App in Titelleiste und Task-Wechsler"},
+
+  "navToday": "Heute",
+  "navCalendar": "Kalender",
+  "navSettings": "Einstellungen",
+
+  "todayTitle": "Heute",
+  "recordButtonLabel": "Aufnehmen",
+  "recordButtonSemantics": "Aufnahme starten",
+  "todayNoEntry": "Heute noch nichts aufgenommen.",
+  "todayEntriesHeading": "Dein Eintrag von heute",
+  "localOnlyHint": "Alles bleibt auf diesem Gerät.",
+  "openEntry": "Eintrag öffnen",
+  "playPlaceholder": "Abspielen (folgt)",
+  "durationFormatted": "{minutes} Min. {seconds} Sek.",
+  "@durationFormatted": {
+    "description": "Dauer eines Eintrags",
+    "placeholders": {
+      "minutes": {"type": "int"},
+      "seconds": {"type": "int"}
+    }
+  },
+  "recordedAt": "Aufgenommen um {time}",
+  "@recordedAt": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+
+  "recordingTitle": "Aufnahme",
+  "recordingRunning": "Aufnahme läuft",
+  "recordingPaused": "Pausiert",
+  "recordingElapsedSemantics": "Aufnahme läuft, {minutes} Minuten {seconds} Sekunden",
+  "@recordingElapsedSemantics": {
+    "placeholders": {
+      "minutes": {"type": "int"},
+      "seconds": {"type": "int"}
+    }
+  },
+  "recordingPausedSemantics": "Aufnahme pausiert bei {minutes} Minuten {seconds} Sekunden",
+  "@recordingPausedSemantics": {
+    "placeholders": {
+      "minutes": {"type": "int"},
+      "seconds": {"type": "int"}
+    }
+  },
+  "levelMeterSemantics": "Pegelanzeige, Platzhalter",
+  "pauseButton": "Pause",
+  "resumeButton": "Weiter",
+  "stopButton": "Fertig",
+  "cancelButton": "Abbrechen",
+  "discardDialogTitle": "Aufnahme verwerfen?",
+  "discardDialogBody": "Die bisherige Aufnahme wird nicht gespeichert.",
+  "discardDialogKeep": "Weiter aufnehmen",
+  "discardDialogDiscard": "Verwerfen",
+  "recordingSimulatedHint": "Simulierte Aufnahme ohne Mikrofon. Die echte Aufnahme folgt.",
+  "transcriptPending": "Transkription folgt",
+
+  "entryTitle": "Eintrag",
+  "entryNotFound": "Eintrag nicht gefunden.",
+  "durationLabel": "Dauer",
+  "languageLabel": "Sprache",
+  "playerPlaceholder": "Wiedergabe folgt",
+  "transcriptHeading": "Text",
+  "audioKept": "Mit Audio",
+  "audioRemoved": "Nur Text",
+
+  "calendarTitle": "Kalender",
+  "searchHint": "Im Text suchen",
+  "searchClear": "Suche löschen",
+  "previousMonth": "Vorheriger Monat",
+  "nextMonth": "Nächster Monat",
+  "calendarDayWithEntry": "{date}, Eintrag vorhanden",
+  "@calendarDayWithEntry": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "calendarDayWithoutEntry": "{date}, kein Eintrag",
+  "@calendarDayWithoutEntry": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "calendarLegend": "Markierte Tage haben einen Eintrag.",
+  "noEntriesThisMonth": "In diesem Monat noch keine Einträge.",
+  "noEntriesThisDay": "An diesem Tag kein Eintrag.",
+  "noSearchResults": "Nichts gefunden.",
+  "searchResultCount": "{count, plural, =1{1 Eintrag} other{{count} Einträge}}",
+  "@searchResultCount": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "showWholeMonth": "Ganzen Monat zeigen",
+
+  "settingsTitle": "Einstellungen",
+  "sectionReminder": "Erinnerung",
+  "reminderEnabled": "Erinnerung aktiv",
+  "reminderTime": "Uhrzeit",
+  "reminderSkipToday": "Heute nicht",
+  "reminderSkipTodaySubtitle": "Die heutige Erinnerung entfällt, morgen geht es weiter.",
+  "reminderSkippedToday": "Heute keine Erinnerung.",
+  "reminderPause": "Pause bis Datum",
+  "reminderPauseNone": "Keine Pause",
+  "reminderPausedUntil": "Pausiert bis {date}",
+  "@reminderPausedUntil": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "reminderPauseClear": "Pause beenden",
+  "reminderPlaceholderNote": "Platzhalter: Benachrichtigungen werden erst mit dem Erinnerungsmodul verschickt. Sie enthalten nie Tagebuchtext.",
+
+  "sectionTranscription": "Transkription",
+  "transcriptionLanguage": "Sprache der Transkription",
+  "languageDeDE": "Deutsch (Deutschland)",
+  "languageDeAT": "Deutsch (Österreich)",
+  "languageDeCH": "Deutsch (Schweiz)",
+  "languageEn": "Englisch",
+  "languageHint": "Hochdeutsch liefert die zuverlässigsten Ergebnisse.",
+
+  "sectionAudio": "Audio",
+  "keepAudio": "Audio behalten",
+  "keepAudioSubtitle": "Aufnahmen nach der Transkription behalten. Sonst bleibt nur der Text.",
+
+  "sectionProtection": "Schutz",
+  "appLock": "App-Sperre",
+  "appLockSubtitle": "Biometrie oder Gerätecode. Noch ohne Funktion.",
+
+  "sectionData": "Daten",
+  "notYetAvailable": "Noch nicht verfügbar",
+  "backupCreate": "Backup erstellen",
+  "backupExplanation": "Später: eine verschlüsselte Datei mit Passphrase in einem Ordner deiner Wahl. Betriebssystem-Backups stellen das Tagebuch nicht wieder her, weil der Schlüssel an dieses Gerät gebunden ist.",
+  "deviceTransfer": "Gerätewechsel",
+  "deviceTransferExplanation": "Später: QR-Code und Datei, direkt von Gerät zu Gerät, ohne Server.",
+
+  "sectionPrivacy": "Datenschutz",
+  "privacyPromiseTitle": "Was dein Gerät verlässt: nichts.",
+  "privacyPromiseBody": "Aufnahmen, Texte und Einstellungen bleiben auf diesem Gerät. Es gibt kein Konto, keinen Server und kein Tracking. Probier es aus: Die App funktioniert im Flugmodus.",
+  "showOnboardingAgain": "Einführung erneut ansehen",
+
+  "onboardingSkip": "Überspringen",
+  "onboardingNext": "Weiter",
+  "onboardingDone": "Los geht's",
+  "onboardingStepOf": "Schritt {current} von {total}",
+  "@onboardingStepOf": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "onboardingStep1Title": "Dein Gerätecode schützt das Tagebuch",
+  "onboardingStep1Body": "Der Schlüssel zu deinen Einträgen ist an dieses Gerät und seinen Gerätecode gebunden. Bitte richte einen Gerätecode ein und behalte ihn. Ein Betriebssystem-Backup stellt das Tagebuch deshalb nicht wieder her; dafür bekommt die App ein eigenes, verschlüsseltes Backup. Auf einem neuen Gerät kannst du hier später aus diesem Backup wiederherstellen.",
+  "onboardingStep2Title": "Mikrofon",
+  "onboardingStep2Body": "Die App nimmt deine Stimme nur auf, wenn du auf Aufnehmen tippst. Aufnahmen bleiben auf diesem Gerät und werden hier in Text umgewandelt. Die Systemabfrage für das Mikrofon erscheint beim ersten Tippen.",
+  "onboardingStep3Title": "Sprache",
+  "onboardingStep3Body": "Wähle Deutsch (Deutschland, Österreich oder Schweiz) oder Englisch. Hochdeutsch liefert die zuverlässigsten Ergebnisse. Das Sprachmodell wird einmalig vom Betriebssystem oder App-Store geladen. Du kannst die Sprache jederzeit in den Einstellungen ändern.",
+  "onboardingStep4Title": "Erinnerung",
+  "onboardingStep4Body": "Einmal am Tag, zu einer Uhrzeit, die du wählst. Vorschlag: 21:00 Uhr. Die Benachrichtigung enthält nie Tagebuchtext, nur „Zeit für deinen Eintrag“. Kein Zähler, keine Kette, kein Vorwurf."
+}

@@ -1,0 +1,17 @@
+name: diary_chunkfile
+description: Chunk-AEAD-Dateiformat mit wahlfreiem Zugriff fuer verschluesselte Audiodateien (Dart-Referenzimplementierung und Testvektoren).
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  diary_crypto:
+    path: ../diary_crypto
+  meta: ^1.16.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6

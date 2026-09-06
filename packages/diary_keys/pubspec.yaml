@@ -1,0 +1,24 @@
+name: diary_keys
+description: Schluesselverwahrung (Master-Key in Keychain und Keystore, App-Sperre) als Schnittstelle plus In-Memory-Implementierung.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.47.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  diary_core:
+    path: ../diary_core
+  diary_crypto:
+    path: ../diary_crypto
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:

@@ -1,0 +1,21 @@
+name: diary_storage
+description: Datenbankschema (drift, SQLCipher-faehig) mit FTS5-Volltextsuche und Migrationen.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  diary_core:
+    path: ../diary_core
+  drift: ^2.34.0
+  sqlite3: ^3.5.0
+  meta: ^1.16.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
+  drift_dev: ^2.34.0
+  build_runner: ^2.4.0

@@ -1,0 +1,16 @@
+name: diary_crypto
+description: AEAD-Schnittstelle, Envelope-Schluessel, Key-Wrapping, HKDF und Argon2id-Parameter des Sprach-Tagebuchs (separat auditierbar).
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  cryptography: ^2.9.0
+  meta: ^1.16.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6

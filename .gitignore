@@ -14,3 +14,27 @@ build/
 *.xcuserstate
 DerivedData/
 node_modules/
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+*.iml
+.flutter-plugins
+.flutter-plugins-dependencies
+app/.metadata
+app/android/.gradle/
+app/android/local.properties
+app/android/key.properties
+app/android/**/*.jks
+app/android/**/*.keystore
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/ephemeral/
+app/ios/Flutter/Generated.xcconfig
+app/ios/Flutter/flutter_export_environment.sh
+app/ios/Runner/GeneratedPluginRegistrant.*
+app/lib/l10n/*.dart
+coverage/

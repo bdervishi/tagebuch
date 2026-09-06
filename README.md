@@ -15,7 +15,26 @@ Eine App für iOS und Android, mit der man den eigenen Tag per Stimme statt per 
 
 ## Aktueller Status
 
-Konzeptphase. Es gibt noch keinen Quellcode. Dieses Repository enthält Anforderungen, Rechercheberichte, zwei Nachrecherchen (Audio-Container und Wiedergabe; Nutzerstimmen und Store-Kennzahlen), eine Faktenprüfung von 30 Aussagen (18 bestätigt, 12 präzisiert) und zehn Konzeptdokumente, die als Grundlage für die Entscheidungen des Inhabers und den anschließenden Bau dienen. Alle Dokumente tragen den Status „Entwurf“.
+Konzeptphase abgeschlossen, Projektgerüst angelegt. Das Repository enthält Anforderungen, Rechercheberichte, eine Faktenprüfung, zehn Konzeptdokumente und ein lauffähiges Flutter-Gerüst mit den Kernpaketen; die nativen Teile (Aufnahme, Spracherkennung, Schlüsselverwahrung, Erinnerungen) folgen in den Spikes aus `docs/09-roadmap.md`. Alle Dokumente tragen den Status „Entwurf“.
+
+## Projektgerüst
+
+```
+app/                    Flutter-App (Bildschirme Heute, Aufnahme, Eintrag, Kalender und Suche, Einstellungen; Deutsch/Englisch)
+packages/diary_core     Domänenmodell, Ports, Anwendungsfall "Tag aufnehmen"
+packages/diary_crypto   AEAD, Key-Wrapping, HKDF, Argon2id-Parameter (Referenz in reinem Dart, mit IETF-/RFC-Testvektoren)
+packages/diary_chunkfile Chunk-AEAD-Dateiformat mit wahlfreiem Zugriff für verschlüsselte Audiodateien
+packages/diary_container Kopf, QR-Nutzlast, Manifest, Rahmung des Transfer- und Backup-Containers
+packages/diary_storage  drift-Schema mit FTS5, SQLCipher-Öffnung
+packages/diary_audio    Aufnahme-/Wiedergabe-Schnittstellen, Resampler, simulierter Recorder
+packages/diary_stt      Engine-Schnittstelle und Registry für lokale Spracherkennung
+packages/diary_keys     Master-Key-Verwahrung und App-Sperre (Schnittstelle, In-Memory)
+packages/diary_reminders Planungslogik der täglichen Erinnerung
+tool/check_no_network.sh Netz-Wächter: keine INTERNET-Berechtigung, keine gesperrten Pakete, keine Netzwerk-APIs
+.github/workflows/ci.yml Analyse, Tests, Netz-Wächter, Android-Release-Build mit Manifestprüfung
+```
+
+Einstieg für Entwickler: `CLAUDE.md` (Befehle, Regeln), `docs/entscheidungen.md` (verbindliche Entscheidungen), `docs/ressourcen.md` (kostenlose Dienste rund um das Projekt).
 
 ## Dokumente
 
