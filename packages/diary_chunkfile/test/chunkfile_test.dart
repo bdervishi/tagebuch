@@ -54,6 +54,7 @@ void main() {
         RandomSource? random,
         MemoryChunkSink? sink,
         List<int>? pieces,
+        KeyWrap? wrap,
       }) async {
         final target = sink ?? MemoryChunkSink();
         final rng = random ?? SecureRandomSource();
@@ -62,7 +63,7 @@ void main() {
                 target,
                 aead: aead,
                 random: rng,
-                keyWrap: keyWrap,
+                keyWrap: wrap ?? keyWrap,
                 masterKey: masterKey,
                 chunkSize: chunkSize,
               )
@@ -70,7 +71,7 @@ void main() {
                 target,
                 aead: aead,
                 random: rng,
-                keyWrap: keyWrap,
+                keyWrap: wrap ?? keyWrap,
                 masterKey: masterKey,
                 fileKey: fileKey,
                 chunkSize: chunkSize,
@@ -96,14 +97,13 @@ void main() {
         bool allowTruncated = false,
         Uint8List? master,
         RandomAccessSource? source,
-      }) =>
-          ChunkFileReader.open(
-            source ?? MemoryRandomAccessSource(file),
-            aead: aead,
-            keyWrap: keyWrap,
-            masterKey: master ?? masterKey,
-            allowTruncated: allowTruncated,
-          );
+      }) => ChunkFileReader.open(
+        source ?? MemoryRandomAccessSource(file),
+        aead: aead,
+        keyWrap: keyWrap,
+        masterKey: master ?? masterKey,
+        allowTruncated: allowTruncated,
+      );
 
       group('Round-Trip', () {
         for (final (label, length, chunks) in [
@@ -122,7 +122,10 @@ void main() {
             final lastPayload = length - (chunks - 1) * chunkSize;
             expect(
               file.length,
-              headerLength + (chunks - 1) * recordLength + overhead + lastPayload,
+              headerLength +
+                  (chunks - 1) * recordLength +
+                  overhead +
+                  lastPayload,
             );
             final reader = await openFile(file);
             expect(reader.plaintextLength, length);
@@ -146,43 +149,49 @@ void main() {
       });
 
       test('Aufteilung der add-Aufrufe ändert die Datei nicht', () async {
+        // Gemeinsame deterministische Quelle für Writer und KeyWrap, damit
+        // auch die Wrap-Nonce gleich bleibt.
         final plaintext = pattern(333);
-        final a = await writeFile(plaintext, random: SequentialRandomSource(5));
-        final b = await writeFile(
-          plaintext,
-          random: SequentialRandomSource(5),
-          pieces: [1, 7, 64, 100, 3],
-        );
-        final c = await writeFile(
-          plaintext,
-          random: SequentialRandomSource(5),
-          pieces: [128, 64, 1],
-        );
+        Future<Uint8List> deterministic(List<int>? pieces) {
+          final rng = SequentialRandomSource(5);
+          return writeFile(
+            plaintext,
+            random: rng,
+            wrap: KeyWrap(aead, rng),
+            pieces: pieces,
+          );
+        }
+
+        final a = await deterministic(null);
+        final b = await deterministic([1, 7, 64, 100, 3]);
+        final c = await deterministic([128, 64, 1]);
         expect(b, a);
         expect(c, a);
       });
 
-      test('open liest nur den Kopf, readChunk genau einen Datensatz',
-          () async {
-        final plaintext = pattern(10 * chunkSize + 17);
-        final file = await writeFile(plaintext);
-        final counting = CountingSource(MemoryRandomAccessSource(file));
-        final reader = await openFile(file, source: counting);
-        expect(counting.reads, 1);
-        expect(counting.bytesRead, headerLength);
+      test(
+        'open liest nur den Kopf, readChunk genau einen Datensatz',
+        () async {
+          final plaintext = pattern(10 * chunkSize + 17);
+          final file = await writeFile(plaintext);
+          final counting = CountingSource(MemoryRandomAccessSource(file));
+          final reader = await openFile(file, source: counting);
+          expect(counting.reads, 1);
+          expect(counting.bytesRead, headerLength);
 
-        counting.reset();
-        expect(await reader.readChunk(7), plaintext.sublist(7 * 64, 8 * 64));
-        expect(counting.reads, 1);
-        expect(counting.bytesRead, recordLength);
-        expect(counting.offsets, [headerLength + 7 * recordLength]);
-        expect(reader.chunkOffset(7), headerLength + 7 * recordLength);
+          counting.reset();
+          expect(await reader.readChunk(7), plaintext.sublist(7 * 64, 8 * 64));
+          expect(counting.reads, 1);
+          expect(counting.bytesRead, recordLength);
+          expect(counting.offsets, [headerLength + 7 * recordLength]);
+          expect(reader.chunkOffset(7), headerLength + 7 * recordLength);
 
-        counting.reset();
-        expect(await reader.readChunk(10), plaintext.sublist(10 * 64));
-        expect(counting.reads, 1);
-        expect(counting.bytesRead, overhead + 17);
-      });
+          counting.reset();
+          expect(await reader.readChunk(10), plaintext.sublist(10 * 64));
+          expect(counting.reads, 1);
+          expect(counting.bytesRead, overhead + 17);
+        },
+      );
 
       group('readRange', () {
         final plaintext = pattern(5 * chunkSize + 20);
@@ -299,26 +308,28 @@ void main() {
           expect(await reader.readChunk(2), plaintext.sublist(128));
         });
 
-        test('Chunk aus zweiter Datei mit gleichem Schlüssel scheitert',
-            () async {
-          final fileKey = SequentialRandomSource(0x40).bytes(32);
-          final first = await writeFile(plaintext, fileKey: fileKey);
-          final second = await writeFile(plaintext, fileKey: fileKey);
-          expect(first.sublist(10, 26), isNot(second.sublist(10, 26)));
-          first.setAll(
-            headerLength + recordLength,
-            second.sublist(
+        test(
+          'Chunk aus zweiter Datei mit gleichem Schlüssel scheitert',
+          () async {
+            final fileKey = SequentialRandomSource(0x40).bytes(32);
+            final first = await writeFile(plaintext, fileKey: fileKey);
+            final second = await writeFile(plaintext, fileKey: fileKey);
+            expect(first.sublist(10, 26), isNot(second.sublist(10, 26)));
+            first.setAll(
               headerLength + recordLength,
-              headerLength + 2 * recordLength,
-            ),
-          );
-          final reader = await openFile(first);
-          expect(await reader.readChunk(0), plaintext.sublist(0, 64));
-          await expectLater(
-            reader.readChunk(1),
-            throwsA(isA<AuthenticationException>()),
-          );
-        });
+              second.sublist(
+                headerLength + recordLength,
+                headerLength + 2 * recordLength,
+              ),
+            );
+            final reader = await openFile(first);
+            expect(await reader.readChunk(0), plaintext.sublist(0, 64));
+            await expectLater(
+              reader.readChunk(1),
+              throwsA(isA<AuthenticationException>()),
+            );
+          },
+        );
 
         test('falscher Master-Key scheitert beim Öffnen', () async {
           final file = await writeFile(plaintext);
@@ -458,10 +469,16 @@ void main() {
           expect(writer.lengthPatched, isTrue);
           expect(sink.isClosed, isTrue);
           final file = sink.bytes;
-          expect(
-            file.sublist(headerLength - 8, headerLength),
-            [0, 0, 0, 0, 0, 0, 0, 3 * chunkSize + 5],
-          );
+          expect(file.sublist(headerLength - 8, headerLength), [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3 * chunkSize + 5,
+          ]);
           expect(
             ChunkFileHeader.parse(file).plaintextLength,
             3 * chunkSize + 5,
@@ -472,47 +489,48 @@ void main() {
           );
         });
 
-        test('Senke ohne Patchen: Leser leitet Länge aus der Datei ab',
-            () async {
-          for (final length in [0, 1, chunkSize, 2 * chunkSize, 160]) {
-            final plaintext = pattern(length);
-            final sink = MemoryChunkSink(supportsPatching: false);
-            final writer = ChunkFileWriter(
-              sink,
-              aead: aead,
-              random: SecureRandomSource(),
-              keyWrap: keyWrap,
-              masterKey: masterKey,
-              chunkSize: chunkSize,
-            );
-            await writer.add(plaintext);
-            await writer.close();
-            expect(writer.lengthPatched, isFalse);
-            final file = sink.bytes;
-            expect(
-              file.sublist(headerLength - 8, headerLength),
-              List.filled(8, 0xff),
-            );
-            final counting = CountingSource(MemoryRandomAccessSource(file));
-            final reader = await openFile(file, source: counting);
-            expect(counting.reads, 2, reason: 'Kopf und letzter Datensatz');
-            expect(reader.header.plaintextLength, isNull);
-            expect(reader.plaintextLength, length);
-            expect(reader.isTruncated, isFalse);
-            expect(await reader.readAll(), plaintext);
-          }
-        });
+        test(
+          'Senke ohne Patchen: Leser leitet Länge aus der Datei ab',
+          () async {
+            for (final length in [0, 1, chunkSize, 2 * chunkSize, 160]) {
+              final plaintext = pattern(length);
+              final sink = MemoryChunkSink(supportsPatching: false);
+              final writer = ChunkFileWriter(
+                sink,
+                aead: aead,
+                random: SecureRandomSource(),
+                keyWrap: keyWrap,
+                masterKey: masterKey,
+                chunkSize: chunkSize,
+              );
+              await writer.add(plaintext);
+              await writer.close();
+              expect(writer.lengthPatched, isFalse);
+              final file = sink.bytes;
+              expect(
+                file.sublist(headerLength - 8, headerLength),
+                List.filled(8, 0xff),
+              );
+              final counting = CountingSource(MemoryRandomAccessSource(file));
+              final reader = await openFile(file, source: counting);
+              expect(counting.reads, 2, reason: 'Kopf und letzter Datensatz');
+              expect(reader.header.plaintextLength, isNull);
+              expect(reader.plaintextLength, length);
+              expect(reader.isTruncated, isFalse);
+              expect(await reader.readAll(), plaintext);
+            }
+          },
+        );
       });
 
       group('Kopf- und Strukturfehler', () {
         final plaintext = pattern(100);
 
-        Future<void> expectFormat(Uint8List file, String reason) =>
-            expectLater(
-              openFile(file),
-              throwsA(isA<ChunkFileFormatException>()),
-              reason: reason,
-            );
+        Future<void> expectFormat(Uint8List file, String reason) => expectLater(
+          openFile(file),
+          throwsA(isA<ChunkFileFormatException>()),
+          reason: reason,
+        );
 
         test('ungültige Köpfe', () async {
           final good = await writeFile(plaintext);
@@ -567,28 +585,34 @@ void main() {
           );
         });
 
-        test('leerer letzter Chunk hinter vollem Chunk ist nicht kanonisch',
-            () async {
-          final fileKey = SequentialRandomSource(0x40).bytes(32);
-          final sink = MemoryChunkSink(supportsPatching: false);
-          final file = await writeFile(
-            pattern(chunkSize),
-            fileKey: fileKey,
-            sink: sink,
-          );
-          final header = ChunkFileHeader.parse(file);
-          final nonce = SecureRandomSource().bytes(id.nonceLength);
-          final sealed = await aead.seal(
-            key: fileKey,
-            nonce: nonce,
-            plaintext: Uint8List(0),
-            aad: header.aad(1, isLast: true),
-          );
-          await expectFormat(
-            Uint8List.fromList([...file, ...nonce, ...sealed]),
-            'leerer letzter Chunk',
-          );
-        });
+        test(
+          'leerer letzter Chunk hinter vollem Chunk ist nicht kanonisch',
+          () async {
+            final fileKey = SequentialRandomSource(0x40).bytes(32);
+            final file = await writeFile(pattern(chunkSize), fileKey: fileKey);
+            final header = ChunkFileHeader.parse(file);
+            final nonce = SecureRandomSource().bytes(id.nonceLength);
+            final sealed = await aead.seal(
+              key: fileKey,
+              nonce: nonce,
+              plaintext: Uint8List(0),
+              aad: header.aad(1, isLast: true),
+            );
+            final extended = Uint8List.fromList([...file, ...nonce, ...sealed]);
+            // Länge bekannt: überzählige Bytes.
+            await expectFormat(extended, 'leerer letzter Chunk, Länge bekannt');
+            // Länge unbekannt: nicht von einem abgeschnittenen Datensatz zu
+            // unterscheiden, also Abschneiden.
+            extended.setAll(
+              headerLength - 8,
+              ChunkFileHeader.encodeLength(null),
+            );
+            await expectLater(
+              openFile(extended),
+              throwsA(isA<ChunkFileTruncatedException>()),
+            );
+          },
+        );
       });
 
       group('Writer-Zustand', () {
@@ -653,16 +677,18 @@ void main() {
           expect(() => reader.readChunk(0), throwsStateError);
         });
 
-        test('Dateischlüssel und Kopf-Nonce sind je Datei verschieden',
-            () async {
-          final a = await writeFile(pattern(10));
-          final b = await writeFile(pattern(10));
-          final ha = ChunkFileHeader.parse(a);
-          final hb = ChunkFileHeader.parse(b);
-          expect(ha.headerNonce, isNot(hb.headerNonce));
-          expect(ha.wrappedFileKey, isNot(hb.wrappedFileKey));
-          expect(a.sublist(headerLength), isNot(b.sublist(headerLength)));
-        });
+        test(
+          'Dateischlüssel und Kopf-Nonce sind je Datei verschieden',
+          () async {
+            final a = await writeFile(pattern(10));
+            final b = await writeFile(pattern(10));
+            final ha = ChunkFileHeader.parse(a);
+            final hb = ChunkFileHeader.parse(b);
+            expect(ha.headerNonce, isNot(hb.headerNonce));
+            expect(ha.wrappedFileKey, isNot(hb.wrappedFileKey));
+            expect(a.sublist(headerLength), isNot(b.sublist(headerLength)));
+          },
+        );
       });
     });
   }
@@ -704,8 +730,10 @@ void main() {
     ]);
     expect(parsed.aad(0, isLast: true).last, 1);
     expect(parsed.chunkOffset(3), 96 + 3 * (12 + 32768 + 16));
-    expect(ChunkFileHeader.decodeLength(Uint8List(8)..fillRange(0, 8, 0xff)),
-        isNull);
+    expect(
+      ChunkFileHeader.decodeLength(Uint8List(8)..fillRange(0, 8, 0xff)),
+      isNull,
+    );
     expect(
       () => ChunkFileHeader.decodeLength(
         Uint8List.fromList([0x80, 0, 0, 0, 0, 0, 0, 0]),

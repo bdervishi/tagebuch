@@ -116,7 +116,10 @@ void main() {
           expect(aad, header.aad(index, isLast: isLast));
           expect(record, [...nonce, ...sealed]);
           expect(
-            file.sublist(c['offset'] as int, (c['offset'] as int) + record.length),
+            file.sublist(
+              c['offset'] as int,
+              (c['offset'] as int) + record.length,
+            ),
             record,
           );
           expect(

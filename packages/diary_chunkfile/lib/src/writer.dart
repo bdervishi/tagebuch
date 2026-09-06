@@ -29,14 +29,14 @@ class ChunkFileWriter {
     required Uint8List masterKey,
     int chunkSize = ChunkFileFormat.defaultChunkSize,
   }) : this._(
-          sink,
-          aead,
-          random,
-          keyWrap,
-          masterKey,
-          random.bytes(ChunkFileFormat.fileKeyLength),
-          chunkSize,
-        );
+         sink,
+         aead,
+         random,
+         keyWrap,
+         masterKey,
+         random.bytes(ChunkFileFormat.fileKeyLength),
+         chunkSize,
+       );
 
   /// Wie der Standard-Konstruktor, aber mit vorgegebenem Dateischlüssel
   /// (für Tests, z. B. um Chunks zwischen zwei Dateien mit gleichem Schlüssel
@@ -60,8 +60,8 @@ class ChunkFileWriter {
     this._masterKey,
     Uint8List fileKey,
     this.chunkSize,
-  )   : _fileKey = Uint8List.fromList(fileKey),
-        _headerNonce = _random.bytes(ChunkFileFormat.headerNonceLength) {
+  ) : _fileKey = Uint8List.fromList(fileKey),
+      _headerNonce = _random.bytes(ChunkFileFormat.headerNonceLength) {
     if (chunkSize < 1 || chunkSize > ChunkFileFormat.maxChunkSize) {
       throw ArgumentError.value(
         chunkSize,
@@ -115,40 +115,40 @@ class ChunkFileWriter {
   /// geschrieben; der Rest bleibt bis zum nächsten [add] oder [close] im
   /// Puffer. Aufrufe dürfen sich nicht überlappen.
   Future<void> add(List<int> bytes) => _guarded(() async {
-        await _ensureHeader();
-        _pending.add(bytes);
-        _plaintextLength += bytes.length;
-        // Ein voller Chunk wird erst geschrieben, wenn danach noch Daten
-        // folgen: Nur so ist bekannt, dass er nicht der letzte ist.
-        if (_pending.length <= chunkSize) return;
-        final data = _pending.takeBytes();
-        var pos = 0;
-        while (data.length - pos > chunkSize) {
-          await _writeChunk(
-            Uint8List.sublistView(data, pos, pos + chunkSize),
-            isLast: false,
-          );
-          pos += chunkSize;
-        }
-        _pending.add(Uint8List.sublistView(data, pos));
-      });
+    await _ensureHeader();
+    _pending.add(bytes);
+    _plaintextLength += bytes.length;
+    // Ein voller Chunk wird erst geschrieben, wenn danach noch Daten
+    // folgen: Nur so ist bekannt, dass er nicht der letzte ist.
+    if (_pending.length <= chunkSize) return;
+    final data = _pending.takeBytes();
+    var pos = 0;
+    while (data.length - pos > chunkSize) {
+      await _writeChunk(
+        Uint8List.sublistView(data, pos, pos + chunkSize),
+        isLast: false,
+      );
+      pos += chunkSize;
+    }
+    _pending.add(Uint8List.sublistView(data, pos));
+  });
 
   /// Schreibt den letzten Chunk, patcht das Längenfeld, schließt die Senke
   /// und nullt den Dateischlüssel.
   Future<void> close() => _guarded(() async {
-        final header = await _ensureHeader();
-        try {
-          await _writeChunk(_pending.takeBytes(), isLast: true);
-          _lengthPatched = await _sink.patchHeaderLength(
-            header.lengthFieldOffset,
-            _plaintextLength,
-          );
-          await _sink.close();
-        } finally {
-          _closed = true;
-          zeroize(_fileKey);
-        }
-      });
+    final header = await _ensureHeader();
+    try {
+      await _writeChunk(_pending.takeBytes(), isLast: true);
+      _lengthPatched = await _sink.patchHeaderLength(
+        header.lengthFieldOffset,
+        _plaintextLength,
+      );
+      await _sink.close();
+    } finally {
+      _closed = true;
+      zeroize(_fileKey);
+    }
+  });
 
   Future<T> _guarded<T>(Future<T> Function() action) async {
     if (_closed) {

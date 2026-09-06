@@ -74,13 +74,14 @@ void main() {
       expect(reader.chunkCount, 4);
       expect(reader.chunkSize, 32768);
       expect(await reader.readChunk(3), plaintext.sublist(3 * 32768));
-      expect(await reader.readRange(32_760, 100), plaintext.sublist(32_760, 32_860));
+      expect(
+        await reader.readRange(32_760, 100),
+        plaintext.sublist(32_760, 32_860),
+      );
       expect(await reader.readAll(), plaintext);
 
       // Parallele Zugriffe werden von der Quelle serialisiert.
-      final chunks = await Future.wait(
-        [3, 0, 2, 1].map(reader.readChunk),
-      );
+      final chunks = await Future.wait([3, 0, 2, 1].map(reader.readChunk));
       expect(chunks[0], plaintext.sublist(3 * 32768));
       expect(chunks[1], plaintext.sublist(0, 32768));
       expect(chunks[2], plaintext.sublist(2 * 32768, 3 * 32768));
@@ -91,51 +92,53 @@ void main() {
     }
   });
 
-  test('Abbruch während der Aufnahme: bis zum letzten vollen Chunk lesbar',
-      () async {
-    final file = File('${tempDir.path}/abgebrochen.tgbc');
-    final raf = await file.open(mode: FileMode.writeOnly);
-    final writer = ChunkFileWriter(
-      FileChunkSink(raf),
-      aead: aead,
-      random: SecureRandomSource(),
-      keyWrap: keyWrap,
-      masterKey: masterKey,
-      chunkSize: 4096,
-    );
-    await writer.add(plaintext.sublist(0, 3 * 4096 + 100));
-    // Kein close(): Prozessende simulieren, nur den Deskriptor freigeben.
-    await raf.flush();
-    await raf.close();
+  test(
+    'Abbruch während der Aufnahme: bis zum letzten vollen Chunk lesbar',
+    () async {
+      final file = File('${tempDir.path}/abgebrochen.tgbc');
+      final raf = await file.open(mode: FileMode.writeOnly);
+      final writer = ChunkFileWriter(
+        FileChunkSink(raf),
+        aead: aead,
+        random: SecureRandomSource(),
+        keyWrap: keyWrap,
+        masterKey: masterKey,
+        chunkSize: 4096,
+      );
+      await writer.add(plaintext.sublist(0, 3 * 4096 + 100));
+      // Kein close(): Prozessende simulieren, nur den Deskriptor freigeben.
+      await raf.flush();
+      await raf.close();
 
-    final source = await FileRandomAccessSource.open(file);
-    try {
-      await expectLater(
-        ChunkFileReader.open(
+      final source = await FileRandomAccessSource.open(file);
+      try {
+        await expectLater(
+          ChunkFileReader.open(
+            source,
+            aead: aead,
+            keyWrap: keyWrap,
+            masterKey: masterKey,
+          ),
+          throwsA(isA<ChunkFileTruncatedException>()),
+        );
+        final reader = await ChunkFileReader.open(
           source,
           aead: aead,
           keyWrap: keyWrap,
           masterKey: masterKey,
-        ),
-        throwsA(isA<ChunkFileTruncatedException>()),
-      );
-      final reader = await ChunkFileReader.open(
-        source,
-        aead: aead,
-        keyWrap: keyWrap,
-        masterKey: masterKey,
-        allowTruncated: true,
-      );
-      expect(reader.isTruncated, isTrue);
-      expect(reader.header.plaintextLength, isNull);
-      expect(reader.chunkCount, 3);
-      expect(reader.plaintextLength, 3 * 4096);
-      expect(await reader.readAll(), plaintext.sublist(0, 3 * 4096));
-      reader.close();
-    } finally {
-      await source.close();
-    }
-  });
+          allowTruncated: true,
+        );
+        expect(reader.isTruncated, isTrue);
+        expect(reader.header.plaintextLength, isNull);
+        expect(reader.chunkCount, 3);
+        expect(reader.plaintextLength, 3 * 4096);
+        expect(await reader.readAll(), plaintext.sublist(0, 3 * 4096));
+        reader.close();
+      } finally {
+        await source.close();
+      }
+    },
+  );
 
   test('leere Datei über dart:io', () async {
     final file = File('${tempDir.path}/leer.tgbc');

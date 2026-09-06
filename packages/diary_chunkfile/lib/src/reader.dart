@@ -62,8 +62,14 @@ class ChunkFileReader {
       );
     }
     try {
-      final layout = await _layout(source, aead, fileKey, header, total,
-          allowTruncated: allowTruncated);
+      final layout = await _layout(
+        source,
+        aead,
+        fileKey,
+        header,
+        total,
+        allowTruncated: allowTruncated,
+      );
       return ChunkFileReader._(
         source,
         aead,
@@ -108,8 +114,9 @@ class ChunkFileReader {
       if (declared > body) {
         return truncated('Datei kürzer als die im Kopf angegebene Länge');
       }
-      final chunkCount =
-          declared == 0 ? 1 : (declared + chunkSize - 1) ~/ chunkSize;
+      final chunkCount = declared == 0
+          ? 1
+          : (declared + chunkSize - 1) ~/ chunkSize;
       final lastPayload = declared - (chunkCount - 1) * chunkSize;
       final expectedBody =
           (chunkCount - 1) * recordLength + overhead + lastPayload;
@@ -144,9 +151,10 @@ class ChunkFileReader {
     }
     final lastPayload = lastRecordLength - overhead;
     if (lastPayload == 0 && candidateCount > 1) {
-      throw const ChunkFileFormatException(
-        'Leerer letzter Chunk bei nicht leerer Datei',
-      );
+      // Ein Rest von genau Nonce + Tag hinter anderen Chunks ist entweder ein
+      // mitten im Datensatz abgeschnittener Chunk oder ein nicht kanonischer
+      // leerer letzter Chunk; beides wird als Abschneiden behandelt.
+      return truncated('Letzter Datensatz ist unvollständig');
     }
     final lastIndex = candidateCount - 1;
     final record = await source.read(
@@ -166,7 +174,14 @@ class ChunkFileReader {
         aad: header.aad(lastIndex, isLast: true),
       );
     } on AuthenticationException {
-      if (lastPayload != chunkSize) rethrow;
+      if (lastPayload != chunkSize) {
+        // Ein kürzerer Datensatz kann kein vollständiger Nicht-Letzter sein:
+        // Er wurde mitten im Schreiben abgeschnitten (oder manipuliert, was
+        // ohne Längenangabe nicht unterscheidbar ist).
+        return truncated(
+          'Letzter Datensatz ist unvollständig oder authentifiziert nicht',
+        );
+      }
       // Voller Datensatz ohne isLast: Entweder fehlen dahinter Chunks, oder
       // der Datensatz ist manipuliert.
       await aead.open(
@@ -272,8 +287,8 @@ class ChunkFileReader {
       final chunk = await readChunk(index);
       final chunkStart = index * chunkSize;
       final from = math.max(offset, chunkStart) - chunkStart;
-      final to = math.min(offset + length, chunkStart + chunk.length) -
-          chunkStart;
+      final to =
+          math.min(offset + length, chunkStart + chunk.length) - chunkStart;
       out.setRange(written, written + (to - from), chunk, from);
       written += to - from;
     }

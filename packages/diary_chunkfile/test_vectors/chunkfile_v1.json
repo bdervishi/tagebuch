@@ -4,7 +4,7 @@
   "keyWrapPurpose": "chunkfile-v1",
   "chunkSize": 64,
   "notes": [
-    "Alle Hex-Strings sind Bytes in Dateireihenfolge (Big Endian fuer Ganzzahlen).",
+    "Alle Hex-Strings sind Bytes in Dateireihenfolge (Big Endian für Ganzzahlen).",
     "Zufallsquelle: SequentialRandomSource(0), d. h. die Bytes 0x00, 0x01, ... in Entnahmereihenfolge: fileKey (32) || headerNonce (16) || wrapNonce (nonceLength) || chunkNonce_0 || chunkNonce_1 || ...",
     "masterKey: die Bytes 0xA0 bis 0xBF.",
     "plaintext[i] = (i * 7 + 1) mod 256.",

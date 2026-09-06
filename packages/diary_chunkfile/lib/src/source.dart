@@ -26,7 +26,9 @@ class MemoryRandomAccessSource implements RandomAccessSource {
       throw RangeError('offset und length dürfen nicht negativ sein');
     }
     if (offset >= _bytes.length) return Uint8List(0);
-    final end = offset + length > _bytes.length ? _bytes.length : offset + length;
+    final end = offset + length > _bytes.length
+        ? _bytes.length
+        : offset + length;
     return Uint8List.sublistView(_bytes, offset, end);
   }
 }

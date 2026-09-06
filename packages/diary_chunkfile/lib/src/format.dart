@@ -68,8 +68,8 @@ final class ChunkFileHeader {
     required Uint8List headerNonce,
     required Uint8List wrappedFileKey,
     this.plaintextLength,
-  })  : headerNonce = Uint8List.fromList(headerNonce),
-        wrappedFileKey = Uint8List.fromList(wrappedFileKey) {
+  }) : headerNonce = Uint8List.fromList(headerNonce),
+       wrappedFileKey = Uint8List.fromList(wrappedFileKey) {
     if (headerNonce.length != ChunkFileFormat.headerNonceLength) {
       throw ArgumentError.value(
         headerNonce.length,

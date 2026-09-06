@@ -106,14 +106,14 @@ Stunde Audio bei 32 kbit/s sind rund 440 Chunks).
 | Situation | Erkennung | Ausnahme |
 |---|---|---|
 | Magic, Version, AEAD-Kennung, Chunk-Größe, `L` ungültig; AEAD-Kennung passt nicht zur übergebenen Primitive | Kopfprüfung beim Öffnen | `ChunkFileFormatException` |
-| Überzählige Bytes hinter dem letzten Chunk; Längenfeld kleiner als Inhalt; leerer letzter Chunk bei nicht leerer Datei | Dateigröße gegen Layout | `ChunkFileFormatException` |
+| Überzählige Bytes hinter dem letzten Chunk; Längenfeld kleiner als Inhalt (dazu zählt ein leerer letzter Chunk hinter anderen Chunks) | Dateigröße gegen Layout | `ChunkFileFormatException` |
 | Falscher Master-Key | Entpacken des Dateischlüssels | `AuthenticationException` (diary_crypto) |
 | Verändertes Byte in Nonce, Chiffrat oder Tag | Auth-Tag des Chunks | `AuthenticationException` |
 | Zwei Chunks vertauscht | Index in der AAD | `AuthenticationException` |
 | Chunk aus einer anderen Datei eingesetzt (auch bei gleichem Dateischlüssel) | Kopf-Nonce in der AAD | `AuthenticationException` |
 | Kopf unvollständig (Magic stimmt) | Dateigröße | `ChunkFileTruncatedException` |
 | Ganze Chunks am Ende fehlen | Länge bekannt: Dateigröße kleiner als Layout. Länge unbekannt oder angepasst: der letzte vorhandene Chunk authentifiziert nur mit `isLast = 0` | `ChunkFileTruncatedException` |
-| Mitten im Chunk abgeschnitten | Länge bekannt: Dateigröße. Länge unbekannt: letzter Datensatz kürzer als `n + t` oder authentifiziert nicht als letzter | `ChunkFileTruncatedException` |
+| Mitten im Chunk abgeschnitten | Länge bekannt: Dateigröße. Länge unbekannt: letzter Datensatz nicht länger als `n + t` (bei mehr als einem Chunk) oder authentifiziert nicht als letzter | `ChunkFileTruncatedException` |
 
 Ein Leser gibt nie unauthentifizierten Klartext heraus. `ChunkFileReader.open`
 mit `allowTruncated: true` öffnet eine abgeschnittene Datei trotzdem;

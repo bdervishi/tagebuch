@@ -56,7 +56,7 @@ Future<Map<String, Object?>> generateTestVectors() async {
     'keyWrapPurpose': ChunkFileFormat.keyWrapPurpose,
     'chunkSize': vectorChunkSize,
     'notes': [
-      'Alle Hex-Strings sind Bytes in Dateireihenfolge (Big Endian fuer '
+      'Alle Hex-Strings sind Bytes in Dateireihenfolge (Big Endian für '
           'Ganzzahlen).',
       'Zufallsquelle: SequentialRandomSource(0), d. h. die Bytes 0x00, 0x01, '
           '... in Entnahmereihenfolge: fileKey (32) || headerNonce (16) || '
@@ -149,10 +149,11 @@ Future<Map<String, Object?>> _vector(AeadId id, String name, int length) async {
 }
 
 Future<void> main(List<String> args) async {
-  final target = File(args.isEmpty ? 'test_vectors/chunkfile_v1.json' : args[0]);
-  final json = const JsonEncoder.withIndent('  ').convert(
-    await generateTestVectors(),
+  final target = File(
+    args.isEmpty ? 'test_vectors/chunkfile_v1.json' : args[0],
   );
+  final json = const JsonEncoder.withIndent('  ')
+      .convert(await generateTestVectors());
   await target.writeAsString('$json\n');
   stdout.writeln('Testvektoren geschrieben: ${target.path}');
 }
