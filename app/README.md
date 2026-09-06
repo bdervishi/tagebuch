@@ -13,7 +13,7 @@ flutter analyze
 flutter test
 ```
 
-Die Lokalisierung wird über `l10n.yaml` aus `lib/l10n/app_de.arb` (Vorlage) und `app_en.arb` erzeugt. Nach Änderungen an den ARB-Dateien `flutter gen-l10n` ausführen; die erzeugten Dateien liegen in `lib/l10n/` und sind eingecheckt.
+Die Lokalisierung wird über `l10n.yaml` aus `lib/l10n/app_de.arb` (Vorlage) und `app_en.arb` erzeugt. Nach Änderungen an den ARB-Dateien `flutter gen-l10n` ausführen. Die erzeugten Dateien `lib/l10n/app_localizations*.dart` sind per `.gitignore` ausgeschlossen; `flutter pub get` (bzw. `flutter run`/`flutter test`) erzeugt sie neu.
 
 ## Struktur
 
