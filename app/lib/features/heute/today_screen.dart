@@ -6,13 +6,10 @@ import '../../app/routes.dart';
 import '../../data/day.dart';
 import '../../data/entry_view.dart';
 import '../../l10n/app_localizations.dart';
-import '../../widgets/backup_reminder_card.dart';
 import '../../widgets/entry_tile.dart';
 import '../../widgets/record_button.dart';
 import '../../widgets/reveal.dart';
 import '../../widgets/step_card.dart';
-import '../lesebuch/today_reading_section.dart';
-import '../wege/today_goals_section.dart';
 import '../zitate/quote_card.dart';
 import 'day_timeline.dart';
 import 'quick_note_sheet.dart';
@@ -28,13 +25,13 @@ const Key quickTextKey = Key('quick-text');
 
 /// Startbildschirm: große Aufnahmetaste und die kleinere Aktion "Schreiben",
 /// darunter die kleinen Aktionen "Sprachnotiz" und "Kurznotiz" (D22), das
-/// Zitat zum Tag (D20), "Dein Schritt für heute", der Abschnitt
-/// "Deine Wege" (D19), die Zeile "Lese ich" aus dem Lesebuch (D21), der Tag
-/// als Zeitleiste "Dein Tag" aus den Stücken des heutigen Eintrags (D22),
-/// bei Bedarf die Karte "Zeit für ein Backup" und die Rückblicke "Vor einem
-/// Jahr" und "Vor einem Monat". Zustand statt Mahnung: kein Zähler, keine
-/// Kette (docs/03 Abschnitt 3, D17). Die Abschnitte erscheinen beim Öffnen
-/// gestaffelt (einmal am Tag gesehen, blockiert nichts; docs/12).
+/// Zitat zum Tag (D20), "Dein Schritt für heute", der Tag als Zeitleiste
+/// "Dein Tag" aus den Stücken des heutigen Eintrags (D22) und die Rückblicke
+/// "Vor einem Jahr" und "Vor einem Monat". Wege, Lesebuch, Zitatenschatz,
+/// Wochenrückblick und die Backup-Erinnerung liegen auf dem Reiter "Mehr",
+/// damit der Start beim Sprechen bleibt. Zustand statt Mahnung: kein Zähler,
+/// keine Kette (docs/03 Abschnitt 3, D17). Die Abschnitte erscheinen beim
+/// Öffnen gestaffelt (einmal am Tag gesehen, blockiert nichts; docs/12).
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
 
@@ -141,11 +138,8 @@ class TodayScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             const Reveal(index: 3, child: QuoteCard()),
             const Reveal(index: 4, child: StepCard()),
-            const Reveal(index: 5, child: TodayGoalsSection()),
-            const Reveal(index: 6, child: TodayReadingSection()),
-            const Reveal(index: 7, child: BackupReminderCard()),
             Reveal(
-              index: 7,
+              index: 5,
               child: switch (today) {
                 // Ohne Stücke (kein Eintrag oder nur interne Notizen wie
                 // das Häkchen am Schritt) bleibt die leise Zeile.
@@ -183,7 +177,7 @@ class TodayScreen extends ConsumerWidget {
             ),
             for (final (i, lookback) in lookbacks.indexed)
               Reveal(
-                index: 8 + i,
+                index: 6 + i,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 24),
                   child: Column(

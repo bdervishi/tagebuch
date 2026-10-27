@@ -10,7 +10,7 @@ import 'package:tagebuch_app/features/lesebuch/book_search_tile.dart';
 import 'package:tagebuch_app/features/lesebuch/books_screen.dart';
 import 'package:tagebuch_app/features/lesebuch/day_passages_section.dart';
 import 'package:tagebuch_app/features/lesebuch/passage_editor_sheet.dart';
-import 'package:tagebuch_app/features/lesebuch/today_reading_section.dart';
+import 'package:tagebuch_app/features/mehr/more_screen.dart';
 
 import 'test_app.dart';
 
@@ -76,11 +76,11 @@ void main() {
       await tester.pumpWidget(buildTestApp(services: services));
       await tester.pumpAndSettle();
 
-      // "Heute": ohne Bücher nur die leise Zeile mit der Taste "Lesebuch".
-      await scrollTodayTo(tester, find.byKey(todayBooksOpenKey));
+      // "Mehr": ohne Bücher nur die leise Frage in der Zeile "Lesebuch".
+      await openMoreTab(tester);
       expect(find.textContaining('Was liest du gerade?'), findsOneWidget);
-      expect(find.byKey(todayReadingBookKey), findsNothing);
-      await tester.tap(find.byKey(todayBooksOpenKey));
+      expect(find.textContaining('Lese ich:'), findsNothing);
+      await tester.tap(find.byKey(moreBooksRowKey));
       await tester.pumpAndSettle();
       expect(find.byType(BooksScreen), findsOneWidget);
       expect(find.textContaining('Noch kein Buch'), findsOneWidget);
@@ -435,11 +435,16 @@ void main() {
       await tester.pumpWidget(buildTestApp(services: services));
       await tester.pumpAndSettle();
 
-      await scrollTodayTo(tester, find.byKey(todayReadingBookKey));
-      expect(find.text('Lese ich: Der Sommer der Bücher'), findsOneWidget);
-      expect(find.text('2 Passagen'), findsOneWidget);
-      expect(find.byKey(todayBooksOpenKey), findsNothing);
-      await tester.tap(find.byKey(todayReadingBookKey));
+      await openMoreTab(tester);
+      expect(
+        find.text('Lese ich: Der Sommer der Bücher · 2 Passagen'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Was liest du gerade?'), findsNothing);
+      await tester.tap(find.byKey(moreBooksRowKey));
+      await tester.pumpAndSettle();
+      expect(find.byType(BooksScreen), findsOneWidget);
+      await tester.tap(find.byKey(bookCardKey('neu')));
       await tester.pumpAndSettle();
       expect(find.byType(BookDetailScreen), findsOneWidget);
       expect(find.text('Der Sommer der Bücher'), findsOneWidget);

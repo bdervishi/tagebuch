@@ -7,12 +7,20 @@ import '../features/einstellungen/settings_screen.dart';
 import '../features/heute/quick_note_sheet.dart';
 import '../features/heute/today_screen.dart';
 import '../features/kalender/calendar_screen.dart';
+import '../features/mehr/more_screen.dart';
 import '../l10n/app_localizations.dart';
 import '../services/app_services.dart';
 import '../services/platform_features.dart';
 import 'routes.dart';
 
-/// Hauptansicht mit unterer Leiste: Heute, Kalender (mit Suche), Einstellungen.
+/// Widget-Keys der Reiter in der unteren Leiste (für Tests).
+const Key navTodayKey = Key('nav-today');
+const Key navCalendarKey = Key('nav-calendar');
+const Key navMoreKey = Key('nav-more');
+const Key navSettingsKey = Key('nav-settings');
+
+/// Hauptansicht mit unterer Leiste: Heute, Kalender (mit Suche), Mehr (Wege,
+/// Lesebuch, Zitate, Woche, Backup) und Einstellungen.
 /// Die Reiter behalten ihren Zustand über einen [IndexedStack]. Der Wechsel
 /// selbst ist bewusst ohne Animation: Er passiert dutzende Male am Tag.
 /// Die Leiste sitzt auf einer Haarlinie statt eines Schattens. Eine
@@ -75,7 +83,12 @@ class _AppShellState extends ConsumerState<AppShell> {
     return Scaffold(
       body: IndexedStack(
         index: _index,
-        children: const [TodayScreen(), CalendarScreen(), SettingsScreen()],
+        children: const [
+          TodayScreen(),
+          CalendarScreen(),
+          MoreScreen(),
+          SettingsScreen(),
+        ],
       ),
       bottomNavigationBar: DecoratedBox(
         decoration: BoxDecoration(
@@ -91,16 +104,25 @@ class _AppShellState extends ConsumerState<AppShell> {
           onDestinationSelected: (i) => setState(() => _index = i),
           destinations: [
             NavigationDestination(
+              key: navTodayKey,
               icon: const Icon(Icons.wb_twilight_outlined),
               selectedIcon: const Icon(Icons.wb_twilight),
               label: l10n.navToday,
             ),
             NavigationDestination(
+              key: navCalendarKey,
               icon: const Icon(Icons.calendar_month_outlined),
               selectedIcon: const Icon(Icons.calendar_month),
               label: l10n.navCalendar,
             ),
             NavigationDestination(
+              key: navMoreKey,
+              icon: const Icon(Icons.grid_view_outlined),
+              selectedIcon: const Icon(Icons.grid_view),
+              label: l10n.navMore,
+            ),
+            NavigationDestination(
+              key: navSettingsKey,
               icon: const Icon(Icons.settings_outlined),
               selectedIcon: const Icon(Icons.settings),
               label: l10n.navSettings,

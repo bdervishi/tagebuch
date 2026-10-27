@@ -184,23 +184,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
               ),
             ],
             if (result != null) ...[
-              Card(
-                child: ListTile(
-                  leading: Icon(
-                    Icons.check_circle_outline,
-                    color: theme.colorScheme.primary,
-                  ),
-                  title: Text(l10n.importDoneTitle),
-                  subtitle: Text(
-                    l10n.importDone(
-                      result.entriesCreated,
-                      result.entriesMerged,
-                      result.recordingsImported,
-                      result.recordingsSkipped,
-                    ),
-                  ),
-                ),
-              ),
+              ImportSummary(result),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),

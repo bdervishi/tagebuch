@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tagebuch_app/app/app.dart';
 import 'package:tagebuch_app/app/routes.dart';
+import 'package:tagebuch_app/app/shell.dart';
 import 'package:tagebuch_app/data/settings_notifier.dart';
 import 'package:tagebuch_app/features/heute/today_screen.dart';
 import 'package:tagebuch_app/features/zitate/quote_library.dart';
@@ -397,9 +398,22 @@ Widget buildTestScreen(
   );
 }
 
+/// Wechselt in der unteren Leiste auf den Reiter mit [key]; der Wechsel hat
+/// keine Animation, der Zustand der Reiter bleibt (IndexedStack).
+Future<void> openTab(WidgetTester tester, Key key) async {
+  await tester.tap(find.byKey(key));
+  await tester.pumpAndSettle();
+}
+
+/// Öffnet den Reiter "Mehr" (Wege, Lesebuch, Zitate, Woche, Backup).
+Future<void> openMoreTab(WidgetTester tester) => openTab(tester, navMoreKey);
+
+/// Öffnet den Reiter "Heute".
+Future<void> openTodayTab(WidgetTester tester) => openTab(tester, navTodayKey);
+
 /// Scrollt die Liste von "Heute", bis [finder] sichtbar ist. Die Liste baut
-/// nur den sichtbaren Teil; seit Zitat, Schritt, Wegen und Lesebuch (D17 bis
-/// D21) liegt der heutige Eintrag unterhalb des ersten Bildschirms.
+/// nur den sichtbaren Teil; seit Zitat und Schritt (D17, D20) liegt der
+/// heutige Eintrag im Testfenster unterhalb des ersten Bildschirms.
 Future<void> scrollTodayTo(WidgetTester tester, Finder finder) async {
   await tester.scrollUntilVisible(
     finder,

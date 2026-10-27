@@ -12,7 +12,7 @@ const Key backupReminderCardKey = Key('backup-reminder');
 const Key backupReminderLaterKey = Key('backup-reminder-later');
 const Key backupReminderNowKey = Key('backup-reminder-now');
 
-/// Karte "Zeit für ein Backup" auf "Heute" (D16 Punkt 3): ab dem dritten
+/// Karte "Zeit für ein Backup" auf dem Reiter "Mehr" (D16 Punkt 3): ab dem dritten
 /// Eintrag und wenn das letzte Backup älter als sieben Tage ist. Kein
 /// Zähler, kein Vorwurf; "Später" stellt eine Woche zurück.
 class BackupReminderCard extends ConsumerWidget {

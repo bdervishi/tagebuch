@@ -57,6 +57,11 @@ void main() {
     expect(result.entriesMerged, 0);
     expect(result.recordingsImported, 2);
     expect(result.recordingsSkipped, 0);
+    expect(result.transcriptsImported, 2);
+    expect(result.transcriptsSkipped, 0);
+    // Sprache und Erinnerung.
+    expect(result.settingsImported, 2);
+    expect(result.settingsSkipped, 0);
 
     final entries = await fresh.entries.listAll(Device.journalId);
     expect(entries.map((e) => e.day), [d1, d2]);
@@ -117,6 +122,12 @@ void main() {
       expect(result.entriesMerged, 2);
       expect(result.recordingsImported, 1);
       expect(result.recordingsSkipped, 1);
+      expect(result.transcriptsImported, 1);
+      expect(result.transcriptsSkipped, 1);
+      // Die Erinnerung bleibt auf einem Gerät mit eigenen Einträgen
+      // unangetastet und zählt als übersprungen.
+      expect(result.settingsImported, 0);
+      expect(result.settingsSkipped, 1);
 
       final e1 = (await target.entries.findByDay(Device.journalId, d1))!;
       final recs = await target.recordings.listForEntry(e1.id);

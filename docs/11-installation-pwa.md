@@ -24,13 +24,14 @@ Bekannte Grenzen auf iOS: Aufnahme nur, solange die App im Vordergrund ist (Bild
 3. App vom Startbildschirm starten, Mikrofon freigeben.
 4. In den Einstellungen der App den Speicherstatus prüfen: "dauerhaft" sollte angezeigt werden; sonst in den Chrome-Einstellungen der Website "Speicher" erlauben.
 5. Schnellaktionen: App-Symbol lange drücken, dann "Aufnehmen", "Sprachnotiz", "Kurznotiz" oder "Schreiben" wählen; die App startet direkt dort (Sprachnotiz: Aufnahme ohne Impulse; Kurznotiz: Blatt mit einem Textfeld, D22). Ein echtes Homescreen-Widget gibt es erst mit der Store-App (`09-roadmap.md`, Phase 8).
+6. Untere Leiste: vier Reiter Heute, Kalender, Mehr (Wege, Lesebuch, Zitate, Woche, Backup) und Einstellungen; der Wechsel ist ohne Animation.
 
 ## Nach der Installation prüfen
 
 1. Eine kurze Aufnahme machen, App schließen, neu öffnen: Der Eintrag muss da sein.
 2. Wiedergabe funktioniert, auch nach einem Neustart des Telefons.
 3. Flugmodus einschalten, App öffnen, aufnehmen, abspielen: Alles muss ohne Netz gehen.
-4. Backup erstellen (Einstellungen, Daten), Datei sicher ablegen (z. B. in der Dateien-App), einmal probeweise wiederherstellen.
+4. Backup erstellen (Reiter "Mehr", Zeile "Backup und Gerätewechsel", oder Einstellungen, Daten), Datei sicher ablegen (z. B. in der Dateien-App), einmal probeweise wiederherstellen; die Zusammenfassung muss alle Arten nennen (Tage, Aufnahmen, Transkripte, Notizen, Wege, Etappen, Bücher, Passagen, Einstellungen). Die Zeile auf "Mehr" zeigt danach das Datum des Backups.
 5. App-Sperre (Einstellungen, Schutz) einschalten, App in den Hintergrund legen, nach der gewählten Zeit zurückkehren: Der Sperrbildschirm muss erscheinen, und beim Wechsel darf der App-Switcher keine Inhalte zeigen. Dabei die Dauer der PIN-Prüfung beobachten (Ziel: höchstens rund eine Sekunde; Messwert in D23 nachtragen).
 
 ## App-Sperre: PIN merken

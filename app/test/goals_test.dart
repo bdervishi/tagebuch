@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tagebuch_app/features/heute/today_screen.dart';
 import 'package:tagebuch_app/features/kalender/calendar_screen.dart';
+import 'package:tagebuch_app/features/mehr/more_screen.dart';
 import 'package:tagebuch_app/features/rueckblick/week_review_screen.dart';
 import 'package:tagebuch_app/features/schreiben/write_screen.dart';
 import 'package:tagebuch_app/features/wege/goal_detail_screen.dart';
 import 'package:tagebuch_app/features/wege/goal_editor_sheet.dart';
 import 'package:tagebuch_app/features/wege/goals_screen.dart';
-import 'package:tagebuch_app/features/wege/today_goals_section.dart';
 import 'package:tagebuch_app/widgets/step_card.dart';
 
 import 'test_app.dart';
@@ -62,13 +62,13 @@ void main() {
       await tester.pumpWidget(buildTestApp(services: services));
       await tester.pumpAndSettle();
 
-      // "Heute": leiser Hinweis mit Taste, kein Zähler.
-      await tester.ensureVisible(find.byKey(todayGoalsNewKey));
-      await tester.pumpAndSettle();
-      // Ohne Wege nur die leise Zeile, keine Überschrift.
+      // "Heute" trägt keine Wege mehr; auf "Mehr" steht ohne Wege nur der
+      // leise Hinweis in der Zeile, kein Zähler.
+      expect(find.textContaining('Setze dir einen Weg'), findsNothing);
+      await openMoreTab(tester);
       expect(find.textContaining('Setze dir einen Weg'), findsOneWidget);
-      expect(find.text('Deine Wege'), findsNothing);
-      await tester.tap(find.byKey(todayGoalsNewKey));
+      expect(find.textContaining('aktiver Weg'), findsNothing);
+      await tester.tap(find.byKey(moreGoalsRowKey));
       await tester.pumpAndSettle();
       expect(find.byType(GoalsScreen), findsOneWidget);
       expect(find.textContaining('Noch kein Weg'), findsOneWidget);
@@ -281,10 +281,18 @@ void main() {
             .where((n) => n.promptKey == ReviewPrompts.nextDone)
             .single;
         expect(StepDoneMark.parse(mark.text).milestoneId, milestone.id);
-        // "Deine Wege" zählt mit: 1 von 2.
-        await tester.ensureVisible(find.byKey(todayGoalKey('g')));
+        // "Mehr" nennt den Weg mit der nächsten offenen Etappe; "Wege"
+        // zählt mit: 1 von 2.
+        await openMoreTab(tester);
+        expect(
+          find.text('1 aktiver Weg · Nächste Etappe: Buch'),
+          findsOneWidget,
+        );
+        await tester.tap(find.byKey(moreGoalsRowKey));
         await tester.pumpAndSettle();
-        expect(find.text('1 von 2'), findsOneWidget);
+        expect(find.text('1 von 2 Etappen'), findsOneWidget);
+        await _back(tester);
+        await openTodayTab(tester);
 
         // Zurücknehmen entfernt die Etappe wieder.
         await tester.ensureVisible(find.byKey(stepDoneKey));
@@ -296,7 +304,10 @@ void main() {
           services.notes.items.where((n) => n.promptKey == 'next_done'),
           isEmpty,
         );
-        expect(find.text('0 von 1'), findsOneWidget);
+        await openMoreTab(tester);
+        await tester.tap(find.byKey(moreGoalsRowKey));
+        await tester.pumpAndSettle();
+        expect(find.text('0 von 1 Etappen'), findsOneWidget);
       },
     );
 
@@ -374,7 +385,7 @@ void main() {
     });
 
     testWidgets(
-      '"Heute" zeigt die Wege, Wochenrückblick die Etappen der Woche',
+      '"Mehr" zeigt die Wege, Wochenrückblick die Etappen der Woche',
       (tester) async {
         final today = _today();
         final services = TestServices();
@@ -403,17 +414,24 @@ void main() {
         await tester.pumpWidget(buildTestApp(services: services));
         await tester.pumpAndSettle();
 
-        await tester.ensureVisible(find.byKey(todayGoalKey('h')));
+        await openMoreTab(tester);
+        expect(
+          find.text('2 aktive Wege · Nächste Etappe: Kapitel 1'),
+          findsOneWidget,
+        );
+        await tester.tap(find.byKey(moreGoalsRowKey));
         await tester.pumpAndSettle();
-        expect(find.byKey(todayGoalKey('g')), findsOneWidget);
-        expect(find.text('2 von 3'), findsOneWidget);
+        expect(find.byType(GoalsScreen), findsOneWidget);
+        expect(find.byKey(goalCardKey('g')), findsOneWidget);
+        expect(find.text('2 von 3 Etappen'), findsOneWidget);
         expect(find.text('Noch keine Etappen'), findsOneWidget);
-        await tester.tap(find.byKey(todayGoalKey('g')));
+        await tester.tap(find.byKey(goalCardKey('g')));
         await tester.pumpAndSettle();
         expect(find.byType(GoalDetailScreen), findsOneWidget);
         expect(find.text('2 von 3 Etappen'), findsOneWidget);
         await _back(tester);
-        expect(find.byType(TodayScreen), findsOneWidget);
+        await _back(tester);
+        expect(find.byType(MoreScreen), findsOneWidget);
 
         await tester.tap(
           find.descendant(

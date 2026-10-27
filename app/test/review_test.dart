@@ -450,8 +450,8 @@ void main() {
       );
       await tester.pumpWidget(buildTestApp(services: services));
       await tester.pumpAndSettle();
-      // Der Rückblick steht unter "Deine Wege" (D19) und damit im
-      // Testfenster unterhalb des sichtbaren Bereichs.
+      // Der Rückblick steht unter der Zeitleiste "Dein Tag" (D22) und damit
+      // im Testfenster unterhalb des sichtbaren Bereichs.
       await tester.scrollUntilVisible(
         find.byKey(const Key('lookback-yearAgo')),
         200,

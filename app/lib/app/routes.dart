@@ -40,8 +40,9 @@ class WriteRouteArgs {
   final String? noteId;
 }
 
-/// Benannte Routen. Die drei Reiter (Heute, Kalender, Einstellungen) leben in
-/// der Start-Route; Aufnahme, Eintrag, Schreiben und Woche liegen darüber.
+/// Benannte Routen. Die vier Reiter (Heute, Kalender, Mehr, Einstellungen)
+/// leben in der Start-Route; Aufnahme, Eintrag, Schreiben, Woche, Wege,
+/// Lesebuch, Zitate und Daten liegen darüber.
 abstract final class AppRoutes {
   /// Vollbild-Aufnahme (M3: ein Tipp, und es läuft); Argument optional
   /// [RecordRouteArgs].

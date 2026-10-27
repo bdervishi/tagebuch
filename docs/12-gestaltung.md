@@ -14,7 +14,7 @@ Wie die App aussieht und sich bewegt. Grundlage sind die Design-Engineering-Rege
 
 | Häufigkeit | Beispiel in der App | Entscheidung |
 |---|---|---|
-| Dutzende Male am Tag | Wechsel der Reiter Heute, Kalender, Einstellungen | Keine Animation (IndexedStack), nur die Markierung der Leiste |
+| Dutzende Male am Tag | Wechsel der Reiter Heute, Kalender, Mehr, Einstellungen | Keine Animation (IndexedStack), nur die Markierung der Leiste |
 | Oft | Tippen auf Tasten, Karten, Kalendertage | Nur Rückmeldung: 97 % Größe beim Aufsetzen des Fingers, 120 ms zurück |
 | Gelegentlich | Routenwechsel, Blätter (Aufnahme, Schreiben), Dialoge, Einblenden von Listen | Standard: 220 bis 320 ms, kräftiges Ease-out |
 | Selten, erstes Mal | Onboarding, leere Zustände, Backup erfolgreich | Hier darf etwas Freude hin (gestaffeltes Erscheinen), weiter nichts |

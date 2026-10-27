@@ -22,7 +22,7 @@ final lastBackupProvider = FutureProvider<DateTime?>((ref) async {
   return raw == null ? null : DateTime.tryParse(raw)?.toLocal();
 });
 
-/// Ob die Karte "Zeit für ein Backup" auf "Heute" erscheint (D16 Punkt 3):
+/// Ob die Karte "Zeit für ein Backup" auf "Mehr" erscheint (D16 Punkt 3):
 /// ab dem dritten Eintrag, wenn das letzte Backup fehlt oder älter als
 /// sieben Tage ist und die Erinnerung nicht zurückgestellt wurde.
 final backupReminderProvider = FutureProvider<BackupReminder?>((ref) async {
@@ -199,6 +199,132 @@ class ManifestSummary extends StatelessWidget {
               ),
               style: theme.textTheme.bodySmall,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Widget-Keys der Zeilen in [ImportSummary] (für Tests): `import-line-<kind>`.
+Key importLineKey(String kind) => Key('import-line-$kind');
+
+/// Zusammenfassung nach dem Einspielen (Backup wiederherstellen und
+/// Gerätewechsel): je Art eine Zeile mit der übernommenen Zahl, dahinter die
+/// übersprungene, wenn es welche gab. Arten ohne beides entfallen; war
+/// nichts zu übernehmen, steht das in einem Satz.
+class ImportSummary extends StatelessWidget {
+  const ImportSummary(this.result, {super.key});
+
+  final ImportResult result;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    String withSkipped(String imported, int skipped) => skipped == 0
+        ? imported
+        : '$imported, ${l10n.importLineSkipped(skipped)}';
+    final lines = <(String, String)>[
+      if (result.entriesCreated > 0 || result.entriesMerged > 0)
+        (
+          'entries',
+          result.entriesMerged == 0
+              ? l10n.importLineEntries(result.entriesCreated)
+              : result.entriesCreated == 0
+              ? l10n.importLineEntriesMerged(result.entriesMerged)
+              : '${l10n.importLineEntries(result.entriesCreated)}, '
+                    '${l10n.importLineEntriesMerged(result.entriesMerged)}',
+        ),
+      if (result.recordingsImported > 0 || result.recordingsSkipped > 0)
+        (
+          'recordings',
+          withSkipped(
+            l10n.importLineRecordings(result.recordingsImported),
+            result.recordingsSkipped,
+          ),
+        ),
+      if (result.transcriptsImported > 0 || result.transcriptsSkipped > 0)
+        (
+          'transcripts',
+          withSkipped(
+            l10n.importLineTranscripts(result.transcriptsImported),
+            result.transcriptsSkipped,
+          ),
+        ),
+      if (result.notesImported > 0 || result.notesSkipped > 0)
+        (
+          'notes',
+          withSkipped(
+            l10n.importLineNotes(result.notesImported),
+            result.notesSkipped,
+          ),
+        ),
+      if (result.goalsImported > 0 || result.goalsSkipped > 0)
+        (
+          'goals',
+          withSkipped(
+            l10n.importLineGoals(result.goalsImported),
+            result.goalsSkipped,
+          ),
+        ),
+      if (result.milestonesImported > 0 || result.milestonesSkipped > 0)
+        (
+          'milestones',
+          withSkipped(
+            l10n.importLineMilestones(result.milestonesImported),
+            result.milestonesSkipped,
+          ),
+        ),
+      if (result.booksImported > 0 || result.booksSkipped > 0)
+        (
+          'books',
+          withSkipped(
+            l10n.importLineBooks(result.booksImported),
+            result.booksSkipped,
+          ),
+        ),
+      if (result.passagesImported > 0 || result.passagesSkipped > 0)
+        (
+          'passages',
+          withSkipped(
+            l10n.importLinePassages(result.passagesImported),
+            result.passagesSkipped,
+          ),
+        ),
+      if (result.settingsImported > 0 || result.settingsSkipped > 0)
+        (
+          'settings',
+          withSkipped(
+            l10n.importLineSettings(result.settingsImported),
+            result.settingsSkipped,
+          ),
+        ),
+    ];
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: scheme.primary),
+                const SizedBox(width: 12),
+                Text(l10n.importDoneTitle, style: theme.textTheme.titleMedium),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (lines.isEmpty)
+              Text(l10n.importNothing, style: theme.textTheme.bodyMedium)
+            else
+              for (final (kind, text) in lines)
+                Padding(
+                  key: importLineKey(kind),
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(text, style: theme.textTheme.bodyMedium),
+                ),
           ],
         ),
       ),

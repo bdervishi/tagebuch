@@ -276,6 +276,8 @@ class ImportResult {
     required this.entriesMerged,
     required this.recordingsImported,
     required this.recordingsSkipped,
+    this.transcriptsImported = 0,
+    this.transcriptsSkipped = 0,
     this.notesImported = 0,
     this.notesSkipped = 0,
     this.goalsImported = 0,
@@ -286,6 +288,8 @@ class ImportResult {
     this.booksSkipped = 0,
     this.passagesImported = 0,
     this.passagesSkipped = 0,
+    this.settingsImported = 0,
+    this.settingsSkipped = 0,
   });
   final int entriesCreated;
 
@@ -295,6 +299,11 @@ class ImportResult {
 
   /// Aufnahmen, deren Kennung hier schon vorhanden war.
   final int recordingsSkipped;
+
+  /// Transkripte, übernommen mit ihrer Aufnahme bzw. übersprungen, weil
+  /// die Aufnahme schon da war.
+  final int transcriptsImported;
+  final int transcriptsSkipped;
 
   /// Geschriebene Texte (D17), übernommen bzw. wegen vorhandener Kennung
   /// übersprungen.
@@ -314,6 +323,11 @@ class ImportResult {
   final int booksSkipped;
   final int passagesImported;
   final int passagesSkipped;
+
+  /// Einstellungen (Schlüssel-Wert-Paare und die Erinnerung), ergänzt bzw.
+  /// übersprungen, weil hier schon ein Wert stand.
+  final int settingsImported;
+  final int settingsSkipped;
 }
 
 /// Backup und Gerätewechsel (M8, D6, D16): packt alle Einträge in den
@@ -718,6 +732,8 @@ class TransferUseCase {
     var merged = 0;
     var imported = 0;
     var skipped = 0;
+    var transcriptsImported = 0;
+    var transcriptsSkipped = 0;
     var notesImported = 0;
     var notesSkipped = 0;
     var done = 0;
@@ -749,6 +765,7 @@ class TransferUseCase {
         done++;
         if (existingRecordingIds.contains(r.id)) {
           skipped++;
+          transcriptsSkipped += byRecording[r.id]?.length ?? 0;
           continue;
         }
         final audio = opened.payload.file(
@@ -793,6 +810,7 @@ class TransferUseCase {
         existingRecordingIds.add(r.id);
         for (final t in byRecording[r.id] ?? const <Transcript>[]) {
           await transcripts.insert(t);
+          transcriptsImported++;
         }
         imported++;
         onProgress?.call(
@@ -900,20 +918,32 @@ class TransferUseCase {
     }
 
     // Einstellungen: nur ergänzen, nie überschreiben; die Erinnerung nur auf
-    // einem Gerät ohne eigene Einträge.
+    // einem Gerät ohne eigene Einträge. Beides zählt für die Zusammenfassung.
+    var settingsImported = 0;
+    var settingsSkipped = 0;
     for (final s in snap.settings.entries) {
       if (await settings.get(s.key) == null) {
         await settings.set(s.key, s.value);
+        settingsImported++;
+      } else {
+        settingsSkipped++;
       }
     }
-    if (freshDevice && snap.reminder != null) {
-      await settings.saveReminder(snap.reminder!);
+    if (snap.reminder != null) {
+      if (freshDevice) {
+        await settings.saveReminder(snap.reminder!);
+        settingsImported++;
+      } else {
+        settingsSkipped++;
+      }
     }
     return ImportResult(
       entriesCreated: created,
       entriesMerged: merged,
       recordingsImported: imported,
       recordingsSkipped: skipped,
+      transcriptsImported: transcriptsImported,
+      transcriptsSkipped: transcriptsSkipped,
       notesImported: notesImported,
       notesSkipped: notesSkipped,
       goalsImported: goalsImported,
@@ -924,6 +954,8 @@ class TransferUseCase {
       booksSkipped: booksSkipped,
       passagesImported: passagesImported,
       passagesSkipped: passagesSkipped,
+      settingsImported: settingsImported,
+      settingsSkipped: settingsSkipped,
     );
   }
 }

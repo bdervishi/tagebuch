@@ -5,8 +5,9 @@ import 'package:tagebuch_app/data/settings_notifier.dart';
 import 'package:tagebuch_app/features/daten/backup_screen.dart';
 import 'package:tagebuch_app/features/daten/restore_screen.dart';
 import 'package:tagebuch_app/features/daten/transfer_screen.dart';
+import 'package:tagebuch_app/features/daten/transfer_support.dart';
 import 'package:tagebuch_app/features/einstellungen/settings_screen.dart';
-import 'package:tagebuch_app/features/heute/today_screen.dart';
+import 'package:tagebuch_app/features/mehr/more_screen.dart';
 import 'package:tagebuch_app/widgets/backup_reminder_card.dart';
 
 import 'test_app.dart';
@@ -103,12 +104,18 @@ void main() {
     await tester.tap(find.byKey(restoreConfirmKey));
     await tester.pumpAndSettle();
     expect(find.text('Übernommen'), findsOneWidget);
+    expect(find.text('3 neue Tage'), findsOneWidget);
+    expect(find.text('3 Aufnahmen übernommen'), findsOneWidget);
+    expect(find.text('3 Transkripte übernommen'), findsOneWidget);
+    // Die Onboarding-Marke stand schon hier, die Erinnerung ist neu; Arten
+    // ohne Zahlen (Notizen, Wege, Bücher) bekommen keine Zeile.
     expect(
-      find.text(
-        '3 neue Tage, 0 ergänzte Tage, 3 Aufnahmen übernommen, 0 waren schon da.',
-      ),
+      find.text('1 Einstellung übernommen, 1 war schon da'),
       findsOneWidget,
     );
+    expect(find.byKey(importLineKey('notes')), findsNothing);
+    expect(find.byKey(importLineKey('goals')), findsNothing);
+    expect(find.byKey(importLineKey('books')), findsNothing);
     expect(fresh.entries.items, hasLength(3));
     expect(fresh.recordings.items, hasLength(3));
     final withAudio = fresh.recordings.items.singleWhere(
@@ -197,6 +204,9 @@ void main() {
     await tester.tap(find.byKey(transferConfirmKey));
     await tester.pumpAndSettle();
     expect(find.text('Übernommen'), findsOneWidget);
+    expect(find.text('2 neue Tage'), findsOneWidget);
+    expect(find.text('2 Aufnahmen übernommen'), findsOneWidget);
+    expect(find.text('2 Transkripte übernommen'), findsOneWidget);
     expect(newDevice.entries.items, hasLength(2));
     expect(
       newDevice.transcripts.items.map((t) => t.text),
@@ -236,22 +246,24 @@ void main() {
         seed: seeds.sublist(0, 2),
         features: FakePlatformFeatures(isWeb: true),
       );
-      await tester.pumpWidget(screen(const TodayScreen(), few));
+      await tester.pumpWidget(screen(const MoreScreen(), few));
       await tester.pumpAndSettle();
       expect(find.byKey(backupReminderCardKey), findsNothing);
+      // Die Zeile "Backup und Gerätewechsel" nennt den Stand trotzdem.
+      expect(find.text('Letztes Backup: noch keins'), findsOneWidget);
 
       final many = TestServices(
         seed: seeds,
         features: FakePlatformFeatures(isWeb: true),
       );
-      await tester.pumpWidget(screen(const TodayScreen(), many));
+      await tester.pumpWidget(screen(const MoreScreen(), many));
       await tester.pumpAndSettle();
-      // Die Karte steht unter "Deine Wege" (D19) und den Aktionen für
-      // Kurznotizen (D22); die Liste baut sie erst beim Scrollen.
-      await scrollTodayTo(tester, find.byKey(backupReminderCardKey));
+      // Die Karte steht auf "Mehr" unter den Zeilen.
       expect(find.byKey(backupReminderCardKey), findsOneWidget);
       expect(find.textContaining('Du hast schon 3 Einträge.'), findsOneWidget);
-      await scrollTodayTo(tester, find.byKey(backupReminderLaterKey));
+      // Die Tasten der Karte liegen im Testfenster knapp unter dem Rand.
+      await tester.ensureVisible(find.byKey(backupReminderLaterKey));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(backupReminderLaterKey));
       await tester.pumpAndSettle();
       expect(find.byKey(backupReminderCardKey), findsNothing);
@@ -266,25 +278,112 @@ void main() {
         AppSettings.keyLastBackupAt,
         DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
       );
-      await tester.pumpWidget(screen(const TodayScreen(), recent));
+      await tester.pumpWidget(screen(const MoreScreen(), recent));
       await tester.pumpAndSettle();
-      // Bis zum heutigen Abschnitt scrollen, damit die Liste alles gebaut
-      // hat, was sie zeigen würde.
-      await scrollTodayTo(tester, find.text('Heute noch nichts aufgenommen.'));
       expect(find.byKey(backupReminderCardKey), findsNothing);
+      expect(find.textContaining('Letztes Backup: '), findsOneWidget);
+      expect(find.textContaining('älter als eine Woche'), findsNothing);
 
       final stale = TestServices(seed: seeds);
       await stale.settings.set(
         AppSettings.keyLastBackupAt,
         DateTime.now().subtract(const Duration(days: 9)).toIso8601String(),
       );
-      await tester.pumpWidget(screen(const TodayScreen(), stale));
+      await tester.pumpWidget(screen(const MoreScreen(), stale));
       await tester.pumpAndSettle();
-      await scrollTodayTo(tester, find.byKey(backupReminderCardKey));
+      expect(find.byKey(backupReminderCardKey), findsOneWidget);
       expect(
         find.text('Dein letztes Backup ist älter als eine Woche.'),
         findsOneWidget,
       );
+      // Auch die Zeile sagt es, in einem Nebensatz.
+      expect(find.textContaining('· älter als eine Woche'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Zusammenfassung nennt Notizen, Wege, Etappen, Bücher und Passagen; '
+    'der zweite Durchlauf zählt Übersprungenes',
+    (tester) async {
+      final old = TestServices(
+        seed: [
+          testEntry(
+            id: 'a',
+            day: DateTime(2026, 10, 24),
+            transcript: 'Erster Tag',
+            notes: {'good': 'Dankbar für den Kaffee.'},
+          ),
+        ],
+        features: FakePlatformFeatures(isWeb: true),
+      );
+      await old.services.goalsUseCase().createGoal(
+        title: 'Lesen',
+        milestoneTitles: ['Kapitel 1'],
+      );
+      final book = await old.services.booksUseCase().addBook(
+        title: 'Der Sommer der Bücher',
+      );
+      await old.services.booksUseCase().addPassage(book.id, text: 'Eins.');
+      final bytes = await old.services.transfer().exportWithPassphrase(
+        'korrektes pferd',
+      );
+
+      final fresh = TestServices(features: FakePlatformFeatures(isWeb: true));
+      final freshFeatures = fresh.services.features as FakePlatformFeatures;
+      freshFeatures.fileToPick = bytes;
+
+      Future<void> restore() async {
+        await tester.pumpWidget(screen(const RestoreScreen(), fresh));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(restoreChooseFileKey));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(restorePassphraseKey),
+          'korrektes pferd',
+        );
+        await tester.tap(find.byKey(restoreOpenKey));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(restoreConfirmKey));
+        await tester.pumpAndSettle();
+        expect(find.text('Übernommen'), findsOneWidget);
+      }
+
+      await restore();
+      for (final line in [
+        '1 neuer Tag',
+        '1 Aufnahme übernommen',
+        '1 Transkript übernommen',
+        '1 Notiz übernommen',
+        '1 Weg übernommen',
+        '1 Etappe übernommen',
+        '1 Buch übernommen',
+        '1 Passage übernommen',
+        '1 Einstellung übernommen, 1 war schon da',
+      ]) {
+        expect(find.text(line), findsOneWidget, reason: line);
+      }
+      expect(fresh.goals.goals, hasLength(1));
+      expect(fresh.books.books, hasLength(1));
+
+      // Dieselbe Datei noch einmal: nichts doppelt, alles als "schon da".
+      await restore();
+      for (final line in [
+        '1 Tag ergänzt',
+        '0 Aufnahmen übernommen, 1 war schon da',
+        '0 Transkripte übernommen, 1 war schon da',
+        '0 Notizen übernommen, 1 war schon da',
+        '0 Wege übernommen, 1 war schon da',
+        '0 Etappen übernommen, 1 war schon da',
+        '0 Bücher übernommen, 1 war schon da',
+        '0 Passagen übernommen, 1 war schon da',
+        '0 Einstellungen übernommen, 2 waren schon da',
+      ]) {
+        expect(find.text(line), findsOneWidget, reason: line);
+      }
+      expect(find.text('1 neuer Tag'), findsNothing);
+      expect(fresh.entries.items, hasLength(1));
+      expect(fresh.goals.goals, hasLength(1));
+      expect(fresh.notes.items, hasLength(1));
     },
   );
 
