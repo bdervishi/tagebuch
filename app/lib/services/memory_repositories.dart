@@ -282,6 +282,72 @@ class InMemoryGoalRepository implements GoalRepository {
       milestones.removeWhere((m) => m.id == milestoneId);
 }
 
+/// Bücher und Passagen (D21) im Speicher.
+class InMemoryBookRepository implements BookRepository {
+  InMemoryBookRepository({
+    List<Book> initialBooks = const [],
+    List<Passage> initialPassages = const [],
+  }) : books = [...initialBooks],
+       passages = [...initialPassages];
+
+  final List<Book> books;
+  final List<Passage> passages;
+
+  @override
+  Future<void> insertBook(Book book) async {
+    books.removeWhere((b) => b.id == book.id);
+    books.add(book);
+  }
+
+  @override
+  Future<void> updateBook(Book book) => insertBook(book);
+
+  @override
+  Future<Book?> bookById(String bookId) async =>
+      books.where((b) => b.id == bookId).firstOrNull;
+
+  @override
+  Future<List<Book>> listBooks(String journalId) async =>
+      books.where((b) => b.journalId == journalId).toList()
+        ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+  @override
+  Future<void> deleteBook(String bookId) async {
+    passages.removeWhere((p) => p.bookId == bookId);
+    books.removeWhere((b) => b.id == bookId);
+  }
+
+  @override
+  Future<void> insertPassage(Passage passage) async {
+    passages.removeWhere((p) => p.id == passage.id);
+    passages.add(passage);
+  }
+
+  @override
+  Future<void> updatePassage(Passage passage) => insertPassage(passage);
+
+  @override
+  Future<Passage?> passageById(String passageId) async =>
+      passages.where((p) => p.id == passageId).firstOrNull;
+
+  @override
+  Future<List<Passage>> listPassages(String bookId) async =>
+      passages.where((p) => p.bookId == bookId).toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  @override
+  Future<List<Passage>> passagesForDay(LocalDay day) async =>
+      passages.where((p) => p.day == day).toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  @override
+  Future<List<Passage>> listAllPassages() async => List.of(passages);
+
+  @override
+  Future<void> deletePassage(String passageId) async =>
+      passages.removeWhere((p) => p.id == passageId);
+}
+
 class InMemorySettingsRepository implements SettingsRepository {
   InMemorySettingsRepository({
     this.reminderValue = const ReminderSettings(),
@@ -334,21 +400,25 @@ class InMemoryAudioFiles implements AudioFiles {
   }
 }
 
-/// Suche über die In-Memory-Transkripte und Notizen (D17): Kleinschreibung,
-/// `ß → ss`, Teilworttreffer; Sprungziel ist bei Transkripten der Start des
-/// ersten passenden Segments, bei Notizen keines.
+/// Suche über die In-Memory-Transkripte, Notizen (D17) und Passagen (D21):
+/// Kleinschreibung, `ß → ss`, Teilworttreffer; Sprungziel ist bei
+/// Transkripten der Start des ersten passenden Segments, bei Notizen keines;
+/// Passagen-Treffer tragen das Buch und keinen Eintrag.
 class InMemorySearchRepository implements SearchRepository {
   InMemorySearchRepository(
     this._entries,
     this._recordings,
     this._transcripts, {
     InMemoryNoteRepository? notes,
-  }) : _notes = notes; // ignore: prefer_initializing_formals
+    InMemoryBookRepository? books,
+  }) : _notes = notes, // ignore: prefer_initializing_formals
+       _books = books; // ignore: prefer_initializing_formals
 
   final InMemoryEntryRepository _entries;
   final InMemoryRecordingRepository _recordings;
   final InMemoryTranscriptRepository _transcripts;
   final InMemoryNoteRepository? _notes;
+  final InMemoryBookRepository? _books;
 
   static String fold(String s) => s.toLowerCase().replaceAll('ß', 'ss');
 
@@ -400,6 +470,22 @@ class InMemorySearchRepository implements SearchRepository {
       if (from != null && e.day.isBefore(from)) continue;
       if (to != null && e.day.isAfter(to)) continue;
       hits.add(SearchHit(entryId: e.id, day: e.day, snippet: n.text));
+    }
+    final bookRepo = _books;
+    if (bookRepo != null) {
+      for (final p in bookRepo.passages) {
+        final b = await bookRepo.bookById(p.bookId);
+        if (b == null) continue;
+        if (journalId != null && b.journalId != journalId) continue;
+        if (from != null && p.day.isBefore(from)) continue;
+        if (to != null && p.day.isAfter(to)) continue;
+        final thought = p.thought;
+        final text = thought == null ? p.text : '${p.text}\n$thought';
+        if (!terms.every(fold(text).contains)) continue;
+        hits.add(
+          SearchHit(entryId: '', day: p.day, snippet: text, bookId: b.id),
+        );
+      }
     }
     hits.sort((a, b) => b.day.compareTo(a.day));
     return hits;

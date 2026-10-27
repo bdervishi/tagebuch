@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import '../model/book.dart';
 import '../model/entry.dart';
 import '../model/goal.dart';
 import '../model/journal.dart';
@@ -228,6 +229,59 @@ abstract final class ModelJson {
     createdAt: _parseTime(m['createdAt'] as String),
     doneAt: m['doneAt'] == null ? null : _parseTime(m['doneAt'] as String),
   );
+
+  static Map<String, Object?> encodeBook(Book b) => {
+    'id': b.id,
+    'journalId': b.journalId,
+    'title': b.title,
+    'author': b.author,
+    'status': b.status.name,
+    'createdAt': _time(b.createdAt),
+    'updatedAt': _time(b.updatedAt),
+    'finishedAt': b.finishedAt == null ? null : _time(b.finishedAt!),
+  };
+
+  static Book decodeBook(Map<String, Object?> m) => Book(
+    id: m['id'] as String,
+    journalId: m['journalId'] as String,
+    title: m['title'] as String,
+    author: m['author'] as String?,
+    status: BookStatus.values.byName(
+      m['status'] as String? ?? BookStatus.reading.name,
+    ),
+    createdAt: _parseTime(m['createdAt'] as String),
+    updatedAt: _parseTime(m['updatedAt'] as String),
+    finishedAt: m['finishedAt'] == null
+        ? null
+        : _parseTime(m['finishedAt'] as String),
+  );
+
+  static Map<String, Object?> encodePassage(Passage p) => {
+    'id': p.id,
+    'bookId': p.bookId,
+    'createdAt': _time(p.createdAt),
+    'updatedAt': _time(p.updatedAt),
+    'text': p.text,
+    'page': p.page,
+    'thought': p.thought,
+    'day': p.day.iso,
+  };
+
+  static Passage decodePassage(Map<String, Object?> m) {
+    final createdAt = _parseTime(m['createdAt'] as String);
+    return Passage(
+      id: m['id'] as String,
+      bookId: m['bookId'] as String,
+      createdAt: createdAt,
+      updatedAt: _parseTime(m['updatedAt'] as String),
+      text: m['text'] as String,
+      page: m['page'] as String?,
+      thought: m['thought'] as String?,
+      day: m['day'] == null
+          ? LocalDay.forMoment(createdAt)
+          : LocalDay.parse(m['day'] as String),
+    );
+  }
 
   static Map<String, Object?> encodeReminderSettings(ReminderSettings s) => {
     'enabled': s.enabled,

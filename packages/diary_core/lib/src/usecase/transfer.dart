@@ -5,6 +5,7 @@ import 'package:diary_container/diary_container.dart';
 import 'package:diary_crypto/diary_crypto.dart';
 import 'package:meta/meta.dart';
 
+import '../model/book.dart';
 import '../model/entry.dart';
 import '../model/goal.dart';
 import '../model/json_codecs.dart';
@@ -116,14 +117,17 @@ class TransferSnapshot {
     this.notes = const [],
     this.goals = const [],
     this.milestones = const [],
+    this.books = const [],
+    this.passages = const [],
     this.reminder,
     this.settings = const {},
   });
 
   /// Schemaversion des NDJSON-Exports (Manifest `schemaVersion`). Die
-  /// Zeilentypen `note` (D17) sowie `goal` und `milestone` (D19) kamen ohne
-  /// Versionssprung hinzu: Leser überspringen unbekannte Typen, und eine
-  /// Datei ohne Notizen oder Ziele bleibt gültig.
+  /// Zeilentypen `note` (D17), `goal` und `milestone` (D19) sowie `book` und
+  /// `passage` (D21) kamen ohne Versionssprung hinzu: Leser überspringen
+  /// unbekannte Typen, und eine Datei ohne Notizen, Ziele oder Bücher bleibt
+  /// gültig.
   static const int schemaVersion = 1;
 
   final List<DiaryEntry> entries;
@@ -136,6 +140,10 @@ class TransferSnapshot {
   /// Ziele und Etappen (D19); fehlen in Dateien älterer Versionen.
   final List<Goal> goals;
   final List<Milestone> milestones;
+
+  /// Bücher und Passagen (D21); fehlen in Dateien älterer Versionen.
+  final List<Book> books;
+  final List<Passage> passages;
   final ReminderSettings? reminder;
   final Map<String, String> settings;
 
@@ -172,6 +180,12 @@ class TransferSnapshot {
     for (final m in milestones) {
       line('milestone', ModelJson.encodeMilestone(m));
     }
+    for (final b in books) {
+      line('book', ModelJson.encodeBook(b));
+    }
+    for (final p in passages) {
+      line('passage', ModelJson.encodePassage(p));
+    }
     if (reminder != null) {
       line('reminder', ModelJson.encodeReminderSettings(reminder!));
     }
@@ -189,6 +203,8 @@ class TransferSnapshot {
     final notes = <EntryNote>[];
     final goals = <Goal>[];
     final milestones = <Milestone>[];
+    final books = <Book>[];
+    final passages = <Passage>[];
     ReminderSettings? reminder;
     final settings = <String, String>{};
     for (final raw in LineSplitter.split(text)) {
@@ -211,6 +227,10 @@ class TransferSnapshot {
           goals.add(ModelJson.decodeGoal(m));
         case 'milestone':
           milestones.add(ModelJson.decodeMilestone(m));
+        case 'book':
+          books.add(ModelJson.decodeBook(m));
+        case 'passage':
+          passages.add(ModelJson.decodePassage(m));
         case 'reminder':
           reminder = ModelJson.decodeReminderSettings(m);
         case 'setting':
@@ -226,6 +246,8 @@ class TransferSnapshot {
       notes: notes,
       goals: goals,
       milestones: milestones,
+      books: books,
+      passages: passages,
       reminder: reminder,
       settings: settings,
     );
@@ -260,6 +282,10 @@ class ImportResult {
     this.goalsSkipped = 0,
     this.milestonesImported = 0,
     this.milestonesSkipped = 0,
+    this.booksImported = 0,
+    this.booksSkipped = 0,
+    this.passagesImported = 0,
+    this.passagesSkipped = 0,
   });
   final int entriesCreated;
 
@@ -281,6 +307,13 @@ class ImportResult {
   final int goalsSkipped;
   final int milestonesImported;
   final int milestonesSkipped;
+
+  /// Bücher und Passagen (D21), übernommen bzw. übersprungen (Kennung schon
+  /// vorhanden oder Buch der Passage unbekannt).
+  final int booksImported;
+  final int booksSkipped;
+  final int passagesImported;
+  final int passagesSkipped;
 }
 
 /// Backup und Gerätewechsel (M8, D6, D16): packt alle Einträge in den
@@ -304,6 +337,7 @@ class TransferUseCase {
     required this.clock,
     this.notes,
     this.goals,
+    this.books,
     this.appVersion = '0.0.0',
     this.argon2Params = Argon2Params.standard,
     this.keys = const ContainerKeys(),
@@ -329,6 +363,9 @@ class TransferUseCase {
 
   /// Ziele und Etappen (D19); `null`, wenn die Plattform keine hat.
   final GoalRepository? goals;
+
+  /// Bücher und Passagen (D21); `null`, wenn die Plattform keine hat.
+  final BookRepository? books;
   final SettingsRepository settings;
   final AudioFileSource audioSource;
   final AudioFileSink audioSink;
@@ -455,6 +492,16 @@ class TransferUseCase {
         allMilestones.addAll(await goalRepo.listMilestones(g.id));
       }
     }
+    final bookRepo = books;
+    final allBooks = bookRepo == null
+        ? const <Book>[]
+        : await bookRepo.listBooks(journalId);
+    final allPassages = <Passage>[];
+    if (bookRepo != null) {
+      for (final b in allBooks) {
+        allPassages.addAll(await bookRepo.listPassages(b.id));
+      }
+    }
     return TransferSnapshot(
       entries: allEntries,
       recordings: allRecordings,
@@ -462,6 +509,8 @@ class TransferUseCase {
       notes: allNotes,
       goals: allGoals,
       milestones: allMilestones,
+      books: allBooks,
+      passages: allPassages,
       reminder: await settings.reminder(),
       settings: await settings.all(),
     );
@@ -481,6 +530,8 @@ class TransferUseCase {
       noteCount: snap.notes.length,
       goalCount: snap.goals.length,
       milestoneCount: snap.milestones.length,
+      bookCount: snap.books.length,
+      passageCount: snap.passages.length,
       firstDay: snap.firstDay,
       lastDay: snap.lastDay,
     );
@@ -807,6 +858,47 @@ class TransferUseCase {
       }
     }
 
+    // Bücher und Passagen (D21): Kennungen bleiben, vorhandene werden
+    // übersprungen; eine Passage ohne ihr Buch wird übersprungen.
+    var booksImported = 0;
+    var booksSkipped = 0;
+    var passagesImported = 0;
+    var passagesSkipped = 0;
+    final bookRepo = books;
+    if (bookRepo != null && snap.books.isNotEmpty) {
+      final knownBooks = <String>{};
+      for (final b in snap.books) {
+        if (await bookRepo.bookById(b.id) != null) {
+          knownBooks.add(b.id);
+          booksSkipped++;
+          continue;
+        }
+        await bookRepo.insertBook(
+          Book(
+            id: b.id,
+            journalId: journalId,
+            title: b.title,
+            author: b.author,
+            status: b.status,
+            createdAt: b.createdAt,
+            updatedAt: b.updatedAt,
+            finishedAt: b.finishedAt,
+          ),
+        );
+        knownBooks.add(b.id);
+        booksImported++;
+      }
+      for (final p in snap.passages) {
+        if (!knownBooks.contains(p.bookId) ||
+            await bookRepo.passageById(p.id) != null) {
+          passagesSkipped++;
+          continue;
+        }
+        await bookRepo.insertPassage(p);
+        passagesImported++;
+      }
+    }
+
     // Einstellungen: nur ergänzen, nie überschreiben; die Erinnerung nur auf
     // einem Gerät ohne eigene Einträge.
     for (final s in snap.settings.entries) {
@@ -828,6 +920,10 @@ class TransferUseCase {
       goalsSkipped: goalsSkipped,
       milestonesImported: milestonesImported,
       milestonesSkipped: milestonesSkipped,
+      booksImported: booksImported,
+      booksSkipped: booksSkipped,
+      passagesImported: passagesImported,
+      passagesSkipped: passagesSkipped,
     );
   }
 }

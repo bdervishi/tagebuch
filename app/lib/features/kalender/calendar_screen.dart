@@ -6,6 +6,7 @@ import '../../data/day.dart';
 import '../../data/entry_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/entry_tile.dart';
+import '../lesebuch/book_search_tile.dart';
 import 'month_grid.dart';
 
 /// Key des Suchfelds (für Tests).
@@ -173,12 +174,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         for (final result in list)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: EntryTile(
-              view: result.view,
-              showDate: true,
-              snippet: result.snippet,
-              jumpTo: result.jumpTo,
-            ),
+            child: switch (result) {
+              EntrySearchResult() => EntryTile(
+                view: result.view,
+                showDate: true,
+                snippet: result.snippet,
+                jumpTo: result.jumpTo,
+              ),
+              BookSearchResult() => BookSearchTile(
+                book: result.book,
+                snippet: result.snippet,
+              ),
+            },
           ),
       ],
       AsyncError() => [Text(l10n.startError)],

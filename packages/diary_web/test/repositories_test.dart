@@ -14,6 +14,7 @@ void main() {
   late WebTranscriptRepository transcripts;
   late WebNoteRepository notes;
   late WebGoalRepository goals;
+  late WebBookRepository books;
   late WebSettingsRepository settings;
   late WebSearchRepository search;
   const journalId = WebJournalRepository.defaultId;
@@ -27,6 +28,7 @@ void main() {
     transcripts = WebTranscriptRepository(store);
     notes = WebNoteRepository(store);
     goals = WebGoalRepository(store);
+    books = WebBookRepository(store);
     settings = WebSettingsRepository(store);
     search = WebSearchRepository(store);
   });
@@ -265,6 +267,84 @@ void main() {
     },
   );
 
+  test('Bücher und Passagen (D21): anlegen, Status, Tag, löschen', () async {
+    final t0 = DateTime(2026, 10, 27, 21);
+    Book book(String id, DateTime updatedAt, {BookStatus? status}) => Book(
+      id: id,
+      journalId: journalId,
+      title: 'Buch $id',
+      author: id == 'b1' ? 'Anna Beispiel' : null,
+      status: status ?? BookStatus.reading,
+      createdAt: t0,
+      updatedAt: updatedAt,
+    );
+    await books.insertBook(book('b1', t0));
+    await books.insertBook(
+      book('b2', t0.add(const Duration(hours: 1)), status: BookStatus.planned),
+    );
+    await books.insertBook(
+      Book(
+        id: 'fremd',
+        journalId: 'anderes',
+        title: 'x',
+        status: BookStatus.reading,
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+    );
+    // Zuletzt geänderte zuerst, nur das eigene Tagebuch.
+    expect((await books.listBooks(journalId)).map((b) => b.id), ['b2', 'b1']);
+    expect((await books.bookById('b1'))!.author, 'Anna Beispiel');
+    expect(await books.bookById('nein'), isNull);
+
+    Passage passage(String id, String bookId, DateTime at, LocalDay day) =>
+        Passage(
+          id: id,
+          bookId: bookId,
+          createdAt: at,
+          updatedAt: at,
+          text: 'Stelle $id',
+          page: id == 'p1' ? 'S. 42' : null,
+          thought: id == 'p1' ? 'Ein Gedanke.' : null,
+          day: day,
+        );
+    const d1 = LocalDay(2026, 10, 27);
+    const d2 = LocalDay(2026, 10, 28);
+    await books.insertPassage(
+      passage('p2', 'b1', t0.add(const Duration(minutes: 5)), d1),
+    );
+    await books.insertPassage(passage('p1', 'b1', t0, d1));
+    await books.insertPassage(
+      passage('p3', 'b2', t0.add(const Duration(days: 1)), d2),
+    );
+    // Chronologisch, je Buch und je Tag.
+    expect((await books.listPassages('b1')).map((p) => p.id), ['p1', 'p2']);
+    expect((await books.passagesForDay(d1)).map((p) => p.id), ['p1', 'p2']);
+    expect((await books.passagesForDay(d2)).map((p) => p.id), ['p3']);
+    expect(await books.listAllPassages(), hasLength(3));
+    expect((await books.passageById('p1'))!.page, 'S. 42');
+    expect((await books.passageById('p1'))!.thought, 'Ein Gedanke.');
+
+    await books.updateBook(
+      (await books.bookById('b1'))!
+          .copyWith(status: BookStatus.finished, finishedAt: t0),
+    );
+    expect((await books.bookById('b1'))!.finishedAt, t0);
+    await books.updatePassage(
+      (await books.passageById('p2'))!.copyWith(text: 'Geändert.'),
+    );
+    expect((await books.passageById('p2'))!.text, 'Geändert.');
+
+    await books.deletePassage('p2');
+    expect((await books.listPassages('b1')).map((p) => p.id), ['p1']);
+    // Buch löschen nimmt die Passagen mit, andere bleiben.
+    await books.deleteBook('b1');
+    expect(await books.bookById('b1'), isNull);
+    expect(await books.listPassages('b1'), isEmpty);
+    expect((await books.listAllPassages()).map((p) => p.id), ['p3']);
+    expect(await store.getAllKeys(Collections.passages), ['p3']);
+  });
+
   test('Aufnahme löschen und Audio löschen', () async {
     final e = await seed(LocalDay(2026, 9, 6), 'x');
     final rec = (await recordings.listForEntry(e.id)).single;
@@ -376,5 +456,61 @@ void main() {
     final spoken = await search.search('spaziergang');
     expect(spoken.single.recordingId, isNotNull);
     expect(spoken.single.jumpTo, Duration.zero);
+  });
+
+  test('Suche findet Passagen und Gedanken, Treffer tragen das Buch', () async {
+    await seed(LocalDay(2026, 10, 26), 'Gesprochen: Abendspaziergang.');
+    final t0 = DateTime(2026, 10, 27, 21);
+    await books.insertBook(
+      Book(
+        id: 'b1',
+        journalId: journalId,
+        title: 'Der Sommer der Bücher',
+        status: BookStatus.reading,
+        createdAt: t0,
+        updatedAt: t0,
+      ),
+    );
+    await books.insertPassage(
+      Passage(
+        id: 'p1',
+        bookId: 'b1',
+        createdAt: t0,
+        updatedAt: t0,
+        text: 'Die Straße lag still im Abendlicht.',
+        thought: 'Erinnert mich an Großmutters Garten.',
+        day: const LocalDay(2026, 10, 27),
+      ),
+    );
+    // Passage ohne Buch bleibt draußen.
+    await books.insertPassage(
+      Passage(
+        id: 'p-verwaist',
+        bookId: 'fehlt',
+        createdAt: t0,
+        updatedAt: t0,
+        text: 'Verwaister Satz.',
+        day: const LocalDay(2026, 10, 27),
+      ),
+    );
+    final hits = await search.search('strasse');
+    expect(hits, hasLength(1));
+    expect(hits.single.isBook, isTrue);
+    expect(hits.single.bookId, 'b1');
+    expect(hits.single.entryId, isEmpty);
+    expect(hits.single.day, const LocalDay(2026, 10, 27));
+    expect(hits.single.jumpTo, isNull);
+    expect(hits.single.snippet, contains('Straße'));
+    // Der Gedanke wird mitgesucht.
+    final thought = await search.search('grossmutter');
+    expect(thought.single.bookId, 'b1');
+    expect(thought.single.snippet, contains('Großmutters'));
+    expect(await search.search('verwaist'), isEmpty);
+    // Einträge und Bücher gemeinsam, neueste zuerst.
+    final both = await search.search('abend');
+    expect(both.map((h) => h.isBook), [true, false]);
+    // Buch löschen macht den Index ungültig.
+    await books.deleteBook('b1');
+    expect(await search.search('strasse'), isEmpty);
   });
 }

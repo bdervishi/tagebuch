@@ -15,6 +15,8 @@ abstract final class Collections {
   static const notes = 'notes';
   static const goals = 'goals';
   static const milestones = 'milestones';
+  static const books = 'books';
+  static const passages = 'passages';
   static const settings = 'settings';
 }
 
@@ -289,6 +291,81 @@ class WebGoalRepository implements GoalRepository {
   @override
   Future<void> deleteMilestone(String milestoneId) =>
       _store.delete(Collections.milestones, milestoneId);
+}
+
+/// Bücher und Passagen (D21) in den Sammlungen `books` und `passages`.
+/// Löschen eines Buchs löscht seine Passagen.
+class WebBookRepository implements BookRepository {
+  WebBookRepository(this._store);
+
+  final EncryptedRecordStore _store;
+
+  @override
+  Future<void> insertBook(Book book) =>
+      _store.put(Collections.books, book.id, Codecs.encodeBook(book));
+
+  @override
+  Future<void> updateBook(Book book) => insertBook(book);
+
+  @override
+  Future<Book?> bookById(String bookId) async {
+    final m = await _store.get(Collections.books, bookId);
+    return m == null ? null : Codecs.decodeBook(m);
+  }
+
+  @override
+  Future<List<Book>> listBooks(String journalId) async => [
+    for (final m in await _store.getAll(Collections.books))
+      if (m['journalId'] == journalId) Codecs.decodeBook(m),
+  ]..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+  @override
+  Future<void> deleteBook(String bookId) async {
+    for (final m in await _store.getAll(Collections.passages)) {
+      if (m['bookId'] == bookId) {
+        await _store.delete(Collections.passages, m['id'] as String);
+      }
+    }
+    await _store.delete(Collections.books, bookId);
+  }
+
+  @override
+  Future<void> insertPassage(Passage passage) => _store.put(
+    Collections.passages,
+    passage.id,
+    Codecs.encodePassage(passage),
+  );
+
+  @override
+  Future<void> updatePassage(Passage passage) => insertPassage(passage);
+
+  @override
+  Future<Passage?> passageById(String passageId) async {
+    final m = await _store.get(Collections.passages, passageId);
+    return m == null ? null : Codecs.decodePassage(m);
+  }
+
+  @override
+  Future<List<Passage>> listPassages(String bookId) async => [
+    for (final m in await _store.getAll(Collections.passages))
+      if (m['bookId'] == bookId) Codecs.decodePassage(m),
+  ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  @override
+  Future<List<Passage>> passagesForDay(LocalDay day) async => [
+    for (final m in await _store.getAll(Collections.passages))
+      if (m['day'] == day.iso) Codecs.decodePassage(m),
+  ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  @override
+  Future<List<Passage>> listAllPassages() async => [
+    for (final m in await _store.getAll(Collections.passages))
+      Codecs.decodePassage(m),
+  ];
+
+  @override
+  Future<void> deletePassage(String passageId) =>
+      _store.delete(Collections.passages, passageId);
 }
 
 /// Aufnahmen. "Audio löschen" vernichtet den gewrappten Dateischlüssel im

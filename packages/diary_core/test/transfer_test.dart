@@ -407,6 +407,119 @@ void main() {
     expect((await device.goals.goalById('g1'))!.journalId, Device.journalId);
   });
 
+  test(
+    'Bücher und Passagen (D21): Export zählt sie, Import übernimmt sie',
+    () async {
+      final old = Device('alt-');
+      await old.seed(d1, 'Gesprochen am 25.');
+      final useCase = BooksUseCase(
+        journalId: Device.journalId,
+        books: old.books,
+        ids: old.ids,
+        clock: old.clock,
+      );
+      final book = await useCase.addBook(
+        title: 'Der Sommer der Bücher',
+        author: 'Anna Beispiel',
+      );
+      final done = await useCase.addBook(
+        title: 'Fertig gelesen',
+        status: BookStatus.finished,
+      );
+      final p1 = await useCase.addPassage(
+        book.id,
+        text: 'Ein Satz, der bleibt.',
+        page: 'S. 42',
+        thought: 'Erinnert mich an den Sommer.',
+      );
+      final p2 = await useCase.addPassage(book.id, text: 'Zweite Stelle.');
+      expect(p1, isNotNull);
+      expect(p2, isNotNull);
+
+      final bytes = await old.useCase.exportWithPassphrase('korrektes pferd');
+      final fresh = Device('neu-');
+      final opened = await fresh.useCase.openWithPassphrase(
+        bytes,
+        'korrektes pferd',
+      );
+      expect(opened.manifest.bookCount, 2);
+      expect(opened.manifest.passageCount, 2);
+      expect(opened.snapshot.books, hasLength(2));
+      expect(opened.snapshot.passages, hasLength(2));
+      final result = await fresh.useCase.import(opened);
+      expect(result.booksImported, 2);
+      expect(result.passagesImported, 2);
+      expect(result.booksSkipped, 0);
+      expect(result.passagesSkipped, 0);
+
+      final imported = (await fresh.books.bookById(book.id))!;
+      expect(imported.title, 'Der Sommer der Bücher');
+      expect(imported.author, 'Anna Beispiel');
+      expect(imported.status, BookStatus.reading);
+      expect(imported.journalId, Device.journalId);
+      final importedDone = (await fresh.books.bookById(done.id))!;
+      expect(importedDone.status, BookStatus.finished);
+      expect(importedDone.finishedAt, done.finishedAt);
+      final passages = await fresh.books.listPassages(book.id);
+      expect(passages.map((p) => p.text), [
+        'Ein Satz, der bleibt.',
+        'Zweite Stelle.',
+      ]);
+      expect(passages.first.page, 'S. 42');
+      expect(passages.first.thought, 'Erinnert mich an den Sommer.');
+      expect(passages.first.day, p1!.day);
+
+      // Nochmal: Kennungen bleiben einmalig.
+      final again = await fresh.useCase.import(opened);
+      expect(again.booksImported, 0);
+      expect(again.booksSkipped, 2);
+      expect(again.passagesImported, 0);
+      expect(again.passagesSkipped, 2);
+
+      // Ein Gerät ohne Bücher-Speicher importiert den Rest trotzdem.
+      final plain = Device('ohne-', withBooks: false);
+      final r = await plain.useCase.import(
+        await plain.useCase.openWithPassphrase(bytes, 'korrektes pferd'),
+      );
+      expect(r.entriesCreated, 1);
+      expect(r.booksImported, 0);
+    },
+  );
+
+  test('Import: Passage ohne ihr Buch wird übersprungen', () async {
+    final snap = TransferSnapshot.decodeNdjson(
+      '{"type":"book","id":"b1","journalId":"j","title":"A",'
+      '"status":"planned","createdAt":"2026-10-25T19:00:00.000Z",'
+      '"updatedAt":"2026-10-25T19:00:00.000Z"}\n'
+      '{"type":"passage","id":"p1","bookId":"b1","text":"a",'
+      '"day":"2026-10-25","createdAt":"2026-10-25T19:00:00.000Z",'
+      '"updatedAt":"2026-10-25T19:00:00.000Z"}\n'
+      '{"type":"passage","id":"p2","bookId":"fehlt","text":"b",'
+      '"day":"2026-10-25","createdAt":"2026-10-25T19:00:00.000Z",'
+      '"updatedAt":"2026-10-25T19:00:00.000Z"}\n',
+    );
+    expect(snap.books.single.id, 'b1');
+    expect(snap.books.single.status, BookStatus.planned);
+    expect(snap.passages, hasLength(2));
+    final device = Device('x-');
+    final empty = await device.useCase.openWithPassphrase(
+      await device.useCase.exportWithPassphrase('korrektes pferd'),
+      'korrektes pferd',
+    );
+    final result = await device.useCase.import(
+      OpenedContainer(
+        header: empty.header,
+        payload: empty.payload,
+        snapshot: snap,
+      ),
+    );
+    expect(result.booksImported, 1);
+    expect(result.passagesImported, 1);
+    expect(result.passagesSkipped, 1);
+    expect((await device.books.listPassages('b1')).single.id, 'p1');
+    expect((await device.books.bookById('b1'))!.journalId, Device.journalId);
+  });
+
   test('NDJSON ohne Notizen (ältere Datei) bleibt lesbar', () {
     final snap = TransferSnapshot.decodeNdjson(
       '{"type":"entry","id":"e1","journalId":"j","day":"2026-10-25",'
@@ -417,6 +530,8 @@ void main() {
     expect(snap.notes, isEmpty);
     expect(snap.goals, isEmpty);
     expect(snap.milestones, isEmpty);
+    expect(snap.books, isEmpty);
+    expect(snap.passages, isEmpty);
   });
 
   test('NDJSON: unbekannte Typen werden übersprungen, Reihenfolge stabil', () {

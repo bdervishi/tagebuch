@@ -20,6 +20,7 @@ void main() {
     );
     expect(find.byKey(recordButtonKey), findsOneWidget);
     expect(find.bySemanticsLabel('Aufnahme starten'), findsOneWidget);
+    await scrollTodayTo(tester, find.text('Heute noch nichts aufgenommen.'));
     expect(find.text('Heute noch nichts aufgenommen.'), findsOneWidget);
   });
 
@@ -47,6 +48,7 @@ void main() {
 
       expect(find.byType(RecordingScreen), findsNothing);
       expect(find.byType(TodayScreen), findsOneWidget);
+      await scrollTodayTo(tester, find.text(fakeTranscript));
       expect(find.text('Heute noch nichts aufgenommen.'), findsNothing);
       expect(find.text(fakeTranscript), findsOneWidget);
 
@@ -103,6 +105,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(RecordingScreen), findsNothing);
+    await scrollTodayTo(tester, find.text('Heute noch nichts aufgenommen.'));
     expect(find.text('Heute noch nichts aufgenommen.'), findsOneWidget);
     expect(services.entries.items, isEmpty);
     expect(services.recordings.items, isEmpty);
@@ -130,6 +133,7 @@ void main() {
     expect(recording.state.name, 'audioDeleted');
     expect(recording.fileKeyWrapped, isEmpty);
     expect(services.deletedFiles, [recording.fileName]);
+    await scrollTodayTo(tester, find.byIcon(Icons.text_snippet_outlined));
     expect(find.byIcon(Icons.text_snippet_outlined), findsOneWidget);
     expect(find.byIcon(Icons.graphic_eq), findsNothing);
   });

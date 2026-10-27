@@ -87,6 +87,9 @@ void main() {
       expect(find.text('Oma'), findsOneWidget);
       final stored = await services.settings.get(AppSettings.keyOwnQuotes);
       expect(stored, contains('Langsam ist schnell.'));
+      // Genau ein Zitat gespeichert (die Datei trug es früher doppelt; der
+      // Text steht je Zitat zweimal, für `de` und `en`).
+      expect('"own":true'.allMatches(stored!), hasLength(1));
 
       await tester.tap(find.byTooltip('Eigenes Zitat entfernen'));
       await tester.pumpAndSettle();

@@ -6,6 +6,8 @@ import '../features/daten/backup_screen.dart';
 import '../features/daten/restore_screen.dart';
 import '../features/daten/transfer_screen.dart';
 import '../features/eintrag/entry_screen.dart';
+import '../features/lesebuch/book_detail_screen.dart';
+import '../features/lesebuch/books_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/rueckblick/week_review_screen.dart';
 import '../features/schreiben/write_screen.dart';
@@ -51,6 +53,10 @@ abstract final class AppRoutes {
 
   /// Zitatenschatz (D20).
   static const String quotes = '/quotes';
+
+  /// Lesebuch: Bücher und Passagen (D21); Details mit Buch-ID als [String].
+  static const String books = '/books';
+  static const String book = '/book';
 
   /// Onboarding zum erneuten Ansehen aus den Einstellungen.
   static const String onboarding = '/onboarding';
@@ -108,6 +114,18 @@ abstract final class AppRoutes {
           settings: settings,
           builder: (_) => GoalDetailScreen(goalId: id),
         );
+      case books:
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const BooksScreen(),
+        );
+      case book:
+        final id = settings.arguments;
+        if (id is! String) return null;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => BookDetailScreen(bookId: id),
+        );
       case onboarding:
         return SheetPageRoute<void>(
           settings: settings,
@@ -159,6 +177,14 @@ abstract final class AppRoutes {
   /// Öffnet die Details eines Wegs.
   static Future<void> openGoal(BuildContext context, String goalId) =>
       Navigator.of(context).pushNamed(goal, arguments: goalId);
+
+  /// Öffnet das Lesebuch.
+  static Future<void> openBooks(BuildContext context) =>
+      Navigator.of(context).pushNamed(books);
+
+  /// Öffnet die Details eines Buchs.
+  static Future<void> openBook(BuildContext context, String bookId) =>
+      Navigator.of(context).pushNamed(book, arguments: bookId);
 
   /// Öffnet den Schreiben-Bildschirm für [day], optional für eine Notiz.
   static Future<void> openWrite(

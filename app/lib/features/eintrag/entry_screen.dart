@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/formats.dart';
 import '../../app/routes.dart';
+import '../../data/books_view.dart';
 import '../../data/entry_view.dart';
 import '../../data/goals_view.dart';
 import '../../data/settings_notifier.dart';
@@ -15,6 +16,7 @@ import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
 import '../../widgets/surface_card.dart';
 import '../../widgets/mood_selector.dart';
+import '../lesebuch/day_passages_section.dart';
 import '../rueckblick/prompts.dart';
 
 /// Widget-Keys für Tests.
@@ -25,7 +27,8 @@ const Key addNoteKey = Key('entry-add-note');
 
 /// Eintrag: Datum, Dauer, Sprach-Badge, Stimmung, dann Aufnahmen (Player mit
 /// Wellenform, Transkript) und geschriebene Notizen chronologisch in einer
-/// Liste (D17). Notizen sind bearbeitbar; Transkripte bleiben wie bisher.
+/// Liste (D17); unten die am selben Tag festgehaltenen Passagen als "Heute
+/// gelesen" (D21). Notizen sind bearbeitbar; Transkripte bleiben wie bisher.
 /// Ergänzen, Löschen und Export des Eintrags folgen mit den Fachpaketen.
 class EntryScreen extends ConsumerWidget {
   const EntryScreen({super.key, required this.entryId, this.jumpTo});
@@ -147,6 +150,11 @@ class _EntryBody extends ConsumerWidget {
             icon: const Icon(Icons.edit_outlined),
             label: Text(l10n.addNote),
           ),
+        ),
+        DayPassagesSection(
+          passages:
+              ref.watch(dayPassagesProvider(view.entry.day)).value ??
+              const <DayPassage>[],
         ),
       ],
     );

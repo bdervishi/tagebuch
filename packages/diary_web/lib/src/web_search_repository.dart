@@ -9,13 +9,14 @@ import 'text_normalization.dart';
 import 'web_repositories.dart';
 
 /// Volltextsuche im Speicher (docs/10-pwa.md Abschnitt 4): Beim ersten
-/// Suchen werden alle Transkripte und geschriebenen Texte (D17, ohne interne
-/// Notizen) entschlüsselt geladen und gefaltet (`ß → ss`, Kleinschreibung,
-/// Diakritika entfernt); Suchbegriffe durchlaufen dieselbe Faltung,
-/// Teilworttreffer zählen, alle Begriffe müssen vorkommen. Treffer in
-/// Transkripten tragen ein Sprungziel, Treffer in Notizen keines. Jede
-/// Änderung im Store macht den Index ungültig; er wird beim nächsten Suchen
-/// neu aufgebaut.
+/// Suchen werden alle Transkripte, geschriebenen Texte (D17, ohne interne
+/// Notizen) und Passagen samt Gedanken (D21) entschlüsselt geladen und
+/// gefaltet (`ß → ss`, Kleinschreibung, Diakritika entfernt); Suchbegriffe
+/// durchlaufen dieselbe Faltung, Teilworttreffer zählen, alle Begriffe müssen
+/// vorkommen. Treffer in Transkripten tragen ein Sprungziel, Treffer in
+/// Notizen keines; Treffer in Passagen tragen das Buch (`bookId`) und keinen
+/// Eintrag. Jede Änderung im Store macht den Index ungültig; er wird beim
+/// nächsten Suchen neu aufgebaut.
 class WebSearchRepository implements SearchRepository {
   WebSearchRepository(this._store) {
     _subscription = _store.changes.listen((_) => _dirty = true);
@@ -54,7 +55,9 @@ class WebSearchRepository implements SearchRepository {
       if (e == null) continue;
       docs.add(
         _Document(
-          entry: e,
+          journalId: e.journalId,
+          day: e.day,
+          entryId: e.id,
           text: t.text,
           at: r.startedAt,
           recordingId: r.id,
@@ -71,20 +74,49 @@ class WebSearchRepository implements SearchRepository {
       if (e == null) continue;
       docs.add(
         _Document(
-          entry: e,
+          journalId: e.journalId,
+          day: e.day,
+          entryId: e.id,
           text: n.text,
           at: n.createdAt,
           folded: foldWithMap(n.text),
         ),
       );
     }
+    final books = {
+      for (final m in await _store.getAll(Collections.books))
+        m['id'] as String: Codecs.decodeBook(m),
+    };
+    for (final m in await _store.getAll(Collections.passages)) {
+      final p = Codecs.decodePassage(m);
+      final b = books[p.bookId];
+      if (b == null) continue;
+      final text = passageSearchText(p);
+      docs.add(
+        _Document(
+          journalId: b.journalId,
+          day: p.day,
+          bookId: b.id,
+          text: text,
+          at: p.createdAt,
+          folded: foldWithMap(text),
+        ),
+      );
+    }
     docs.sort((a, b) {
-      final byDay = b.entry.day.compareTo(a.entry.day);
+      final byDay = b.day.compareTo(a.day);
       if (byDay != 0) return byDay;
       return b.at.compareTo(a.at);
     });
     _documents = docs;
     _dirty = false;
+  }
+
+  /// Text einer Passage für die Suche: die Stelle und, getrennt durch einen
+  /// Zeilenumbruch, der eigene Gedanke.
+  static String passageSearchText(Passage p) {
+    final thought = p.thought?.trim();
+    return thought == null || thought.isEmpty ? p.text : '${p.text}\n$thought';
   }
 
   @override
@@ -102,10 +134,9 @@ class WebSearchRepository implements SearchRepository {
     if (_dirty) await rebuild();
     final hits = <SearchHit>[];
     for (final doc in _documents) {
-      final entry = doc.entry;
-      if (journalId != null && entry.journalId != journalId) continue;
-      if (from != null && entry.day.isBefore(from)) continue;
-      if (to != null && entry.day.isAfter(to)) continue;
+      if (journalId != null && doc.journalId != journalId) continue;
+      if (from != null && doc.day.isBefore(from)) continue;
+      if (to != null && doc.day.isAfter(to)) continue;
       final text = doc.folded.folded;
       var firstMatch = -1;
       var allFound = true;
@@ -120,11 +151,12 @@ class WebSearchRepository implements SearchRepository {
       if (!allFound) continue;
       hits.add(
         SearchHit(
-          entryId: entry.id,
-          day: entry.day,
+          entryId: doc.entryId ?? '',
+          day: doc.day,
           recordingId: doc.recordingId,
           snippet: _snippet(doc, firstMatch, terms),
           jumpTo: _jumpTo(doc, terms),
+          bookId: doc.bookId,
         ),
       );
     }
@@ -155,20 +187,26 @@ class WebSearchRepository implements SearchRepository {
   }
 }
 
-/// Ein durchsuchbarer Text: Transkript (mit Aufnahme und Segmenten) oder
-/// Notiz (ohne beides).
+/// Ein durchsuchbarer Text: Transkript (mit Eintrag, Aufnahme und Segmenten),
+/// Notiz (mit Eintrag, ohne beides) oder Passage (mit Buch statt Eintrag).
 final class _Document {
   const _Document({
-    required this.entry,
+    required this.journalId,
+    required this.day,
     required this.text,
     required this.at,
     required this.folded,
+    this.entryId,
+    this.bookId,
     this.recordingId,
     this.segments = const [],
     this.foldedSegments = const [],
   });
 
-  final DiaryEntry entry;
+  final String journalId;
+  final LocalDay day;
+  final String? entryId;
+  final String? bookId;
   final String text;
   final DateTime at;
   final String? recordingId;

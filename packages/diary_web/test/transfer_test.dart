@@ -28,6 +28,7 @@ class WebDevice {
       transcripts: WebTranscriptRepository(store),
       notes: WebNoteRepository(store),
       goals: WebGoalRepository(store),
+      books: WebBookRepository(store),
       settings: WebSettingsRepository(store),
       audioSource: audio,
       audioSink: audio,
@@ -208,6 +209,30 @@ void main() {
         ),
       );
 
+      // Ein Buch mit einer Passage (D21) wandert mit.
+      await a.useCase.books!.insertBook(
+        Book(
+          id: 'b-sommer',
+          journalId: a.useCase.journalId,
+          title: 'Der Sommer der Bücher',
+          author: 'Anna Beispiel',
+          status: BookStatus.reading,
+          createdAt: at,
+          updatedAt: at,
+        ),
+      );
+      await a.useCase.books!.insertPassage(
+        Passage(
+          id: 'p-1',
+          bookId: 'b-sommer',
+          createdAt: at,
+          updatedAt: at,
+          text: 'Ein Satz, der bleibt.',
+          page: 'S. 42',
+          day: d1,
+        ),
+      );
+
       final bytes = await a.useCase.exportWithPassphrase('acht zeichen min');
       final opened = await b.useCase.openWithPassphrase(
         bytes,
@@ -216,11 +241,21 @@ void main() {
       expect(opened.manifest.noteCount, 2);
       expect(opened.manifest.goalCount, 1);
       expect(opened.manifest.milestoneCount, 2);
+      expect(opened.manifest.bookCount, 1);
+      expect(opened.manifest.passageCount, 1);
       final result = await b.useCase.import(opened);
       expect(result.entriesCreated, 2);
       expect(result.notesImported, 2);
       expect(result.goalsImported, 1);
       expect(result.milestonesImported, 2);
+      expect(result.booksImported, 1);
+      expect(result.passagesImported, 1);
+      final book = (await b.useCase.books!.bookById('b-sommer'))!;
+      expect(book.journalId, b.useCase.journalId);
+      expect(book.author, 'Anna Beispiel');
+      final passages = await b.useCase.books!.listPassages('b-sommer');
+      expect(passages.single.page, 'S. 42');
+      expect(passages.single.day, d1);
       final goal = (await b.useCase.goals!.goalById('g-lesen'))!;
       expect(goal.journalId, b.useCase.journalId);
       expect(goal.why, 'Ruhe.');

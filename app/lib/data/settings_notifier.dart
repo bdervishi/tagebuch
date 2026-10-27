@@ -307,13 +307,17 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
     );
   }
 
-  Future<void> addOwnQuote(Quote quote) => _update(
-    _current.copyWith(ownQuotes: [..._current.ownQuotes, quote]),
-    (repo) => repo.set(
-      AppSettings.keyOwnQuotes,
-      AppSettings.encodeQuotes([..._current.ownQuotes, quote]),
-    ),
-  );
+  /// Die neue Liste wird einmal gebildet: `_update` setzt erst den Zustand,
+  /// deshalb darf die Speicherfunktion `_current` nicht erneut lesen (sonst
+  /// stünde das Zitat doppelt in der Datei).
+  Future<void> addOwnQuote(Quote quote) {
+    final next = [..._current.ownQuotes, quote];
+    return _update(
+      _current.copyWith(ownQuotes: next),
+      (repo) =>
+          repo.set(AppSettings.keyOwnQuotes, AppSettings.encodeQuotes(next)),
+    );
+  }
 
   Future<void> removeOwnQuote(String id) {
     final next = [

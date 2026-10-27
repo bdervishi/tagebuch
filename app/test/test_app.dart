@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tagebuch_app/app/app.dart';
+import 'package:tagebuch_app/app/routes.dart';
 import 'package:tagebuch_app/data/settings_notifier.dart';
+import 'package:tagebuch_app/features/heute/today_screen.dart';
 import 'package:tagebuch_app/features/zitate/quote_library.dart';
 import 'package:tagebuch_app/features/zitate/quote_providers.dart';
 import 'package:tagebuch_app/l10n/app_localizations.dart';
@@ -164,6 +166,7 @@ class TestServices {
     );
     notes = InMemoryNoteRepository(initial: noteItems);
     goals = InMemoryGoalRepository();
+    books = InMemoryBookRepository();
     entries = InMemoryEntryRepository(
       ids,
       initial: entryItems,
@@ -180,12 +183,14 @@ class TestServices {
       transcripts: transcripts,
       notes: notes,
       goals: goals,
+      books: books,
       settings: settings,
       search: InMemorySearchRepository(
         entries,
         recordings,
         transcripts,
         notes: notes,
+        books: books,
       ),
       recorder: SimulatedRecorder(),
       transcriber: FakeSttEngine(text: fakeTranscript),
@@ -221,6 +226,7 @@ class TestServices {
   late final InMemoryTranscriptRepository transcripts;
   late final InMemoryNoteRepository notes;
   late final InMemoryGoalRepository goals;
+  late final InMemoryBookRepository books;
   late final InMemorySettingsRepository settings;
   late final AppServices services;
 
@@ -347,9 +353,29 @@ Widget buildTestScreen(
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      // Benannte Routen, damit ein Bildschirm im Test weiternavigieren kann
+      // (zum Beispiel vom Eintrag oder Suchtreffer zum Buch).
+      onGenerateRoute: AppRoutes.onGenerateRoute,
       home: screen,
     ),
   );
+}
+
+/// Scrollt die Liste von "Heute", bis [finder] sichtbar ist. Die Liste baut
+/// nur den sichtbaren Teil; seit Zitat, Schritt, Wegen und Lesebuch (D17 bis
+/// D21) liegt der heutige Eintrag unterhalb des ersten Bildschirms.
+Future<void> scrollTodayTo(WidgetTester tester, Finder finder) async {
+  await tester.scrollUntilVisible(
+    finder,
+    200,
+    scrollable: find
+        .descendant(
+          of: find.byType(TodayScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await tester.pumpAndSettle();
 }
 
 /// Pumpt eine Routenanimation zu Ende, ohne auf laufende Timer zu warten

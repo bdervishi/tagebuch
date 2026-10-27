@@ -112,6 +112,7 @@ void main() {
         );
         // "Heute" zeigt den geschriebenen Eintrag.
         expect(find.byType(TodayScreen), findsOneWidget);
+        await scrollTodayTo(tester, find.textContaining('Kaffee, Sonne'));
         expect(find.text('Heute noch nichts aufgenommen.'), findsNothing);
         expect(find.textContaining('Kaffee, Sonne'), findsOneWidget);
         expect(find.textContaining('Geschrieben um'), findsOneWidget);
@@ -142,6 +143,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(services.notes.items, isEmpty);
       expect(services.entries.items, isEmpty);
+      await scrollTodayTo(tester, find.text('Heute noch nichts aufgenommen.'));
       expect(find.text('Heute noch nichts aufgenommen.'), findsOneWidget);
     });
 
@@ -310,6 +312,7 @@ void main() {
           const Duration(seconds: 45),
         );
         // Die interne Notiz erscheint nicht als Text auf "Heute".
+        await scrollTodayTo(tester, find.text(fakeTranscript));
         expect(find.textContaining('recordingId'), findsNothing);
         expect(find.text(fakeTranscript), findsOneWidget);
       },

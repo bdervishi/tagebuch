@@ -218,7 +218,8 @@ final entryViewProvider = FutureProvider.family<EntryView?, String>((
 });
 
 /// Suchtreffer als Einträge (je Eintrag einmal, neueste zuerst) mit dem
-/// Sprungziel des ersten Treffers.
+/// Sprungziel des ersten Treffers; Treffer in Passagen (D21) als Buch (je
+/// Buch einmal), geordnet nach dem Tag des Treffers.
 final searchViewsProvider = FutureProvider.family<List<SearchResult>, String>((
   ref,
   query,
@@ -227,14 +228,23 @@ final searchViewsProvider = FutureProvider.family<List<SearchResult>, String>((
   if (query.trim().isEmpty) return const [];
   final s = await ref.watch(appServicesProvider.future);
   final hits = await s.search.search(query, journalId: s.journalId);
-  final seen = <String>{};
+  final seenEntries = <String>{};
+  final seenBooks = <String>{};
   final results = <SearchResult>[];
   for (final hit in hits) {
-    if (!seen.add(hit.entryId)) continue;
+    final bookId = hit.bookId;
+    if (bookId != null) {
+      if (!seenBooks.add(bookId)) continue;
+      final book = await s.books.bookById(bookId);
+      if (book == null) continue;
+      results.add(BookSearchResult(book: book, snippet: hit.snippet));
+      continue;
+    }
+    if (!seenEntries.add(hit.entryId)) continue;
     final entry = await s.entries.byId(hit.entryId);
     if (entry == null) continue;
     results.add(
-      SearchResult(
+      EntrySearchResult(
         view: await EntryView.load(s, entry),
         snippet: hit.snippet,
         jumpTo: hit.jumpTo,
@@ -244,11 +254,27 @@ final searchViewsProvider = FutureProvider.family<List<SearchResult>, String>((
   return results;
 });
 
-class SearchResult {
-  const SearchResult({required this.view, required this.snippet, this.jumpTo});
-  final EntryView view;
+/// Ein Suchergebnis: ein Eintrag oder ein Buch (D21).
+sealed class SearchResult {
+  const SearchResult({required this.snippet});
+
+  /// Textausschnitt um den ersten Treffer.
   final String snippet;
+}
+
+class EntrySearchResult extends SearchResult {
+  const EntrySearchResult({
+    required this.view,
+    required super.snippet,
+    this.jumpTo,
+  });
+  final EntryView view;
   final Duration? jumpTo;
+}
+
+class BookSearchResult extends SearchResult {
+  const BookSearchResult({required this.book, required super.snippet});
+  final Book book;
 }
 
 // ----- Rückblick (D17) -----------------------------------------------------

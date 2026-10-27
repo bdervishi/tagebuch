@@ -181,6 +181,58 @@ class MemoryGoals implements GoalRepository {
       milestones.removeWhere((m) => m.id == milestoneId);
 }
 
+/// Bücher und Passagen (D21) im Speicher.
+class MemoryBooks implements BookRepository {
+  final List<Book> books = [];
+  final List<Passage> passages = [];
+
+  @override
+  Future<void> insertBook(Book book) async {
+    books.removeWhere((b) => b.id == book.id);
+    books.add(book);
+  }
+
+  @override
+  Future<void> updateBook(Book book) => insertBook(book);
+  @override
+  Future<Book?> bookById(String bookId) async =>
+      books.where((b) => b.id == bookId).firstOrNull;
+  @override
+  Future<List<Book>> listBooks(String journalId) async =>
+      books.where((b) => b.journalId == journalId).toList()
+        ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+  @override
+  Future<void> deleteBook(String bookId) async {
+    passages.removeWhere((p) => p.bookId == bookId);
+    books.removeWhere((b) => b.id == bookId);
+  }
+
+  @override
+  Future<void> insertPassage(Passage passage) async {
+    passages.removeWhere((p) => p.id == passage.id);
+    passages.add(passage);
+  }
+
+  @override
+  Future<void> updatePassage(Passage passage) => insertPassage(passage);
+  @override
+  Future<Passage?> passageById(String passageId) async =>
+      passages.where((p) => p.id == passageId).firstOrNull;
+  @override
+  Future<List<Passage>> listPassages(String bookId) async =>
+      passages.where((p) => p.bookId == bookId).toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  @override
+  Future<List<Passage>> passagesForDay(LocalDay day) async =>
+      passages.where((p) => p.day == day).toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  @override
+  Future<List<Passage>> listAllPassages() async => List.of(passages);
+  @override
+  Future<void> deletePassage(String passageId) async =>
+      passages.removeWhere((p) => p.id == passageId);
+}
+
 class MemorySettings implements SettingsRepository {
   ReminderSettings reminderValue = const ReminderSettings();
   final Map<String, String> values = {};
@@ -225,6 +277,7 @@ class Device {
     DateTime? now,
     bool withNotes = true,
     bool withGoals = true,
+    bool withBooks = true,
   }) : ids = MemoryIds(idPrefix),
        clock = FixedClock(now ?? DateTime(2026, 10, 27, 20)) {
     entries = MemoryEntries(ids);
@@ -235,6 +288,7 @@ class Device {
       transcripts: transcripts,
       notes: withNotes ? notes : null,
       goals: withGoals ? goals : null,
+      books: withBooks ? books : null,
       settings: settings,
       audioSource: audio,
       audioSink: audio,
@@ -253,6 +307,7 @@ class Device {
   final transcripts = MemoryTranscripts();
   final notes = MemoryNotes();
   final goals = MemoryGoals();
+  final books = MemoryBooks();
   final settings = MemorySettings();
   final audio = MemoryAudioFiles();
   late final TransferUseCase useCase;

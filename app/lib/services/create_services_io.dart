@@ -17,6 +17,7 @@ Future<AppServices> createAppServices() async {
   final transcripts = InMemoryTranscriptRepository();
   final recordings = InMemoryRecordingRepository(transcripts: transcripts);
   final notes = InMemoryNoteRepository();
+  final books = InMemoryBookRepository();
   final entries = InMemoryEntryRepository(
     ids,
     recordings: recordings,
@@ -29,12 +30,14 @@ Future<AppServices> createAppServices() async {
     transcripts: transcripts,
     notes: notes,
     goals: InMemoryGoalRepository(),
+    books: books,
     settings: InMemorySettingsRepository(),
     search: InMemorySearchRepository(
       entries,
       recordings,
       transcripts,
       notes: notes,
+      books: books,
     ),
     recorder: SimulatedRecorder(),
     transcriber: FakeSttEngine(text: fakeTranscriptText),

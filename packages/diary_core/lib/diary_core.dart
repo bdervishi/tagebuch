@@ -17,6 +17,7 @@ export 'package:diary_container/diary_container.dart'
         QrPayload;
 export 'package:diary_crypto/diary_crypto.dart' show Argon2Params;
 
+export 'src/model/book.dart';
 export 'src/model/entry.dart';
 export 'src/model/goal.dart';
 export 'src/model/journal.dart';
@@ -31,6 +32,7 @@ export 'src/ports/clock.dart';
 export 'src/ports/files.dart';
 export 'src/ports/repositories.dart';
 export 'src/ports/services.dart';
+export 'src/usecase/books.dart';
 export 'src/usecase/goals.dart';
 export 'src/usecase/record_day.dart';
 export 'src/usecase/transfer.dart';

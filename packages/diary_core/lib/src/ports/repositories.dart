@@ -1,3 +1,4 @@
+import '../model/book.dart';
 import '../model/entry.dart';
 import '../model/goal.dart';
 import '../model/journal.dart';
@@ -96,8 +97,38 @@ abstract interface class GoalRepository {
   Future<void> deleteMilestone(String milestoneId);
 }
 
+/// Bücher und Passagen (D21). Umgesetzt in `diary_web` (Sammlungen `books`
+/// und `passages`) und als In-Memory-Fake. Löschen eines Buchs löscht seine
+/// Passagen.
+abstract interface class BookRepository {
+  Future<void> insertBook(Book book);
+  Future<void> updateBook(Book book);
+  Future<Book?> bookById(String bookId);
+
+  /// Alle Bücher eines Tagebuchs, zuletzt geänderte zuerst.
+  Future<List<Book>> listBooks(String journalId);
+  Future<void> deleteBook(String bookId);
+
+  Future<void> insertPassage(Passage passage);
+  Future<void> updatePassage(Passage passage);
+  Future<Passage?> passageById(String passageId);
+
+  /// Passagen eines Buchs, älteste zuerst (nach `createdAt`).
+  Future<List<Passage>> listPassages(String bookId);
+
+  /// Passagen, die an [day] festgehalten wurden, älteste zuerst (über alle
+  /// Bücher; Abschnitt "Heute gelesen" im Eintrag).
+  Future<List<Passage>> passagesForDay(LocalDay day);
+
+  /// Alle Passagen aller Bücher (Export, Suche).
+  Future<List<Passage>> listAllPassages();
+  Future<void> deletePassage(String passageId);
+}
+
 /// Ein Suchtreffer; bei Transkripten mit Sprungziel in die Wiedergabe, bei
-/// Notizen ohne ([recordingId] und [jumpTo] sind dann `null`).
+/// Notizen ohne ([recordingId] und [jumpTo] sind dann `null`). Treffer in
+/// Passagen (D21) tragen [bookId] und öffnen das Buch; [entryId] ist dann
+/// leer, weil eine Passage an keinem Eintrag hängt.
 class SearchHit {
   const SearchHit({
     required this.entryId,
@@ -105,12 +136,18 @@ class SearchHit {
     required this.snippet,
     this.recordingId,
     this.jumpTo,
+    this.bookId,
   });
   final String entryId;
   final LocalDay day;
   final String? recordingId;
   final String snippet;
   final Duration? jumpTo;
+
+  /// Buch, in dem die gefundene Passage steht; `null` bei Einträgen.
+  final String? bookId;
+
+  bool get isBook => bookId != null;
 }
 
 abstract interface class SearchRepository {
