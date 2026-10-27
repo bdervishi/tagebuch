@@ -37,7 +37,7 @@ jobs:
       - run: flutter pub get
       - name: Netz-Wächter (inkl. CSP der PWA)
         run: tool/check_no_network.sh
-      - name: Base-Href bestimmen (Projektseite: /<repo>/)
+      - name: "Base-Href bestimmen (Projektseite /<repo>/)"
         id: base
         run: echo "href=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_OUTPUT"
       - name: Bauen (Laufzeit der Spracherkennung, Flutter Web ohne CDN, eigener Service Worker)
