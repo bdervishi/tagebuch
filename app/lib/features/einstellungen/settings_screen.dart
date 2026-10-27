@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
 import '../../services/platform_features.dart';
 import '../daten/transfer_support.dart';
+import 'calendar_sheet.dart';
 import 'transcription_section.dart';
 
 /// Widget-Keys für Tests.
@@ -119,17 +120,12 @@ class SettingsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.event_available),
                 title: Text(l10n.reminderCreateCalendar),
                 subtitle: Text(l10n.reminderCreateCalendarSubtitle),
-                onTap: () {
-                  features.downloadReminderCalendar(
-                    hour: settings.reminderTime.hour,
-                    minute: settings.reminderTime.minute,
-                    title: l10n.reminderIcsTitle,
-                    description: l10n.reminderIcsDescription,
-                  );
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.reminderCalendarCreated)),
-                  );
-                },
+                onTap: () => showReminderCalendarSheet(
+                  context,
+                  features: features,
+                  hour: settings.reminderTime.hour,
+                  minute: settings.reminderTime.minute,
+                ),
               ),
               _Note(l10n.reminderWebNote),
             ] else

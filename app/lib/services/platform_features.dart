@@ -55,6 +55,15 @@ abstract interface class PlatformFeatures {
     String? description,
   });
 
+  /// Ob [openExternalLink] etwas tut (Web: neuer Tab; nativ folgt mit den
+  /// Spikes). Ohne diese Fähigkeit zeigt die Oberfläche nur die ICS-Datei.
+  bool get canOpenLinks;
+
+  /// Öffnet einen vorbefüllten "Termin anlegen"-Link (D18) außerhalb der
+  /// App, nur auf ausdrücklichen Tipp. Die App selbst sendet nichts; was im
+  /// Link steht, baut `CalendarLinks` (Titel und Uhrzeit der Erinnerung).
+  void openExternalLink(Uri url);
+
   /// Gibt die verschlüsselte Containerdatei (Backup, Gerätewechsel) an den
   /// Nutzer: Web als Download, nativ später über das Teilen-Blatt.
   Future<void> saveContainerFile(String fileName, Uint8List bytes);
@@ -98,6 +107,12 @@ class NativePlatformFeatures implements PlatformFeatures {
     required String title,
     String? description,
   }) {}
+
+  @override
+  bool get canOpenLinks => false;
+
+  @override
+  void openExternalLink(Uri url) {}
 
   @override
   Future<void> saveContainerFile(String fileName, Uint8List bytes) async {}

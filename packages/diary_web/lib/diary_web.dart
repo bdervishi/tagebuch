@@ -18,6 +18,7 @@ library;
 export 'src/codecs.dart';
 export 'src/encrypted_file_store.dart';
 export 'src/encrypted_record_store.dart';
+export 'src/external_links.dart';
 export 'src/ics_reminder.dart';
 export 'src/indexed_db_store.dart';
 export 'src/media_recorder_capture.dart';

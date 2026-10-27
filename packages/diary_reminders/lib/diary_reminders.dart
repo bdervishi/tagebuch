@@ -5,5 +5,6 @@
 /// Fake, der geplante Termine nur festhält.
 library;
 
+export 'src/calendar_links.dart';
 export 'src/planner.dart';
 export 'src/scheduler.dart';

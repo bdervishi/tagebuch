@@ -94,6 +94,22 @@ if [ -f "$worker" ]; then
   fi
 fi
 
+# 7. Externe Links (D18): Absolute URLs im Dart-Code sind nur für die "Termin anlegen"-Links der
+# Kalenderdienste erlaubt (Positivliste = CalendarLinks.allowedHosts). Sie werden nie von der App
+# geladen, sondern auf Tipp der Nutzerin vom Browser geöffnet (PlatformFeatures.openExternalLink).
+# Kommentarzeilen sind ausgenommen; jede andere URL im Code ist ein Befund.
+allowed_hosts='calendar\.google\.com|outlook\.live\.com|outlook\.office\.com'
+if grep -rnE "https?://" --include='*.dart' app/lib packages/*/lib 2>/dev/null \
+     | grep -vE "^[^:]+:[0-9]+:\s*///?" \
+     | grep -vE "$allowed_hosts" ; then
+  bad "Absolute URL im Dart-Code außerhalb der Positivliste (siehe oben)"
+fi
+# Öffnen externer Links nur über die eine Stelle in diary_web (openInNewTab), nirgends sonst.
+if grep -rnE "window\.open\(|launchUrl\(" --include='*.dart' app/lib packages/*/lib 2>/dev/null \
+     | grep -v "packages/diary_web/lib/src/external_links.dart" ; then
+  bad "Externer Link wird außerhalb von diary_web/external_links.dart geöffnet (siehe oben)"
+fi
+
 if [ "$fail" -ne 0 ]; then
   say "Netz-Wächter: FEHLGESCHLAGEN"
   exit 1

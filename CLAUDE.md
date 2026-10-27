@@ -16,7 +16,7 @@ Lokales Sprach-Tagebuch für iOS und Android: täglich zu einer selbst gewählte
   - `diary_chunkfile` Chunk-AEAD-Dateiformat mit wahlfreiem Zugriff (Format in dessen README, Testvektoren für Swift/Kotlin)
   - `diary_container` Transfer-/Backup-Container: Kopf, QR-Nutzlast, Manifest, Rahmung, Schlüsselableitung (Argon2id, X25519/HKDF), Stromverschlüsselung (Referenz Kennung 2) und Writer/Reader (Format in dessen README)
   - `diary_storage` drift-Schema, FTS5, SQLCipher-Öffnung
-  - `diary_audio`, `diary_stt`, `diary_keys`, `diary_reminders` Schnittstellen mit Fakes; native Brücken folgen in den Spikes
+  - `diary_audio`, `diary_stt`, `diary_keys`, `diary_reminders` Schnittstellen mit Fakes; native Brücken folgen in den Spikes. `diary_reminders` enthält außerdem `CalendarLinks` (vorbefüllte Links für Google Kalender und Outlook, D18)
   - `diary_stt_web` Whisper im Browser (transformers.js + ONNX Runtime Web im Worker `app/web/stt/`, Modell vom eigenen Origin; Dateiliste `app/web/stt/MODELS.md`), experimentell (W5)
   - `diary_web` Web-Umsetzungen der Ports: WebCrypto-Master-Key, verschlüsselte Datensätze und Audiodateien in IndexedDB, MediaRecorder-Aufnahme, Player, ICS-Erinnerung (Tests laufen im Chromium)
 - `tool/check_no_network.sh`: Netz-Wächter (keine INTERNET-Berechtigung, keine gesperrten Pakete, keine Netzwerk-APIs). Läuft in der CI.
@@ -48,7 +48,7 @@ Kein Android-SDK und kein Xcode in dieser Umgebung: Builds laufen in der CI (`.g
 
 ## Regeln
 
-- **Kein Netz.** Keine Abhängigkeit mit Netzwerkzugriff, keine Analytics-, Crash- oder Werbe-SDKs, keine `INTERNET`-Berechtigung im Release. Der Netz-Wächter muss vor jedem Commit bestehen. Die spätere WLAN-Direktübertragung (D6, Version 1.x) ändert diese Regel sichtbar in `tool/check_no_network.sh` und in den Docs, nicht nebenbei.
+- **Kein Netz.** Keine Abhängigkeit mit Netzwerkzugriff, keine Analytics-, Crash- oder Werbe-SDKs, keine `INTERNET`-Berechtigung im Release. Der Netz-Wächter muss vor jedem Commit bestehen. Einzige Ausnahme sind die vorbefüllten "Termin anlegen"-Links für Google Kalender und Outlook (D18): nur die drei Hosts aus `CalendarLinks.allowedHosts`, geöffnet nur auf Tipp über `PlatformFeatures.openExternalLink`, nie von der App geladen. Die spätere WLAN-Direktübertragung (D6, Version 1.x) ändert diese Regel sichtbar in `tool/check_no_network.sh` und in den Docs, nicht nebenbei.
 - **Kein Klartext auf dem Dateisystem.** Audio nur über `diary_chunkfile`, Metadaten nur in SQLCipher, Schlüssel nur über `diary_keys`. Keine Temp-Dateien mit Nutzdaten, keine Inhalte in Benachrichtigungen, Widgets oder Logs.
 - **Entscheidungen zuerst.** Was in `docs/entscheidungen.md` steht, gilt. Wer davon abweichen muss, ändert zuerst die Entscheidung mit Begründung (Historie oben in der Datei), dann den Code.
 - **Sprache.** Bezeichner im Code Englisch; Kommentare, Doku, Commit-Nachrichten und Oberflächentexte Deutsch (Oberfläche zusätzlich Englisch über ARB in `app/lib/l10n`). Keine hartkodierten UI-Strings.

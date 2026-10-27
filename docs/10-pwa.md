@@ -21,7 +21,7 @@ Der Inhaber will das Tagebuch sofort auf dem eigenen Smartphone nutzen, ohne Ent
 | Datenverlust | nur bei Geräteverlust | zusätzlich Browser-Speicherräumung, "Website-Daten löschen", Deinstallation | Backup ist Pflichtfunktion der ersten Fassung |
 | Spracherkennung | SpeechTranscriber, sherpa-onnx | WebAssembly-Modell im Browser (Whisper über ONNX Runtime Web), langsamer | Erkennung nach der Aufnahme, als "experimentell" markiert bis Spike W1 |
 | Aufnahme | AAC-LC/M4A, Hintergrund möglich | MediaRecorder: WebM/Opus (Chrome), MP4/AAC (Safari); nur Vordergrund | Codec je Aufnahme gespeichert; Bildschirm an lassen |
-| Erinnerung | lokale Benachrichtigung / Alarm | kein Push ohne Server; ICS-Kalendereintrag, Systemwecker, Hinweis beim Öffnen | M2 nur teilweise erfüllt |
+| Erinnerung | lokale Benachrichtigung / Alarm | kein Push ohne Server; Termin in Google Kalender oder Outlook per vorbefülltem Link (D18), ICS-Kalendereintrag, Systemwecker, Hinweis beim Öffnen | M2 nur teilweise erfüllt |
 | QR-Gerätewechsel | Kamera nativ | `BarcodeDetector` oder Code eintippen; Datei per Download/Dateiauswahl | gleiche Containerdatei |
 | Biometrie, Widgets, Sperrbildschirm | ja | nein | Argumente für die Store-Apps |
 
@@ -69,7 +69,7 @@ Tests: `packages/diary_web/test` läuft mit `flutter test --platform chrome` im 
 
 ## 5. Bekannte Lücken der Web-Fassung
 
-1. **Tägliche Erinnerung (M2):** Ohne Push-Server keine Benachrichtigung bei geschlossener App. Angebotener Ersatz: ICS-Kalendereintrag, Systemwecker, Hinweis beim Öffnen. Vollständig erst mit den Store-Apps.
+1. **Tägliche Erinnerung (M2):** Ohne Push-Server keine Benachrichtigung bei geschlossener App. Angebotener Ersatz: Termin in Google Kalender, Outlook.com oder Microsoft 365 über einen vorbefüllten Link (D18; nur Titel und Uhrzeit im Link, Google mit täglicher Wiederholung, Outlook ohne), ICS-Kalendereintrag für Apple Kalender und andere, Systemwecker, Hinweis beim Öffnen. Vollständig erst mit den Store-Apps.
 2. **Transkriptionsqualität und -dauer:** Eingebaut ist Whisper base (60 bis 140 MB Download je Gerät); es braucht auf einem Mittelklasse-Telefon ohne WebGPU voraussichtlich ein Vielfaches der Aufnahmedauer. Spike W1 misst Dauer je Aufnahmeminute, Wortfehlerrate und Download auf iPhone und Android-Mittelklasse (Vorlage `docs/stt-web-messprotokoll.md`) und entscheidet zwischen whisper-tiny, whisper-base, whisper-small (Alternativen in `app/web/stt/MODELS.md`) und ggf. Moonshine-Web, und ab welchem Gerät die Erkennung standardmäßig an ist. Bis dahin ist die Transkription als experimentell gekennzeichnet und abschaltbar; der Nutzer kann Einträge auch ohne Text führen.
 3. **Speicherräumung:** iOS entfernt Daten nicht installierter Web-Apps nach sieben Tagen Inaktivität; installierte PWAs sind ausgenommen, solange sie installiert bleiben. Die App verlangt die Installation vor der ersten Aufnahme, ruft `navigator.storage.persist()` auf und erinnert an Backups.
 4. **Schlüsselschutz:** Wer das entsperrte Telefon in der Hand hat, kann die PWA öffnen; eine App-Sperre per Passphrase ist auf dem Web deshalb Standard (Zeitfenster wie D5), Biometrie gibt es nicht.

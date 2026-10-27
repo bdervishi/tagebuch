@@ -50,6 +50,9 @@ dependencies:
     path: ../packages/diary_audio
   diary_stt:
     path: ../packages/diary_stt
+  # Links "Termin anlegen" für Google Kalender und Outlook (D18): reines Dart.
+  diary_reminders:
+    path: ../packages/diary_reminders
   # Nur im Web-Build eingebunden (bedingter Import in lib/services/create_services.dart).
   diary_web:
     path: ../packages/diary_web

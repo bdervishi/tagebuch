@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tagebuch_app/app/routes.dart';
+import 'package:tagebuch_app/features/einstellungen/calendar_sheet.dart';
 import 'package:tagebuch_app/features/einstellungen/settings_screen.dart';
 import 'package:tagebuch_app/features/eintrag/entry_screen.dart';
 import 'package:tagebuch_app/features/kalender/calendar_screen.dart';
@@ -174,6 +175,12 @@ void main() {
 
     expect(find.byKey(reminderCalendarKey), findsOneWidget);
     await tester.tap(find.byKey(reminderCalendarKey));
+    await tester.pumpAndSettle();
+    // Blatt mit Google, Outlook, Microsoft 365 und Kalenderdatei (D18).
+    expect(find.byKey(reminderCalendarGoogleKey), findsOneWidget);
+    expect(find.byKey(reminderCalendarOutlookKey), findsOneWidget);
+    expect(find.byKey(reminderCalendarOfficeKey), findsOneWidget);
+    await tester.tap(find.byKey(reminderCalendarIcsKey));
     await tester.pumpAndSettle();
     expect(features.downloads, hasLength(1));
     expect(features.downloads.single.hour, 21);

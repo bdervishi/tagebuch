@@ -249,6 +249,10 @@ class FakePlatformFeatures implements PlatformFeatures {
   /// Gespeicherte Containerdateien (Name, Bytes) aus Backup und Transfer.
   final List<(String, Uint8List)> savedFiles = [];
 
+  /// Geöffnete externe Links (Kalender, D18).
+  final List<Uri> openedLinks = [];
+  bool canOpenLinksValue = true;
+
   /// Datei, die die nächste Dateiauswahl liefert (`null` = abgebrochen).
   Uint8List? fileToPick;
 
@@ -268,6 +272,12 @@ class FakePlatformFeatures implements PlatformFeatures {
     required String title,
     String? description,
   }) => downloads.add((hour: hour, minute: minute, title: title));
+
+  @override
+  bool get canOpenLinks => canOpenLinksValue;
+
+  @override
+  void openExternalLink(Uri url) => openedLinks.add(url);
 
   @override
   Future<void> saveContainerFile(String fileName, Uint8List bytes) async =>

@@ -107,6 +107,12 @@ class WebPlatformFeatures implements PlatformFeatures {
   Future<bool> requestPersistentStorage() => _info.persist();
 
   @override
+  bool get canOpenLinks => true;
+
+  @override
+  void openExternalLink(Uri url) => openInNewTab(url);
+
+  @override
   void downloadReminderCalendar({
     required int hour,
     required int minute,

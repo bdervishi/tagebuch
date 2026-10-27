@@ -15,7 +15,7 @@ Nach der Veröffentlichung über GitHub Pages: `https://bdervishi.github.io/tage
 3. Die App vom Home-Bildschirm starten. Erst die installierte App benutzen: Nur so sind die Daten vor der Sieben-Tage-Löschung des Safari-Speichers geschützt.
 4. Beim ersten Aufnehmen die Mikrofonfreigabe erteilen.
 
-Bekannte Grenzen auf iOS: Aufnahme nur, solange die App im Vordergrund ist (Bildschirm an); keine Benachrichtigung zur Erinnerungszeit (stattdessen Kalendereintrag aus den Einstellungen); Daten verschwinden, wenn die App vom Home-Bildschirm entfernt oder "Website-Daten löschen" ausgeführt wird. Deshalb regelmäßig ein Backup erstellen.
+Bekannte Grenzen auf iOS: Aufnahme nur, solange die App im Vordergrund ist (Bildschirm an); keine Benachrichtigung zur Erinnerungszeit (stattdessen Kalendereintrag aus den Einstellungen: Google Kalender, Outlook oder Kalenderdatei für Apple Kalender); Daten verschwinden, wenn die App vom Home-Bildschirm entfernt oder "Website-Daten löschen" ausgeführt wird. Deshalb regelmäßig ein Backup erstellen.
 
 ## Android (Chrome, Android 12 oder neuer)
 
