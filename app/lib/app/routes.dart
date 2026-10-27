@@ -9,6 +9,7 @@ import '../features/eintrag/entry_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/rueckblick/week_review_screen.dart';
 import '../features/schreiben/write_screen.dart';
+import '../features/zitate/quotes_screen.dart';
 import '../features/wege/goal_detail_screen.dart';
 import '../features/wege/goals_screen.dart';
 import 'motion.dart';
@@ -47,6 +48,9 @@ abstract final class AppRoutes {
   /// Wege: Ziele mit Etappen (D19); Details mit Ziel-ID als [String].
   static const String goals = '/goals';
   static const String goal = '/goal';
+
+  /// Zitatenschatz (D20).
+  static const String quotes = '/quotes';
 
   /// Onboarding zum erneuten Ansehen aus den Einstellungen.
   static const String onboarding = '/onboarding';
@@ -91,6 +95,11 @@ abstract final class AppRoutes {
         return MaterialPageRoute<void>(
           settings: settings,
           builder: (_) => const GoalsScreen(),
+        );
+      case quotes:
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const QuotesScreen(),
         );
       case goal:
         final id = settings.arguments;
@@ -142,6 +151,10 @@ abstract final class AppRoutes {
   /// Öffnet den Bildschirm "Wege".
   static Future<void> openGoals(BuildContext context) =>
       Navigator.of(context).pushNamed(goals);
+
+  /// Öffnet den Zitatenschatz.
+  static Future<void> openQuotes(BuildContext context) =>
+      Navigator.of(context).pushNamed(quotes);
 
   /// Öffnet die Details eines Wegs.
   static Future<void> openGoal(BuildContext context, String goalId) =>

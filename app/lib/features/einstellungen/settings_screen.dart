@@ -18,6 +18,8 @@ const Key backupCreateKey = Key('settings-backup-create');
 const Key backupRestoreKey = Key('settings-backup-restore');
 const Key deviceTransferKey = Key('settings-device-transfer');
 const Key guidedReviewKey = Key('settings-guided-review');
+const Key quotesEnabledKey = Key('settings-quotes-enabled');
+const Key quotesManageKey = Key('settings-quotes-manage');
 
 /// Speicherstatus der Plattform (Web: `navigator.storage`).
 final storageStatusProvider = FutureProvider<StorageStatus?>(
@@ -150,6 +152,20 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: Text(l10n.guidedReviewSubtitle),
               value: settings.guidedReview,
               onChanged: notifier.setGuidedReview,
+            ),
+            SwitchListTile(
+              key: quotesEnabledKey,
+              title: Text(l10n.quotesEnabled),
+              subtitle: Text(l10n.quotesEnabledSubtitle),
+              value: settings.quotesEnabled,
+              onChanged: notifier.setQuotesEnabled,
+            ),
+            ListTile(
+              key: quotesManageKey,
+              leading: const Icon(Icons.format_quote_outlined),
+              title: Text(l10n.quotesManage),
+              subtitle: Text(l10n.quotesManageSubtitle),
+              onTap: () => AppRoutes.openQuotes(context),
             ),
             const Divider(),
             _SectionHeader(l10n.sectionAudio),

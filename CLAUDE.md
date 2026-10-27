@@ -20,6 +20,7 @@ Lokales Sprach-Tagebuch für iOS und Android: täglich zu einer selbst gewählte
   - `diary_stt_web` Whisper im Browser (transformers.js + ONNX Runtime Web im Worker `app/web/stt/`, Modell vom eigenen Origin; Dateiliste `app/web/stt/MODELS.md`), experimentell (W5)
   - `diary_web` Web-Umsetzungen der Ports: WebCrypto-Master-Key, verschlüsselte Datensätze und Audiodateien in IndexedDB, MediaRecorder-Aufnahme, Player, ICS-Erinnerung (Tests laufen im Chromium)
 - `tool/check_no_network.sh`: Netz-Wächter (keine INTERNET-Berechtigung, keine gesperrten Pakete, keine Netzwerk-APIs). Läuft in der CI.
+- `app/assets/quotes/`: gebündelter Zitatenschatz (D20; Regeln in dessen README: nur gemeinfreie Autorinnen und Autoren, eigene Übertragungen, belegte Quellen).
 - `models/`, `test_assets/`: nur Manifeste und Skripte, keine Binärdateien, keine echten Aufnahmen.
 
 ## Befehle

@@ -255,6 +255,11 @@ Umgesetzt in der PWA und in den Kernpaketen; Entscheidung und Begründung in `en
 
 **Bewusst nicht gebaut.** Keine Fristen, keine Erinnerung an offene Etappen, kein Prozentbalken, keine Punkte, keine Wochen- oder Monatsziele, keine Vorschläge für Ziele oder Etappen (D8), kein Konfetti beim Abschluss. Die Zahl drei und die Formulierungen sind eigene Festlegungen für den Beta-Test.
 
+
+## Umsetzungsstand: Zitat zum Tag (D20)
+
+Stand 27. 10. 2026. Auf "Heute" steht zwischen den Aktionen und dem Schritt für heute eine leise Karte mit einem Zitat, morgens und abends ein anderes, deterministisch aus dem Datum. Der Schatz ist gebündelt (rund 100 Zitate, gemeinfrei, eigene Übertragungen, Quelle genannt), nach Themen filterbar (Gelassenheit, Mut, Dankbarkeit, Disziplin, Gegenwart, Lernen, Geduld, Güte, Selbsterkenntnis, Anfangen, Ziele); das Herz merkt ein Zitat, eigene Zitate lassen sich eintragen. Begründung: Ein guter Satz vor dem Rückblick öffnet, ein Zitat als Tagesmission würde drängen; deshalb keine Aufgaben daraus, kein Zähler, abschaltbar. Alles liegt lokal; Markierungen und eigene Zitate wandern mit dem Backup.
+
 ## 11. Offene Fragen
 
 1. **Aufnahme bei gesperrter App.** Damit Controls und Widgets ohne Entsperren aufnehmen können, müssen neue Eintragsschlüssel ohne Zugriff auf den Master-Key gewrappt werden (z. B. asymmetrisch). `05-sicherheit-und-datenschutz.md`, Abschnitt 2.7 skizziert dafür den "Schreibschlüssel" (Sealed Box an einen X25519-Schlüssel des Telefons, spätere Neuverpackung mit dem Master-Key); ob D5 das hergibt oder ob der Start eine Authentifizierung verlangt, klärt ein Spike im Technikkonzept.

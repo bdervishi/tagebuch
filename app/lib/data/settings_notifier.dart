@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:diary_core/diary_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/zitate/quote_library.dart';
 import '../services/app_services.dart';
 import 'day.dart';
 
@@ -39,6 +42,10 @@ class AppSettings {
     this.onboardingDone = false,
     this.transcriptionEnabled = true,
     this.guidedReview = true,
+    this.quotesEnabled = true,
+    this.quoteThemes = const {},
+    this.quoteFavorites = const {},
+    this.ownQuotes = const [],
   });
 
   /// Schlüssel im `SettingsRepository`.
@@ -53,6 +60,14 @@ class AppSettings {
 
   /// "Geführter Rückblick" (D17): vier Impulse beim Sprechen und Schreiben.
   static const keyGuidedReview = 'guidedReview';
+
+  /// Zitat zum Tag (D20): an/aus, gewählte Themen (Kommaliste), markierte
+  /// Zitate (Kommaliste von IDs) und eigene Zitate (JSON-Liste); alles liegt
+  /// wie jede Einstellung verschlüsselt im Store und im Backup.
+  static const keyQuotesEnabled = 'quotesEnabled';
+  static const keyQuoteThemes = 'quoteThemes';
+  static const keyQuoteFavorites = 'quoteFavorites';
+  static const keyOwnQuotes = 'ownQuotes';
 
   /// Zeitpunkt des letzten Backups (ISO-8601) für die Backup-Erinnerung.
   static const keyLastBackupAt = 'lastBackupAt';
@@ -89,6 +104,18 @@ class AppSettings {
   /// Ob die vier Impulse des Abendrückblicks erscheinen (Standard an).
   final bool guidedReview;
 
+  /// Zitat zum Tag auf "Heute" (Standard an).
+  final bool quotesEnabled;
+
+  /// Gewählte Themen; leer = alle.
+  final Set<String> quoteThemes;
+
+  /// IDs markierter Zitate (gebündelte und eigene).
+  final Set<String> quoteFavorites;
+
+  /// Eigene Zitate der Nutzerin.
+  final List<Quote> ownQuotes;
+
   /// Wahr, wenn für [day] "Heute nicht" gewählt wurde.
   bool isSkippedOn(DateTime day) =>
       reminderSkippedOn != null && isSameDay(reminderSkippedOn!, day);
@@ -119,8 +146,35 @@ class AppSettings {
       onboardingDone: await repo.get(keyOnboardingDone) == 'true',
       transcriptionEnabled: await repo.get(keyTranscription) != 'false',
       guidedReview: await repo.get(keyGuidedReview) != 'false',
+      quotesEnabled: await repo.get(keyQuotesEnabled) != 'false',
+      quoteThemes: _splitList(await repo.get(keyQuoteThemes)),
+      quoteFavorites: _splitList(await repo.get(keyQuoteFavorites)),
+      ownQuotes: _decodeQuotes(await repo.get(keyOwnQuotes)),
     );
   }
+
+  static Set<String> _splitList(String? value) => {
+    if (value != null)
+      for (final v in value.split(','))
+        if (v.trim().isNotEmpty) v.trim(),
+  };
+
+  static String joinList(Iterable<String> values) => values.join(',');
+
+  static List<Quote> _decodeQuotes(String? json) {
+    if (json == null || json.isEmpty) return const [];
+    try {
+      return [
+        for (final q in jsonDecode(json) as List)
+          Quote.fromJson(q as Map<String, Object?>),
+      ];
+    } on Object {
+      return const [];
+    }
+  }
+
+  static String encodeQuotes(List<Quote> quotes) =>
+      jsonEncode([for (final q in quotes) q.toJson()]);
 
   AppSettings copyWith({
     bool? reminderEnabled,
@@ -133,6 +187,10 @@ class AppSettings {
     bool? onboardingDone,
     bool? transcriptionEnabled,
     bool? guidedReview,
+    bool? quotesEnabled,
+    Set<String>? quoteThemes,
+    Set<String>? quoteFavorites,
+    List<Quote>? ownQuotes,
   }) {
     return AppSettings(
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
@@ -149,6 +207,10 @@ class AppSettings {
       onboardingDone: onboardingDone ?? this.onboardingDone,
       transcriptionEnabled: transcriptionEnabled ?? this.transcriptionEnabled,
       guidedReview: guidedReview ?? this.guidedReview,
+      quotesEnabled: quotesEnabled ?? this.quotesEnabled,
+      quoteThemes: quoteThemes ?? this.quoteThemes,
+      quoteFavorites: quoteFavorites ?? this.quoteFavorites,
+      ownQuotes: ownQuotes ?? this.ownQuotes,
     );
   }
 
@@ -222,6 +284,57 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
     _current.copyWith(guidedReview: value),
     (repo) => repo.set(AppSettings.keyGuidedReview, '$value'),
   );
+
+  Future<void> setQuotesEnabled(bool value) => _update(
+    _current.copyWith(quotesEnabled: value),
+    (repo) => repo.set(AppSettings.keyQuotesEnabled, '$value'),
+  );
+
+  Future<void> setQuoteThemes(Set<String> themes) => _update(
+    _current.copyWith(quoteThemes: themes),
+    (repo) =>
+        repo.set(AppSettings.keyQuoteThemes, AppSettings.joinList(themes)),
+  );
+
+  /// Markierung umschalten (Herz).
+  Future<void> toggleQuoteFavorite(String id) {
+    final next = {..._current.quoteFavorites};
+    if (!next.remove(id)) next.add(id);
+    return _update(
+      _current.copyWith(quoteFavorites: next),
+      (repo) =>
+          repo.set(AppSettings.keyQuoteFavorites, AppSettings.joinList(next)),
+    );
+  }
+
+  Future<void> addOwnQuote(Quote quote) => _update(
+    _current.copyWith(ownQuotes: [..._current.ownQuotes, quote]),
+    (repo) => repo.set(
+      AppSettings.keyOwnQuotes,
+      AppSettings.encodeQuotes([..._current.ownQuotes, quote]),
+    ),
+  );
+
+  Future<void> removeOwnQuote(String id) {
+    final next = [
+      for (final q in _current.ownQuotes)
+        if (q.id != id) q,
+    ];
+    final favorites = {..._current.quoteFavorites}..remove(id);
+    return _update(
+      _current.copyWith(ownQuotes: next, quoteFavorites: favorites),
+      (repo) async {
+        await repo.set(
+          AppSettings.keyOwnQuotes,
+          AppSettings.encodeQuotes(next),
+        );
+        await repo.set(
+          AppSettings.keyQuoteFavorites,
+          AppSettings.joinList(favorites),
+        );
+      },
+    );
+  }
 
   Future<void> completeOnboarding() => _update(
     _current.copyWith(onboardingDone: true),

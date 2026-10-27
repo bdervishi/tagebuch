@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tagebuch_app/app/app.dart';
 import 'package:tagebuch_app/data/settings_notifier.dart';
+import 'package:tagebuch_app/features/zitate/quote_library.dart';
+import 'package:tagebuch_app/features/zitate/quote_providers.dart';
 import 'package:tagebuch_app/l10n/app_localizations.dart';
 import 'package:tagebuch_app/services/app_services.dart';
 import 'package:tagebuch_app/services/memory_repositories.dart';
@@ -78,6 +80,7 @@ class TestServices {
     PlatformFeatures features = const NativePlatformFeatures(),
     this.sttEngine,
     this.fileTranscriber,
+    this.quoteLibrary,
   }) {
     final entryItems = <DiaryEntry>[];
     final recordingItems = <Recording>[];
@@ -209,6 +212,9 @@ class TestServices {
 
   /// Datei-Erkennung für "Erneut transkribieren" und den Aufnahmeablauf.
   final AudioFileTranscriberPort? fileTranscriber;
+
+  /// Zitatenschatz für Tests (D20); ohne Angabe leer, also keine Zitatkarte.
+  final QuoteLibrary? quoteLibrary;
   final InMemoryAudioFiles audioFiles = InMemoryAudioFiles();
   late final InMemoryEntryRepository entries;
   late final InMemoryRecordingRepository recordings;
@@ -223,6 +229,12 @@ class TestServices {
   // ignore: strict_top_level_inference
   get overrides => [
     appServicesProvider.overrideWith((ref) => services),
+    // Zitatenschatz: das Laden aus dem Asset ist in Widget-Tests nicht
+    // deterministisch; deshalb bekommt jeder Test einen festen Schatz,
+    // standardmäßig leer (keine Karte, "Heute" bleibt kurz).
+    quoteLibraryProvider.overrideWith(
+      (ref) async => quoteLibrary ?? const QuoteLibrary(quotes: [], themes: []),
+    ),
     platformFeaturesProvider.overrideWithValue(services.features),
   ];
 }

@@ -1,0 +1,1367 @@
+{
+ "version": 1,
+ "license": "Alle zitierten Personen sind länger als 70 Jahre tot; Originaltexte gemeinfrei. Deutsche und englische Fassungen hier sind eigene, freie Übertragungen (CC0), keine geschützten Übersetzungen.",
+ "themes": [
+  {
+   "key": "calm",
+   "de": "Gelassenheit",
+   "en": "Calm"
+  },
+  {
+   "key": "courage",
+   "de": "Mut",
+   "en": "Courage"
+  },
+  {
+   "key": "gratitude",
+   "de": "Dankbarkeit",
+   "en": "Gratitude"
+  },
+  {
+   "key": "discipline",
+   "de": "Disziplin",
+   "en": "Discipline"
+  },
+  {
+   "key": "presence",
+   "de": "Gegenwart",
+   "en": "Presence"
+  },
+  {
+   "key": "learning",
+   "de": "Lernen",
+   "en": "Learning"
+  },
+  {
+   "key": "patience",
+   "de": "Geduld",
+   "en": "Patience"
+  },
+  {
+   "key": "kindness",
+   "de": "Güte",
+   "en": "Kindness"
+  },
+  {
+   "key": "reflection",
+   "de": "Selbsterkenntnis",
+   "en": "Self-knowledge"
+  },
+  {
+   "key": "beginning",
+   "de": "Anfangen",
+   "en": "Beginning"
+  },
+  {
+   "key": "goals",
+   "de": "Ziele",
+   "en": "Goals"
+  }
+ ],
+ "quotes": [
+  {
+   "id": "q001",
+   "author": "Mark Aurel",
+   "years": "121–180",
+   "de": "Sehr wenig ist nötig, um ein glückliches Leben zu führen; es liegt alles in dir selbst, in deiner Art zu denken.",
+   "en": "Very little is needed to make a happy life; it is all within yourself, in your way of thinking.",
+   "source": "Selbstbetrachtungen 7,67",
+   "themes": [
+    "calm",
+    "presence"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q002",
+   "author": "Mark Aurel",
+   "years": "121–180",
+   "de": "Beschränke dich auf die Gegenwart.",
+   "en": "Confine yourself to the present.",
+   "source": "Selbstbetrachtungen 7,29",
+   "themes": [
+    "presence"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q003",
+   "author": "Mark Aurel",
+   "years": "121–180",
+   "de": "Wie deine gewohnten Gedanken sind, so wird auch dein Geist sein; denn die Seele nimmt die Farbe der Gedanken an.",
+   "en": "Such as are your habitual thoughts, such also will be the character of your mind; for the soul is dyed by the thoughts.",
+   "source": "Selbstbetrachtungen 5,16",
+   "themes": [
+    "reflection",
+    "discipline"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q004",
+   "author": "Mark Aurel",
+   "years": "121–180",
+   "de": "Verschwende keine Zeit mehr damit, zu erörtern, was ein guter Mensch sein sollte. Sei einer.",
+   "en": "Waste no more time arguing about what a good man should be. Be one.",
+   "source": "Selbstbetrachtungen 10,16",
+   "themes": [
+    "discipline",
+    "beginning"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q005",
+   "author": "Mark Aurel",
+   "years": "121–180",
+   "de": "Wenn es nicht richtig ist, tu es nicht; wenn es nicht wahr ist, sag es nicht.",
+   "en": "If it is not right, do not do it; if it is not true, do not say it.",
+   "source": "Selbstbetrachtungen 12,17",
+   "themes": [
+    "discipline",
+    "kindness"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q006",
+   "author": "Mark Aurel",
+   "years": "121–180",
+   "de": "Nirgends findet der Mensch einen ruhigeren, ungestörteren Zufluchtsort als in seiner eigenen Seele.",
+   "en": "Nowhere can a man find a quieter or more untroubled retreat than in his own soul.",
+   "source": "Selbstbetrachtungen 4,3",
+   "themes": [
+    "calm"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q007",
+   "author": "Mark Aurel",
+   "years": "121–180",
+   "de": "Betrachte den Lauf der Sterne, als liefest du mit ihnen.",
+   "en": "Watch the stars in their courses as one that runs about with them.",
+   "source": "Selbstbetrachtungen 7,47",
+   "themes": [
+    "presence",
+    "gratitude"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q008",
+   "author": "Mark Aurel",
+   "years": "121–180",
+   "de": "Die beste Rache ist, nicht so zu werden wie der, der dir Unrecht tut.",
+   "en": "The best revenge is not to be like your enemy.",
+   "source": "Selbstbetrachtungen 6,6",
+   "themes": [
+    "kindness",
+    "calm"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q009",
+   "author": "Seneca",
+   "years": "ca. 4 v. Chr.–65",
+   "de": "Nicht wenig Zeit haben wir, sondern viel vergeuden wir.",
+   "en": "It is not that we have a short time to live, but that we waste a lot of it.",
+   "source": "Von der Kürze des Lebens 1",
+   "themes": [
+    "presence",
+    "discipline"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q010",
+   "author": "Seneca",
+   "years": "ca. 4 v. Chr.–65",
+   "de": "Beginne sofort zu leben und zähle jeden Tag als ein eigenes Leben.",
+   "en": "Begin at once to live, and count each separate day as a separate life.",
+   "source": "Briefe an Lucilius 101",
+   "themes": [
+    "beginning",
+    "presence"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q011",
+   "author": "Seneca",
+   "years": "ca. 4 v. Chr.–65",
+   "de": "Wir leiden öfter in der Vorstellung als in der Wirklichkeit.",
+   "en": "We suffer more often in imagination than in reality.",
+   "source": "Briefe an Lucilius 13",
+   "themes": [
+    "calm"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q012",
+   "author": "Seneca",
+   "years": "ca. 4 v. Chr.–65",
+   "de": "Während wir aufschieben, eilt das Leben vorüber.",
+   "en": "While we are postponing, life speeds by.",
+   "source": "Briefe an Lucilius 1",
+   "themes": [
+    "beginning",
+    "discipline"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q013",
+   "author": "Seneca",
+   "years": "ca. 4 v. Chr.–65",
+   "de": "Wer den Hafen nicht kennt, in den er segeln will, für den ist kein Wind günstig.",
+   "en": "No wind is favorable to one who does not know to which port he is sailing.",
+   "source": "Briefe an Lucilius 71",
+   "themes": [
+    "goals",
+    "reflection"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q014",
+   "author": "Seneca",
+   "years": "ca. 4 v. Chr.–65",
+   "de": "Rau ist der Weg, der zu den Höhen führt.",
+   "en": "It is a rough road that leads to the heights.",
+   "source": "Briefe an Lucilius 84",
+   "themes": [
+    "courage",
+    "patience"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q015",
+   "author": "Seneca",
+   "years": "ca. 4 v. Chr.–65",
+   "de": "Nichts gehört uns, außer der Zeit.",
+   "en": "Nothing is ours, except time.",
+   "source": "Briefe an Lucilius 1",
+   "themes": [
+    "presence"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q016",
+   "author": "Seneca",
+   "years": "ca. 4 v. Chr.–65",
+   "de": "Wo ein Mensch ist, da ist Gelegenheit für eine Wohltat.",
+   "en": "Wherever there is a human being, there is an opportunity for a kindness.",
+   "source": "Vom glücklichen Leben 24",
+   "themes": [
+    "kindness"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q017",
+   "author": "Seneca",
+   "years": "ca. 4 v. Chr.–65",
+   "de": "Manchmal ist schon das Leben selbst eine Tat des Mutes.",
+   "en": "Sometimes even to live is an act of courage.",
+   "source": "Briefe an Lucilius 78",
+   "themes": [
+    "courage"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q018",
+   "author": "Seneca",
+   "years": "ca. 4 v. Chr.–65",
+   "de": "Den Geist musst du ändern, nicht den Himmel über dir.",
+   "en": "You must change your mind, not the sky above you.",
+   "source": "Briefe an Lucilius 28",
+   "themes": [
+    "reflection",
+    "calm"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q019",
+   "author": "Epiktet",
+   "years": "ca. 50–135",
+   "de": "Nicht die Dinge beunruhigen die Menschen, sondern ihre Meinungen über die Dinge.",
+   "en": "Men are disturbed not by things, but by the views which they take of things.",
+   "source": "Handbüchlein 5",
+   "themes": [
+    "calm",
+    "reflection"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q020",
+   "author": "Epiktet",
+   "years": "ca. 50–135",
+   "de": "Einiges steht in unserer Macht, anderes nicht.",
+   "en": "Some things are within our power, while others are not.",
+   "source": "Handbüchlein 1",
+   "themes": [
+    "calm"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q021",
+   "author": "Epiktet",
+   "years": "ca. 50–135",
+   "de": "Niemand ist frei, der nicht Herr seiner selbst ist.",
+   "en": "No man is free who is not master of himself.",
+   "source": "Fragmente",
+   "themes": [
+    "discipline"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q022",
+   "author": "Epiktet",
+   "years": "ca. 50–135",
+   "de": "Sage dir zuerst, was du sein willst; dann tu, was dazu nötig ist.",
+   "en": "First say to yourself what you would be; and then do what you have to do.",
+   "source": "Unterredungen 3,23",
+   "themes": [
+    "goals",
+    "beginning"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q023",
+   "author": "Epiktet",
+   "years": "ca. 50–135",
+   "de": "Mach das Beste aus dem, was in deiner Macht steht, und nimm das Übrige, wie es kommt.",
+   "en": "Make the best use of what is in your power, and take the rest as it happens.",
+   "source": "Unterredungen 1,1",
+   "themes": [
+    "calm",
+    "discipline"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q024",
+   "author": "Epikur",
+   "years": "341–270 v. Chr.",
+   "de": "Verdirb nicht, was du hast, indem du begehrst, was du nicht hast; bedenke, dass das, was du jetzt hast, einst zu dem gehörte, was du nur erhofft hast.",
+   "en": "Do not spoil what you have by desiring what you have not; remember that what you now have was once among the things you only hoped for.",
+   "source": "Vatikanische Sprüche 35",
+   "themes": [
+    "gratitude"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q025",
+   "author": "Sokrates (nach Platon)",
+   "years": "469–399 v. Chr.",
+   "de": "Ein Leben ohne Selbstprüfung ist nicht lebenswert.",
+   "en": "The unexamined life is not worth living.",
+   "source": "Platon, Apologie 38a",
+   "themes": [
+    "reflection"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q026",
+   "author": "Aristoteles",
+   "years": "384–322 v. Chr.",
+   "de": "Gerecht werden wir, indem wir gerecht handeln, besonnen, indem wir besonnen handeln, tapfer, indem wir tapfer handeln.",
+   "en": "We become just by doing just acts, temperate by doing temperate acts, brave by doing brave acts.",
+   "source": "Nikomachische Ethik 2,1",
+   "themes": [
+    "discipline"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q027",
+   "author": "Heraklit",
+   "years": "ca. 520–460 v. Chr.",
+   "de": "Charakter ist Schicksal.",
+   "en": "Character is destiny.",
+   "source": "Fragment B 119",
+   "themes": [
+    "reflection"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q028",
+   "author": "Heraklit",
+   "years": "ca. 520–460 v. Chr.",
+   "de": "Niemand steigt zweimal in denselben Fluss.",
+   "en": "No one steps into the same river twice.",
+   "source": "Fragment B 91",
+   "themes": [
+    "presence"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q029",
+   "author": "Pindar",
+   "years": "ca. 518–438 v. Chr.",
+   "de": "Werde, der du bist.",
+   "en": "Become who you are.",
+   "source": "Pythische Oden 2,72",
+   "themes": [
+    "goals",
+    "reflection"
+   ],
+   "original": "grc"
+  },
+  {
+   "id": "q030",
+   "author": "Cicero",
+   "years": "106–43 v. Chr.",
+   "de": "Dankbarkeit ist nicht nur die größte der Tugenden, sondern die Mutter aller anderen.",
+   "en": "Gratitude is not only the greatest of virtues, but the parent of all the others.",
+   "source": "Rede für Plancius 80",
+   "themes": [
+    "gratitude"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q031",
+   "author": "Cicero",
+   "years": "106–43 v. Chr.",
+   "de": "Solange es Leben gibt, gibt es Hoffnung.",
+   "en": "While there is life, there is hope.",
+   "source": "Briefe an Atticus 9,10",
+   "themes": [
+    "courage"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q032",
+   "author": "Horaz",
+   "years": "65–8 v. Chr.",
+   "de": "Nutze den Tag und vertraue möglichst wenig auf den nächsten.",
+   "en": "Seize the day, trusting as little as possible in the next.",
+   "source": "Oden 1,11",
+   "themes": [
+    "presence"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q033",
+   "author": "Horaz",
+   "years": "65–8 v. Chr.",
+   "de": "Wer begonnen hat, hat die Hälfte getan.",
+   "en": "He who has begun has the work half done.",
+   "source": "Episteln 1,2",
+   "themes": [
+    "beginning"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q034",
+   "author": "Horaz",
+   "years": "65–8 v. Chr.",
+   "de": "Wage es, weise zu sein.",
+   "en": "Dare to be wise.",
+   "source": "Episteln 1,2",
+   "themes": [
+    "courage",
+    "learning"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q035",
+   "author": "Ovid",
+   "years": "43 v. Chr.–17",
+   "de": "Der Tropfen höhlt den Stein, nicht durch Kraft, sondern durch stetes Fallen.",
+   "en": "The drop hollows the stone, not by force but by falling often.",
+   "source": "Briefe aus dem Pontus 4,10",
+   "themes": [
+    "patience",
+    "discipline"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q036",
+   "author": "Plinius der Ältere",
+   "years": "23–79",
+   "de": "Kein Tag ohne Linie.",
+   "en": "No day without a line.",
+   "source": "Naturgeschichte 35 (über den Maler Apelles)",
+   "themes": [
+    "discipline",
+    "beginning"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q037",
+   "author": "Laozi",
+   "years": "6. Jh. v. Chr. (überliefert)",
+   "de": "Eine Reise von tausend Meilen beginnt mit einem einzigen Schritt.",
+   "en": "A journey of a thousand miles begins with a single step.",
+   "source": "Daodejing 64",
+   "themes": [
+    "beginning",
+    "goals"
+   ],
+   "original": "zh"
+  },
+  {
+   "id": "q038",
+   "author": "Laozi",
+   "years": "6. Jh. v. Chr. (überliefert)",
+   "de": "Wer andere kennt, ist klug; wer sich selbst kennt, ist weise.",
+   "en": "He who knows others is wise; he who knows himself is enlightened.",
+   "source": "Daodejing 33",
+   "themes": [
+    "reflection"
+   ],
+   "original": "zh"
+  },
+  {
+   "id": "q039",
+   "author": "Laozi",
+   "years": "6. Jh. v. Chr. (überliefert)",
+   "de": "Wer andere besiegt, hat Kraft; wer sich selbst besiegt, ist stark.",
+   "en": "He who conquers others has force; he who conquers himself is strong.",
+   "source": "Daodejing 33",
+   "themes": [
+    "discipline"
+   ],
+   "original": "zh"
+  },
+  {
+   "id": "q040",
+   "author": "Laozi",
+   "years": "6. Jh. v. Chr. (überliefert)",
+   "de": "Tu das Schwere, solange es leicht ist, und das Große, solange es klein ist.",
+   "en": "Do the difficult while it is easy; do the great while it is small.",
+   "source": "Daodejing 63",
+   "themes": [
+    "goals",
+    "beginning"
+   ],
+   "original": "zh"
+  },
+  {
+   "id": "q041",
+   "author": "Konfuzius",
+   "years": "551–479 v. Chr.",
+   "de": "Lernen ohne Nachdenken ist vergeblich; Nachdenken ohne Lernen ist gefährlich.",
+   "en": "Learning without thought is labor lost; thought without learning is perilous.",
+   "source": "Gespräche 2,15",
+   "themes": [
+    "learning"
+   ],
+   "original": "zh"
+  },
+  {
+   "id": "q042",
+   "author": "Konfuzius",
+   "years": "551–479 v. Chr.",
+   "de": "Fehler haben und sie nicht verbessern, das erst heißt wirklich Fehler haben.",
+   "en": "To have faults and not to reform them, this indeed is to have faults.",
+   "source": "Gespräche 15,30",
+   "themes": [
+    "learning",
+    "reflection"
+   ],
+   "original": "zh"
+  },
+  {
+   "id": "q043",
+   "author": "Buddha (Dhammapada)",
+   "years": "um 500 v. Chr. (überliefert)",
+   "de": "Alles, was wir sind, ist das Ergebnis dessen, was wir gedacht haben.",
+   "en": "All that we are is the result of what we have thought.",
+   "source": "Dhammapada 1",
+   "themes": [
+    "reflection"
+   ],
+   "original": "pi"
+  },
+  {
+   "id": "q044",
+   "author": "Buddha (Dhammapada)",
+   "years": "um 500 v. Chr. (überliefert)",
+   "de": "Wer tausendmal tausend Männer in der Schlacht besiegt, und wer sich selbst besiegt: der zweite ist der größte Sieger.",
+   "en": "If one man conquer in battle a thousand times a thousand men, and if another conquer himself, he is the greatest of conquerors.",
+   "source": "Dhammapada 103",
+   "themes": [
+    "discipline"
+   ],
+   "original": "pi"
+  },
+  {
+   "id": "q045",
+   "author": "Johann Wolfgang von Goethe",
+   "years": "1749–1832",
+   "de": "Es ist nicht genug, zu wissen, man muss auch anwenden; es ist nicht genug, zu wollen, man muss auch tun.",
+   "en": "Knowing is not enough; we must apply. Willing is not enough; we must do.",
+   "source": "Wilhelm Meisters Wanderjahre",
+   "themes": [
+    "discipline",
+    "beginning"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q046",
+   "author": "Johann Wolfgang von Goethe",
+   "years": "1749–1832",
+   "de": "Wer immer strebend sich bemüht, den können wir erlösen.",
+   "en": "Whoever strives with all his might, him we can redeem.",
+   "source": "Faust II",
+   "themes": [
+    "courage",
+    "patience"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q047",
+   "author": "Johann Wolfgang von Goethe",
+   "years": "1749–1832",
+   "de": "Man reist ja nicht, um anzukommen, sondern um zu reisen.",
+   "en": "One does not travel in order to arrive, but in order to travel.",
+   "source": "Brief, 1797",
+   "themes": [
+    "presence",
+    "goals"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q048",
+   "author": "Johann Wolfgang von Goethe",
+   "years": "1749–1832",
+   "de": "Edel sei der Mensch, hilfreich und gut!",
+   "en": "Noble be man, helpful and good!",
+   "source": "Das Göttliche",
+   "themes": [
+    "kindness"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q049",
+   "author": "Johann Wolfgang von Goethe",
+   "years": "1749–1832",
+   "de": "Man erblickt nur, was man schon weiß und versteht.",
+   "en": "One sees only what one already knows and understands.",
+   "source": "Brief an Friedrich von Müller, 1819",
+   "themes": [
+    "learning"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q050",
+   "author": "Johann Wolfgang von Goethe",
+   "years": "1749–1832",
+   "de": "Wenn wir die Menschen nur nehmen, wie sie sind, so machen wir sie schlechter; wenn wir sie behandeln, als wären sie, was sie sein sollten, so bringen wir sie dahin, wohin sie zu bringen sind.",
+   "en": "If we take people as they are, we make them worse; if we treat them as if they were what they ought to be, we help them become what they can be.",
+   "source": "Wilhelm Meisters Lehrjahre 8,4",
+   "themes": [
+    "kindness"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q051",
+   "author": "Friedrich Schiller",
+   "years": "1759–1805",
+   "de": "Es ist der Geist, der sich den Körper baut.",
+   "en": "It is the spirit that builds itself the body.",
+   "source": "Wallensteins Tod",
+   "themes": [
+    "courage"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q052",
+   "author": "Friedrich Schiller",
+   "years": "1759–1805",
+   "de": "Der Mensch ist nur da ganz Mensch, wo er spielt.",
+   "en": "Man is only fully human where he plays.",
+   "source": "Über die ästhetische Erziehung, 15. Brief",
+   "themes": [
+    "calm",
+    "presence"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q053",
+   "author": "Immanuel Kant",
+   "years": "1724–1804",
+   "de": "Habe Mut, dich deines eigenen Verstandes zu bedienen!",
+   "en": "Have the courage to use your own understanding!",
+   "source": "Beantwortung der Frage: Was ist Aufklärung?",
+   "themes": [
+    "courage",
+    "learning"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q054",
+   "author": "Georg Christoph Lichtenberg",
+   "years": "1742–1799",
+   "de": "Ich kann freilich nicht sagen, ob es besser werden wird, wenn es anders wird; aber so viel kann ich sagen: Es muss anders werden, wenn es gut werden soll.",
+   "en": "I cannot say whether things will get better if they change; what I can say is that they must change if they are to get better.",
+   "source": "Sudelbücher",
+   "themes": [
+    "courage",
+    "beginning"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q055",
+   "author": "Georg Christoph Lichtenberg",
+   "years": "1742–1799",
+   "de": "Man muss etwas Neues machen, um etwas Neues zu sehen.",
+   "en": "One must do something new in order to see something new.",
+   "source": "Sudelbücher",
+   "themes": [
+    "learning",
+    "beginning"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q056",
+   "author": "Rainer Maria Rilke",
+   "years": "1875–1926",
+   "de": "Habe Geduld gegen alles Ungelöste in deinem Herzen und versuche, die Fragen selbst liebzuhaben.",
+   "en": "Be patient toward all that is unsolved in your heart and try to love the questions themselves.",
+   "source": "Briefe an einen jungen Dichter",
+   "themes": [
+    "patience"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q057",
+   "author": "Rainer Maria Rilke",
+   "years": "1875–1926",
+   "de": "Es handelt sich darum, alles zu leben. Leben Sie jetzt die Fragen.",
+   "en": "The point is to live everything. Live the questions now.",
+   "source": "Briefe an einen jungen Dichter",
+   "themes": [
+    "presence",
+    "patience"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q058",
+   "author": "Rainer Maria Rilke",
+   "years": "1875–1926",
+   "de": "Wer spricht von Siegen? Überstehn ist alles.",
+   "en": "Who speaks of victory? To endure is everything.",
+   "source": "Requiem für Wolf Graf von Kalckreuth",
+   "themes": [
+    "courage",
+    "patience"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q059",
+   "author": "Friedrich Nietzsche",
+   "years": "1844–1900",
+   "de": "Hat man sein Warum des Lebens, so verträgt man sich fast mit jedem Wie.",
+   "en": "He who has a why to live can bear almost any how.",
+   "source": "Götzen-Dämmerung, Sprüche und Pfeile 12",
+   "themes": [
+    "goals",
+    "courage"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q060",
+   "author": "Friedrich Nietzsche",
+   "years": "1844–1900",
+   "de": "Man muss noch Chaos in sich haben, um einen tanzenden Stern gebären zu können.",
+   "en": "One must still have chaos in oneself to give birth to a dancing star.",
+   "source": "Also sprach Zarathustra",
+   "themes": [
+    "courage"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q061",
+   "author": "Friedrich Nietzsche",
+   "years": "1844–1900",
+   "de": "Nur die ergangenen Gedanken haben Wert.",
+   "en": "Only thoughts reached by walking have value.",
+   "source": "Götzen-Dämmerung, Sprüche und Pfeile 34",
+   "themes": [
+    "reflection",
+    "calm"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q062",
+   "author": "Franz Kafka",
+   "years": "1883–1924",
+   "de": "Von einem gewissen Punkt an gibt es keine Rückkehr mehr. Dieser Punkt ist zu erreichen.",
+   "en": "From a certain point onward there is no longer any turning back. That is the point that must be reached.",
+   "source": "Aphorismen 5",
+   "themes": [
+    "courage",
+    "goals"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q063",
+   "author": "Marie von Ebner-Eschenbach",
+   "years": "1830–1916",
+   "de": "Wer nichts weiß, muss alles glauben.",
+   "en": "Those who know nothing must believe everything.",
+   "source": "Aphorismen",
+   "themes": [
+    "learning"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q064",
+   "author": "Marie von Ebner-Eschenbach",
+   "years": "1830–1916",
+   "de": "Man bleibt jung, solange man noch lernen, neue Gewohnheiten annehmen und Widerspruch ertragen kann.",
+   "en": "One stays young as long as one can still learn, take on new habits and bear contradiction.",
+   "source": "Aphorismen",
+   "themes": [
+    "learning"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q065",
+   "author": "Jean Paul",
+   "years": "1763–1825",
+   "de": "Die Erinnerung ist das einzige Paradies, aus dem wir nicht vertrieben werden können.",
+   "en": "Memory is the only paradise from which we cannot be driven.",
+   "source": "Impromptus",
+   "themes": [
+    "gratitude",
+    "reflection"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q066",
+   "author": "Novalis",
+   "years": "1772–1801",
+   "de": "Wohin gehen wir? Immer nach Hause.",
+   "en": "Where are we going? Always home.",
+   "source": "Heinrich von Ofterdingen",
+   "themes": [
+    "calm"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q067",
+   "author": "Friedrich Hölderlin",
+   "years": "1770–1843",
+   "de": "Wo aber Gefahr ist, wächst das Rettende auch.",
+   "en": "But where danger is, grows the saving power also.",
+   "source": "Patmos",
+   "themes": [
+    "courage"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q068",
+   "author": "Joseph von Eichendorff",
+   "years": "1788–1857",
+   "de": "Schläft ein Lied in allen Dingen, die da träumen fort und fort, und die Welt hebt an zu singen, triffst du nur das Zauberwort.",
+   "en": "A song sleeps in all things that dream on and on, and the world begins to sing if you only find the magic word.",
+   "source": "Wünschelrute",
+   "themes": [
+    "presence",
+    "gratitude"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q069",
+   "author": "Theodor Storm",
+   "years": "1817–1888",
+   "de": "Der eine fragt: Was kommt danach? Der andre fragt nur: Ist es recht? Und also unterscheidet sich der Freie von dem Knecht.",
+   "en": "One asks: what comes after? The other asks only: is it right? And thus the free man differs from the servant.",
+   "source": "Der eine fragt",
+   "themes": [
+    "discipline",
+    "courage"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q070",
+   "author": "Theodor Fontane",
+   "years": "1819–1898",
+   "de": "Am Mute hängt der Erfolg.",
+   "en": "Success hangs on courage.",
+   "source": "Spruch",
+   "themes": [
+    "courage"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q071",
+   "author": "Angelus Silesius",
+   "years": "1624–1677",
+   "de": "Mensch, werde wesentlich.",
+   "en": "Man, become essential.",
+   "source": "Cherubinischer Wandersmann",
+   "themes": [
+    "reflection"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q072",
+   "author": "Christian Morgenstern",
+   "years": "1871–1914",
+   "de": "Wer vom Ziel nicht weiß, kann den Weg nicht haben.",
+   "en": "Who knows not the goal cannot have the way.",
+   "source": "Stufen",
+   "themes": [
+    "goals"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q073",
+   "author": "Christian Morgenstern",
+   "years": "1871–1914",
+   "de": "Schön ist eigentlich alles, was man mit Liebe betrachtet.",
+   "en": "Beautiful is everything one looks at with love.",
+   "source": "Stufen",
+   "themes": [
+    "gratitude",
+    "kindness"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q074",
+   "author": "Gottfried Keller",
+   "years": "1819–1890",
+   "de": "Trink, o Augen, was die Wimper hält, von dem goldnen Überfluss der Welt!",
+   "en": "Drink, O eyes, what your lashes can hold, of the golden abundance of the world!",
+   "source": "Abendlied",
+   "themes": [
+    "gratitude",
+    "presence"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q075",
+   "author": "Joachim Ringelnatz",
+   "years": "1883–1934",
+   "de": "Humor ist der Knopf, der verhindert, dass uns der Kragen platzt.",
+   "en": "Humor is the button that keeps our collar from bursting.",
+   "source": "Spruch",
+   "themes": [
+    "calm"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q076",
+   "author": "Arthur Schopenhauer",
+   "years": "1788–1860",
+   "de": "Neun Zehntel unseres Glücks beruhen allein auf der Gesundheit.",
+   "en": "Nine-tenths of our happiness rests on health alone.",
+   "source": "Aphorismen zur Lebensweisheit",
+   "themes": [
+    "gratitude"
+   ],
+   "original": "de"
+  },
+  {
+   "id": "q077",
+   "author": "Søren Kierkegaard",
+   "years": "1813–1855",
+   "de": "Das Leben wird vorwärts gelebt und rückwärts verstanden.",
+   "en": "Life must be lived forwards, but it can only be understood backwards.",
+   "source": "Tagebücher, 1843",
+   "themes": [
+    "reflection"
+   ],
+   "original": "da"
+  },
+  {
+   "id": "q078",
+   "author": "Baruch de Spinoza",
+   "years": "1632–1677",
+   "de": "Alles Vortreffliche ist ebenso schwierig wie selten.",
+   "en": "All things excellent are as difficult as they are rare.",
+   "source": "Ethik, Schluss",
+   "themes": [
+    "patience",
+    "courage"
+   ],
+   "original": "la"
+  },
+  {
+   "id": "q079",
+   "author": "Michel de Montaigne",
+   "years": "1533–1592",
+   "de": "Das Größte auf der Welt ist, sich selbst zu gehören.",
+   "en": "The greatest thing in the world is to know how to belong to oneself.",
+   "source": "Essais 1,39",
+   "themes": [
+    "calm",
+    "reflection"
+   ],
+   "original": "fr"
+  },
+  {
+   "id": "q080",
+   "author": "Michel de Montaigne",
+   "years": "1533–1592",
+   "de": "Das sicherste Zeichen der Weisheit ist eine beständige Heiterkeit.",
+   "en": "The most certain sign of wisdom is a constant cheerfulness.",
+   "source": "Essais 1,26",
+   "themes": [
+    "calm"
+   ],
+   "original": "fr"
+  },
+  {
+   "id": "q081",
+   "author": "Michel de Montaigne",
+   "years": "1533–1592",
+   "de": "Nichts wird so fest geglaubt wie das, was wir am wenigsten wissen.",
+   "en": "Nothing is so firmly believed as that which we least know.",
+   "source": "Essais 1,32",
+   "themes": [
+    "learning"
+   ],
+   "original": "fr"
+  },
+  {
+   "id": "q082",
+   "author": "Blaise Pascal",
+   "years": "1623–1662",
+   "de": "Alles Unglück der Menschen rührt daher, dass sie nicht ruhig in einem Zimmer bleiben können.",
+   "en": "All the unhappiness of men arises from one single fact, that they cannot stay quietly in their own room.",
+   "source": "Pensées",
+   "themes": [
+    "calm"
+   ],
+   "original": "fr"
+  },
+  {
+   "id": "q083",
+   "author": "Voltaire",
+   "years": "1694–1778",
+   "de": "Das Bessere ist der Feind des Guten.",
+   "en": "The best is the enemy of the good.",
+   "source": "Dictionnaire philosophique",
+   "themes": [
+    "discipline",
+    "calm"
+   ],
+   "original": "fr"
+  },
+  {
+   "id": "q084",
+   "author": "Teresa von Ávila",
+   "years": "1515–1582",
+   "de": "Die Geduld erlangt alles.",
+   "en": "Patience obtains all things.",
+   "source": "Gebet (Nada te turbe)",
+   "themes": [
+    "patience"
+   ],
+   "original": "es"
+  },
+  {
+   "id": "q085",
+   "author": "Leonardo da Vinci",
+   "years": "1452–1519",
+   "de": "Wer wenig denkt, irrt viel.",
+   "en": "He who thinks little errs much.",
+   "source": "Notizbücher",
+   "themes": [
+    "reflection",
+    "learning"
+   ],
+   "original": "it"
+  },
+  {
+   "id": "q086",
+   "author": "Antoine de Saint-Exupéry",
+   "years": "1900–1944",
+   "de": "Nur mit dem Herzen sieht man richtig; das Wichtigste bleibt den Augen verborgen.",
+   "en": "It is only with the heart that one can see rightly; what is essential is invisible to the eye.",
+   "source": "Der kleine Prinz (eigene Übersetzung)",
+   "themes": [
+    "kindness",
+    "presence"
+   ],
+   "original": "fr"
+  },
+  {
+   "id": "q087",
+   "author": "Emily Dickinson",
+   "years": "1830–1886",
+   "de": "Hoffnung ist das Ding mit Federn, das in der Seele sitzt.",
+   "en": "Hope is the thing with feathers that perches in the soul.",
+   "source": "Gedicht 254",
+   "themes": [
+    "courage"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q088",
+   "author": "Emily Dickinson",
+   "years": "1830–1886",
+   "de": "Die Ewigkeit besteht aus lauter Jetzt.",
+   "en": "Forever is composed of nows.",
+   "source": "Gedicht 624",
+   "themes": [
+    "presence"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q089",
+   "author": "Henry David Thoreau",
+   "years": "1817–1862",
+   "de": "Wer zuversichtlich in Richtung seiner Träume geht und sich bemüht, das Leben zu leben, das er sich vorgestellt hat, wird einen Erfolg finden, den er in gewöhnlichen Stunden nicht erwartet hätte.",
+   "en": "If one advances confidently in the direction of his dreams, and endeavors to live the life which he has imagined, he will meet with a success unexpected in common hours.",
+   "source": "Walden, Schluss",
+   "themes": [
+    "goals",
+    "courage"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q090",
+   "author": "Henry David Thoreau",
+   "years": "1817–1862",
+   "de": "Es kommt nicht darauf an, was du anschaust, sondern was du siehst.",
+   "en": "It is not what you look at that matters, it is what you see.",
+   "source": "Tagebuch, 1851",
+   "themes": [
+    "presence",
+    "reflection"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q091",
+   "author": "Ralph Waldo Emerson",
+   "years": "1803–1882",
+   "de": "Beende jeden Tag und lass ihn hinter dir. Du hast getan, was du konntest.",
+   "en": "Finish each day and be done with it. You have done what you could.",
+   "source": "Brief an die Tochter",
+   "themes": [
+    "calm",
+    "reflection"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q092",
+   "author": "Ralph Waldo Emerson",
+   "years": "1803–1882",
+   "de": "Tu die Sache, und du wirst die Kraft haben.",
+   "en": "Do the thing, and you shall have the power.",
+   "source": "Essays: Compensation",
+   "themes": [
+    "beginning",
+    "courage"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q093",
+   "author": "Mark Twain",
+   "years": "1835–1910",
+   "de": "Mut ist Widerstand gegen die Angst, Beherrschung der Angst, nicht das Fehlen von Angst.",
+   "en": "Courage is resistance to fear, mastery of fear, not absence of fear.",
+   "source": "Pudd'nhead Wilson",
+   "themes": [
+    "courage"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q094",
+   "author": "William James",
+   "years": "1842–1910",
+   "de": "Der große Nutzen des Lebens ist, es für etwas einzusetzen, das es überdauert.",
+   "en": "The great use of life is to spend it for something that will outlast it.",
+   "source": "Briefe",
+   "themes": [
+    "goals"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q095",
+   "author": "Thomas Carlyle",
+   "years": "1795–1881",
+   "de": "Unsere Hauptaufgabe ist nicht, zu sehen, was in der Ferne dämmert, sondern zu tun, was klar vor uns liegt.",
+   "en": "Our main business is not to see what lies dimly at a distance, but to do what lies clearly at hand.",
+   "source": "Essays",
+   "themes": [
+    "beginning",
+    "presence"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q096",
+   "author": "Jane Austen",
+   "years": "1775–1817",
+   "de": "Erkenne dein eigenes Glück. Du brauchst nichts als Geduld; oder gib ihr einen schöneren Namen: Nenne sie Hoffnung.",
+   "en": "Know your own happiness. You want nothing but patience; or give it a more fascinating name, call it hope.",
+   "source": "Verstand und Gefühl",
+   "themes": [
+    "patience",
+    "gratitude"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q097",
+   "author": "Louisa May Alcott",
+   "years": "1832–1888",
+   "de": "Ich fürchte keine Stürme, denn ich lerne, mein Schiff zu steuern.",
+   "en": "I am not afraid of storms, for I am learning how to sail my ship.",
+   "source": "Little Women",
+   "themes": [
+    "courage",
+    "learning"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q098",
+   "author": "Frederick Douglass",
+   "years": "1818–1895",
+   "de": "Ohne Kampf kein Fortschritt.",
+   "en": "If there is no struggle, there is no progress.",
+   "source": "Rede, 1857",
+   "themes": [
+    "courage",
+    "patience"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q099",
+   "author": "Benjamin Franklin",
+   "years": "1706–1790",
+   "de": "Gut getan ist besser als gut gesagt.",
+   "en": "Well done is better than well said.",
+   "source": "Poor Richard's Almanack",
+   "themes": [
+    "discipline"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q100",
+   "author": "Benjamin Franklin",
+   "years": "1706–1790",
+   "de": "Verlorene Zeit findet man nie wieder.",
+   "en": "Lost time is never found again.",
+   "source": "Poor Richard's Almanack",
+   "themes": [
+    "presence",
+    "discipline"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q101",
+   "author": "Marie Curie",
+   "years": "1867–1934",
+   "de": "Nichts im Leben muss man fürchten, man muss es nur verstehen.",
+   "en": "Nothing in life is to be feared, it is only to be understood.",
+   "source": "überliefert",
+   "themes": [
+    "courage",
+    "learning"
+   ],
+   "original": "fr"
+  },
+  {
+   "id": "q102",
+   "author": "Rabindranath Tagore",
+   "years": "1861–1941",
+   "de": "Du kannst das Meer nicht überqueren, indem du nur dastehst und auf das Wasser starrst.",
+   "en": "You cannot cross the sea merely by standing and staring at the water.",
+   "source": "überliefert",
+   "themes": [
+    "beginning",
+    "courage"
+   ],
+   "original": "en"
+  },
+  {
+   "id": "q103",
+   "author": "Leo Tolstoi",
+   "years": "1828–1910",
+   "de": "Jeder denkt daran, die Menschheit zu verändern, aber niemand daran, sich selbst zu verändern.",
+   "en": "Everyone thinks of changing humanity, and nobody thinks of changing himself.",
+   "source": "Drei Methoden der Reform, 1900",
+   "themes": [
+    "reflection",
+    "discipline"
+   ],
+   "original": "ru"
+  },
+  {
+   "id": "q104",
+   "author": "Leo Tolstoi",
+   "years": "1828–1910",
+   "de": "Die beiden mächtigsten Krieger sind Geduld und Zeit.",
+   "en": "The two most powerful warriors are patience and time.",
+   "source": "Krieg und Frieden",
+   "themes": [
+    "patience"
+   ],
+   "original": "ru"
+  }
+ ]
+}
