@@ -33,19 +33,19 @@ void main() {
         await tester.tap(find.byKey(writeButtonKey));
         await tester.pumpAndSettle();
         expect(find.byType(WriteScreen), findsOneWidget);
+        // Assistent: ein Impuls je Schritt, Fortschritt "Impuls 1 von 4".
         expect(
           find.text('Was ist heute passiert, was beschäftigt dich?'),
           findsOneWidget,
         );
-        expect(find.text('Drei Dinge reichen.'), findsOneWidget);
-        await tester.scrollUntilVisible(
-          find.text('Der eine Schritt für morgen'),
-          200,
-          scrollable: find.byType(Scrollable).first,
-        );
-        expect(find.text('Der eine Schritt für morgen'), findsOneWidget);
-        await tester.drag(find.byType(ListView), const Offset(0, 800));
+        expect(find.text('Drei Dinge reichen.'), findsNothing);
+        expect(find.byKey(writeBackKey), findsNothing);
+        expect(find.text('Impuls 1 von 4'), findsOneWidget);
+        await tester.tap(find.byKey(writeNextKey));
         await tester.pumpAndSettle();
+        expect(find.text('Drei Dinge reichen.'), findsOneWidget);
+        expect(find.text('Impuls 2 von 4'), findsOneWidget);
+        expect(find.byKey(writeBackKey), findsOneWidget);
         expect(find.text('Noch kein Wort'), findsOneWidget);
         // Das Textfeld lässt die Rechtschreibhilfe des Systems zu.
         final field = tester.widget(
@@ -84,16 +84,14 @@ void main() {
         expect(services.notes.items.single.id, saved.id);
         expect(services.notes.items.single.text, endsWith('Und Regen.'));
 
-        // Zweites Feld, dann sofort schließen: Speichern beim Verlassen.
-        await tester.scrollUntilVisible(
-          find.byKey(writeFieldKey(ReviewPrompts.next)),
-          200,
-          scrollable: find.byType(Scrollable).first,
-        );
-        await tester.ensureVisible(
-          find.byKey(writeFieldKey(ReviewPrompts.next)),
-        );
+        // Zwei Schritte weiter zum letzten Impuls, dann sofort schließen:
+        // Speichern beim Verlassen.
+        await tester.tap(find.byKey(writeNextKey));
         await tester.pumpAndSettle();
+        await tester.tap(find.byKey(writeNextKey));
+        await tester.pumpAndSettle();
+        expect(find.text('Der eine Schritt für morgen'), findsOneWidget);
+        expect(find.text('Impuls 4 von 4'), findsOneWidget);
         await tester.enterText(
           find.byKey(writeFieldKey(ReviewPrompts.next)),
           'Wenn ich morgen aufstehe, dann 10 Minuten lesen.',

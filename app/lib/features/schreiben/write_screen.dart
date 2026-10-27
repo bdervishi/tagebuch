@@ -4,6 +4,7 @@ import 'package:diary_core/diary_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/motion.dart';
 import '../../data/entry_view.dart';
 import '../../data/settings_notifier.dart';
 import '../../l10n/app_localizations.dart';
@@ -17,8 +18,10 @@ import '../rueckblick/prompts.dart';
 Key writeFieldKey(String? promptKey) =>
     Key('write-field-${promptKey ?? 'free-text'}');
 
-/// Key des Zurück-Knopfs (für Tests).
+/// Keys für Tests: Schließen, "Zurück" und "Weiter"/"Fertig" des Assistenten.
 const Key writeCloseKey = Key('write-close');
+const Key writeBackKey = Key('write-back');
+const Key writeNextKey = Key('write-next');
 
 /// Entprellung des automatischen Speicherns.
 const Duration writeAutosaveDelay = Duration(seconds: 1);
@@ -27,9 +30,9 @@ const Duration writeAutosaveDelay = Duration(seconds: 1);
 /// automatischem Speichern (Entprellung eine Sekunde und beim Verlassen),
 /// Datum oben, Wortzähler, Rechtschreibhilfe der Systemtastatur.
 ///
-/// Mit "Geführter Rückblick" stehen vier Felder untereinander, je eines für
-/// einen Impuls aus [ReviewPrompts.review]; jedes Feld ist eine eigene
-/// [EntryNote] mit `promptKey`. Leere Felder werden nicht gespeichert, ein
+/// Mit "Geführter Rückblick" läuft ein Assistent: ein Impuls je Schritt
+/// (aus [ReviewPrompts.review]), zum Schluss die Stimmung; jedes Feld ist
+/// eine eigene [EntryNote] mit `promptKey`. Leere Felder werden nicht gespeichert, ein
 /// geleertes Feld löscht seine Notiz. Ohne die Einstellung gibt es ein
 /// freies Feld. Mit [noteId] wird genau diese Notiz bearbeitet.
 class WriteScreen extends ConsumerStatefulWidget {
@@ -132,7 +135,9 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     unawaited(_flush());
     for (final f in _fields) {
       f.controller.dispose();
+      f.focus.dispose();
     }
+    _pages.dispose();
     super.dispose();
   }
 
@@ -240,12 +245,37 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     if (mounted) setState(() => _entry = fresh ?? entry);
   }
 
+  /// Aktueller Schritt des Assistenten (geführt): 0 bis 3 die Impulse,
+  /// 4 die Stimmung.
+  int _step = 0;
+  final PageController _pages = PageController();
+
+  int get _stepCount => _fields.length + 1;
+
+  void _goTo(int step) {
+    if (step < 0 || step >= _stepCount) return;
+    if (Motion.reduced(context)) {
+      _pages.jumpToPage(step);
+    } else {
+      _pages.animateToPage(step, duration: Motion.page, curve: Motion.easeOut);
+    }
+  }
+
+  void _onPageChanged(int step) {
+    setState(() => _step = step);
+    // Das Feld des neuen Schritts bekommt den Fokus, damit die Tastatur
+    // gleich da ist; beim Stimmungsschritt schließt sie sich.
+    if (step < _fields.length) {
+      _fields[step].focus.requestFocus();
+    } else {
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final materialL10n = MaterialLocalizations.of(context);
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.writeTitle),
@@ -266,34 +296,12 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                   child: const CircularProgressIndicator(),
                 ),
               )
+            : _guided
+            ? _buildWizard(context)
             : ListView(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                 children: [
-                  Text(
-                    materialL10n.formatFullDate(widget.day.startOfDay),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text(
-                        l10n.wordCount(_wordCount),
-                        key: const Key('write-word-count'),
-                        style: theme.textTheme.labelMedium,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          l10n.writeAutosaveNote,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  _Header(day: widget.day, wordCount: _wordCount),
                   const SizedBox(height: 16),
                   for (final (i, f) in _fields.indexed) ...[
                     Reveal(
@@ -305,17 +313,182 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                     ),
                     const SizedBox(height: 20),
                   ],
-                  if (_guided) ...[
-                    const Divider(),
-                    const SizedBox(height: 8),
-                    MoodSelector(
+                ],
+              ),
+      ),
+    );
+  }
+
+  /// Geführt als Assistent: ein Impuls je Schritt, zum Schluss die Stimmung.
+  /// Fortschritt als Punkte wie im Onboarding; "Zurück" und "Weiter" unten,
+  /// Wischen geht auch. Jeder Schritt ist scrollbar (lange Texte, Tastatur).
+  Widget _buildWizard(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final last = _step == _stepCount - 1;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          child: _Header(day: widget.day, wordCount: _wordCount),
+        ),
+        const SizedBox(height: 12),
+        _StepDots(count: _stepCount, current: _step),
+        const SizedBox(height: 4),
+        Text(
+          _step < _fields.length
+              ? l10n.promptProgress(_step + 1, _fields.length)
+              : l10n.moodHeading,
+          key: const Key('write-step-label'),
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        Expanded(
+          child: PageView.builder(
+            controller: _pages,
+            itemCount: _stepCount,
+            onPageChanged: _onPageChanged,
+            itemBuilder: (context, index) {
+              if (index < _fields.length) {
+                final f = _fields[index];
+                return ListView(
+                  key: ValueKey('write-step-$index'),
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                  children: [
+                    _PromptField(
+                      field: f,
+                      onChanged: () => _onChanged(f),
+                      autofocus: index == 0,
+                      minLines: 5,
+                    ),
+                  ],
+                );
+              }
+              return ListView(
+                key: const ValueKey('write-step-mood'),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                children: [
+                  Reveal(
+                    child: Text(
+                      l10n.writeMoodStepTitle,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Reveal(
+                    index: 1,
+                    child: MoodSelector(
                       value: MoodScale.parse(_entry?.mood),
                       onChanged: _setMood,
                       showNote: true,
                     ),
-                  ],
+                  ),
                 ],
+              );
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+          child: Row(
+            children: [
+              if (_step > 0)
+                TextButton(
+                  key: writeBackKey,
+                  onPressed: () => _goTo(_step - 1),
+                  child: Text(l10n.writeStepBack),
+                ),
+              const Spacer(),
+              FilledButton(
+                key: writeNextKey,
+                onPressed: last
+                    ? () => Navigator.of(context).maybePop()
+                    : () => _goTo(_step + 1),
+                child: Text(last ? l10n.writeStepDone : l10n.writeStepNext),
               ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Datum, Wortzähler und Hinweis auf das automatische Speichern.
+class _Header extends StatelessWidget {
+  const _Header({required this.day, required this.wordCount});
+
+  final LocalDay day;
+  final int wordCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final materialL10n = MaterialLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          materialL10n.formatFullDate(day.startOfDay),
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Text(
+              l10n.wordCount(wordCount),
+              key: const Key('write-word-count'),
+              style: theme.textTheme.labelMedium,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l10n.writeAutosaveNote,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Fortschrittspunkte: der aktuelle Punkt wird zum Strich (160 ms).
+class _StepDots extends StatelessWidget {
+  const _StepDots({required this.count, required this.current});
+
+  final int count;
+  final int current;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return ExcludeSemantics(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (var i = 0; i < count; i++)
+            AnimatedContainer(
+              duration: Motion.quick,
+              curve: Motion.easeOut,
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: i == current ? 22 : 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: i == current ? scheme.primary : scheme.outlineVariant,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -330,6 +503,7 @@ class _NoteField {
 
   final String? promptKey;
   final TextEditingController controller;
+  final FocusNode focus = FocusNode();
 
   /// Spiegel des Feldtexts, lesbar auch nach dem Dispose des Controllers.
   String text;
@@ -345,10 +519,19 @@ class _NoteField {
 }
 
 class _PromptField extends StatelessWidget {
-  const _PromptField({required this.field, required this.onChanged});
+  const _PromptField({
+    required this.field,
+    required this.onChanged,
+    this.autofocus = false,
+    this.minLines,
+  });
 
   final _NoteField field;
   final VoidCallback onChanged;
+  final bool autofocus;
+
+  /// Mindesthöhe in Zeilen; ohne Angabe 6 (frei) bzw. 2 (Impuls).
+  final int? minLines;
 
   @override
   Widget build(BuildContext context) {
@@ -377,8 +560,10 @@ class _PromptField extends StatelessWidget {
         TextField(
           key: writeFieldKey(key),
           controller: field.controller,
+          focusNode: field.focus,
+          autofocus: autofocus,
           onChanged: (_) => onChanged(),
-          minLines: key == null ? 6 : 2,
+          minLines: minLines ?? (key == null ? 6 : 2),
           maxLines: null,
           keyboardType: TextInputType.multiline,
           textCapitalization: TextCapitalization.sentences,
