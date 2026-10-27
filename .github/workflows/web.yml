@@ -78,8 +78,11 @@ jobs:
           done
           [ "$missing" -eq 0 ] || exit 1
           du -sh "$target"
-      - name: GitHub Pages einrichten (Quelle GitHub Actions, aktiviert bei Bedarf)
+      # Das Workflow-Token darf die Pages-Site nicht anlegen (nur der Inhaber: Settings, Pages,
+      # Source "GitHub Actions"). Bis dahin schlägt dieser Schritt fehl, ohne den Build zu stoppen.
+      - name: GitHub Pages einrichten (Quelle GitHub Actions)
         uses: actions/configure-pages@v5
+        continue-on-error: true
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
