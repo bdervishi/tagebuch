@@ -1,7 +1,7 @@
 name: Web (PWA)
 
 # Baut die Web-Fassung (D16) ohne CDN-Ressourcen und veröffentlicht sie auf GitHub Pages.
-# Veröffentlichung nur vom Standardzweig; auf anderen Zweigen wird nur gebaut und als Artefakt abgelegt.
+# Veröffentlichung nur vom Standardzweig (derzeit der Entwicklungszweig); auf anderen Zweigen wird nur gebaut.
 # Hosting liefert ausschließlich statische Dateien; die CSP der App erlaubt nur den eigenen Origin.
 # Die Modelldateien der Browser-Spracherkennung (W5) werden hier beim Veröffentlichen von Hugging Face
 # geladen und vom eigenen Origin ausgeliefert; die App selbst spricht nie mit huggingface.co.
@@ -78,6 +78,10 @@ jobs:
           done
           [ "$missing" -eq 0 ] || exit 1
           du -sh "$target"
+      - name: GitHub Pages einrichten (Quelle GitHub Actions, aktiviert bei Bedarf)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/build/web
