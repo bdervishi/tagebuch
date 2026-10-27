@@ -31,6 +31,11 @@ Bekannte Grenzen auf iOS: Aufnahme nur, solange die App im Vordergrund ist (Bild
 2. Wiedergabe funktioniert, auch nach einem Neustart des Telefons.
 3. Flugmodus einschalten, App öffnen, aufnehmen, abspielen: Alles muss ohne Netz gehen.
 4. Backup erstellen (Einstellungen, Daten), Datei sicher ablegen (z. B. in der Dateien-App), einmal probeweise wiederherstellen.
+5. App-Sperre (Einstellungen, Schutz) einschalten, App in den Hintergrund legen, nach der gewählten Zeit zurückkehren: Der Sperrbildschirm muss erscheinen, und beim Wechsel darf der App-Switcher keine Inhalte zeigen. Dabei die Dauer der PIN-Prüfung beobachten (Ziel: höchstens rund eine Sekunde; Messwert in D23 nachtragen).
+
+## App-Sperre: PIN merken
+
+Die App-Sperre schützt davor, dass jemand mit dem entsperrten Telefon mitliest; sie ersetzt keine Biometrie und bindet den Schlüssel nicht (Entscheidung D23). Den PIN gut merken: Es gibt keinen Weg, ihn zurückzusetzen, und absichtlich keine Hintertür. Wer ihn vergisst, kann die App nur zurücksetzen (alle Daten auf dem Gerät werden gelöscht) und danach das Backup mit Passphrase wiederherstellen. Deshalb gehört zur eingeschalteten Sperre ein aktuelles Backup.
 
 ## Aktualisierungen
 

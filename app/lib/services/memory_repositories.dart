@@ -372,6 +372,9 @@ class InMemorySettingsRepository implements SettingsRepository {
 
   @override
   Future<Map<String, String>> all() async => Map.of(_values);
+
+  /// "App zurücksetzen" (Tests): alle Werte verwerfen.
+  void clear() => _values.clear();
 }
 
 /// Audiodateien im Speicher für die native App ohne Speicherschicht und für

@@ -53,6 +53,12 @@ dependencies:
   # Links "Termin anlegen" für Google Kalender und Outlook (D18): reines Dart.
   diary_reminders:
     path: ../packages/diary_reminders
+  # App-Sperre mit PIN (D23): PIN-Hash, Wartezeiten, Zeitfenster; Argon2id aus
+  # diary_crypto. Beides reines Dart ohne Netzwerkzugriff.
+  diary_keys:
+    path: ../packages/diary_keys
+  diary_crypto:
+    path: ../packages/diary_crypto
   # Nur im Web-Build eingebunden (bedingter Import in lib/services/create_services.dart).
   diary_web:
     path: ../packages/diary_web

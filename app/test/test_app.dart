@@ -90,6 +90,7 @@ class TestServices {
     this.sttEngine,
     this.fileTranscriber,
     this.quoteLibrary,
+    this.clock = const SystemClock(),
   }) {
     final entryItems = <DiaryEntry>[];
     final recordingItems = <Recording>[];
@@ -223,11 +224,26 @@ class TestServices {
       deleteFiles: (names) async => deletedFiles.addAll(names),
       features: features,
       audioFiles: audioFiles,
-      // Schnelle Argon2id-Parameter, damit Backup-Tests nicht Sekunden dauern.
+      // Schnelle Argon2id-Parameter, damit Backup- und Sperre-Tests nicht
+      // Sekunden dauern.
       argon2Params: Argon2Params.testing,
+      pinKdfParams: Argon2Params.testing,
+      clock: clock,
+      // "App zurücksetzen" (D23): zählt und leert die Einstellungen, damit
+      // die App danach beim Onboarding beginnt.
+      resetAll: () async {
+        resetCalls++;
+        settings.clear();
+      },
       ids: ids,
     );
   }
+
+  /// Zeitquelle der Dienste (Tests: `FixedClock`).
+  final Clock clock;
+
+  /// Wie oft "App zurücksetzen" ausgeführt wurde.
+  int resetCalls = 0;
 
   final RandomIdGenerator ids = RandomIdGenerator();
   final List<String> deletedFiles = [];

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/routes.dart';
+import '../../data/app_lock.dart';
 import '../../data/day.dart';
 import '../../data/settings_notifier.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
 import '../../services/platform_features.dart';
 import '../daten/transfer_support.dart';
+import '../schutz/pin_flow_screen.dart';
 import 'calendar_sheet.dart';
 import 'transcription_section.dart';
 
@@ -20,6 +22,9 @@ const Key deviceTransferKey = Key('settings-device-transfer');
 const Key guidedReviewKey = Key('settings-guided-review');
 const Key quotesEnabledKey = Key('settings-quotes-enabled');
 const Key quotesManageKey = Key('settings-quotes-manage');
+const Key appLockSwitchKey = Key('settings-app-lock');
+const Key appLockChangePinKey = Key('settings-app-lock-pin');
+const Key appLockAfterKey = Key('settings-app-lock-after');
 
 /// Speicherstatus der Plattform (Web: `navigator.storage`).
 final storageStatusProvider = FutureProvider<StorageStatus?>(
@@ -177,12 +182,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const Divider(),
             _SectionHeader(l10n.sectionProtection),
-            SwitchListTile(
-              title: Text(l10n.appLock),
-              subtitle: Text(l10n.appLockSubtitle),
-              value: settings.appLockEnabled,
-              onChanged: notifier.setAppLockEnabled,
-            ),
+            const _AppLockSection(),
             const Divider(),
             _SectionHeader(l10n.sectionData),
             if (features.isWeb) ...[
@@ -291,6 +291,99 @@ class SettingsScreen extends ConsumerWidget {
       TranscriptionLanguage.deCH => l10n.languageDeCH,
       TranscriptionLanguage.en => l10n.languageEn,
     };
+  }
+}
+
+/// Abschnitt Schutz (D23): Schalter "App-Sperre" (Einschalten öffnet die
+/// PIN-Vergabe, Ausschalten verlangt den PIN), "PIN ändern", "Sperren nach"
+/// und der ehrliche Hinweis, was die Sperre schützt und was nicht.
+class _AppLockSection extends ConsumerWidget {
+  const _AppLockSection();
+
+  static String lockAfterName(AppLocalizations l10n, LockAfter value) =>
+      switch (value) {
+        LockAfter.immediately => l10n.lockAfterImmediately,
+        LockAfter.oneMinute => l10n.lockAfterOneMinute,
+        LockAfter.fiveMinutes => l10n.lockAfterFiveMinutes,
+      };
+
+  Future<void> _pickLockAfter(
+    BuildContext context,
+    WidgetRef ref,
+    LockAfter current,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final picked = await showDialog<LockAfter>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(l10n.lockAfterTitle),
+        children: [
+          RadioGroup<LockAfter>(
+            groupValue: current,
+            onChanged: (value) => Navigator.of(context).pop(value),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final value in LockAfter.values)
+                  RadioListTile<LockAfter>(
+                    value: value,
+                    title: Text(lockAfterName(l10n, value)),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    if (picked != null) {
+      await ref.read(appLockProvider.notifier).setLockAfter(picked);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final lock = ref.watch(appLockProvider).value;
+    final enabled = lock?.enabled ?? false;
+    return Column(
+      children: [
+        SwitchListTile(
+          key: appLockSwitchKey,
+          title: Text(l10n.appLock),
+          subtitle: Text(l10n.appLockSubtitle),
+          value: enabled,
+          onChanged: lock == null
+              ? null
+              : (value) => AppRoutes.openPinFlow(
+                  context,
+                  value ? PinFlowKind.setup : PinFlowKind.disable,
+                ),
+        ),
+        ListTile(
+          key: appLockChangePinKey,
+          enabled: enabled,
+          leading: const Icon(Icons.password_outlined),
+          title: Text(l10n.pinChange),
+          subtitle: Text(l10n.pinChangeSubtitle),
+          onTap: () => AppRoutes.openPinFlow(context, PinFlowKind.change),
+        ),
+        ListTile(
+          key: appLockAfterKey,
+          enabled: enabled,
+          leading: const Icon(Icons.timer_outlined),
+          title: Text(l10n.lockAfterTitle),
+          subtitle: Text(
+            lockAfterName(l10n, lock?.lockAfter ?? LockAfter.standard),
+          ),
+          onTap: () => _pickLockAfter(
+            context,
+            ref,
+            lock?.lockAfter ?? LockAfter.standard,
+          ),
+        ),
+        _Note(l10n.appLockNote),
+      ],
+    );
   }
 }
 

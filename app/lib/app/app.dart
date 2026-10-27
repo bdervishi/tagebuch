@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/settings_notifier.dart';
 import '../features/onboarding/onboarding_screen.dart';
+import '../features/schutz/lock_gate.dart';
 import '../l10n/app_localizations.dart';
 import 'routes.dart';
 import 'shell.dart';
@@ -10,7 +11,8 @@ import 'theme.dart';
 
 /// Wurzel der App: Material 3, Lokalisierung (de als Vorlage, en), ruhiges
 /// warmes Farbschema mit dunklem Modus. Die Schriftskalierung des Systems
-/// wird nicht überschrieben.
+/// wird nicht überschrieben. Über dem Navigator liegt der [AppLockGate]
+/// (D23): Sichtschutz im Hintergrund und Sperrbildschirm über allen Routen.
 class TagebuchApp extends StatelessWidget {
   const TagebuchApp({super.key, this.locale});
 
@@ -29,6 +31,8 @@ class TagebuchApp extends StatelessWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       home: const RootScreen(),
       onGenerateRoute: AppRoutes.onGenerateRoute,
+      builder: (context, child) =>
+          AppLockGate(child: child ?? const SizedBox.shrink()),
     );
   }
 }

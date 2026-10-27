@@ -3,9 +3,10 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart' as c;
 import 'package:meta/meta.dart';
 
-/// Parameter für Passphrasen (nur Export und Wiederherstellung, D5/D6).
-/// Standard: 64 MiB, t = 3, p = 1, Salt 16 Byte. Die Parameter stehen im
-/// Container-Kopf, damit spätere Anpassungen alte Dateien nicht brechen.
+/// Parameter für Passphrasen (Export und Wiederherstellung, D5/D6) und den
+/// PIN der App-Sperre (D23). Standard: 64 MiB, t = 3, p = 1, Salt 16 Byte.
+/// Die Parameter stehen im Container-Kopf bzw. beim PIN-Hash, damit spätere
+/// Anpassungen alte Dateien und Hashes nicht brechen.
 @immutable
 class Argon2Params {
   const Argon2Params({
@@ -19,6 +20,19 @@ class Argon2Params {
   /// Empfehlung aus docs/05 (Mobile-RAM-Budget).
   static const standard = Argon2Params(
     memoryKiB: 65536,
+    iterations: 3,
+    parallelism: 1,
+  );
+
+  /// App-Sperre mit PIN (D23): bewusst moderat, weil Argon2id in reinem Dart
+  /// im Browser um ein Vielfaches langsamer ist als nativ und eine Prüfung
+  /// höchstens rund eine Sekunde dauern soll (dart2js `-O4` auf dem
+  /// Entwicklungsrechner: 0,27 s; Telefon drei- bis fünfmal langsamer).
+  /// Ein vier- bis achtstelliger PIN bleibt mit jedem Parametersatz offline
+  /// ratbar; der Hash verhindert nur das Auslesen im Klartext. Die Parameter
+  /// stehen beim Hash, damit sie später angehoben werden können.
+  static const pin = Argon2Params(
+    memoryKiB: 4096,
     iterations: 3,
     parallelism: 1,
   );

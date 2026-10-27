@@ -11,6 +11,7 @@ import '../features/lesebuch/books_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/rueckblick/week_review_screen.dart';
 import '../features/schreiben/write_screen.dart';
+import '../features/schutz/pin_flow_screen.dart';
 import '../features/zitate/quotes_screen.dart';
 import '../features/wege/goal_detail_screen.dart';
 import '../features/wege/goals_screen.dart';
@@ -73,6 +74,10 @@ abstract final class AppRoutes {
   static const String backup = '/backup';
   static const String restore = '/restore';
   static const String transfer = '/transfer';
+
+  /// PIN der App-Sperre vergeben, ändern oder zum Ausschalten prüfen (D23);
+  /// Argument [PinFlowKind], Ergebnis `true` bei Abschluss.
+  static const String pin = '/pin';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -157,8 +162,25 @@ abstract final class AppRoutes {
           settings: settings,
           builder: (_) => const TransferScreen(),
         );
+      case pin:
+        final kind = settings.arguments;
+        if (kind is! PinFlowKind) return null;
+        return SheetPageRoute<bool>(
+          settings: settings,
+          builder: (_) => PinFlowScreen(kind: kind),
+        );
     }
     return null;
+  }
+
+  /// Öffnet das PIN-Blatt; `true`, wenn der Ablauf abgeschlossen wurde.
+  static Future<bool> openPinFlow(
+    BuildContext context,
+    PinFlowKind kind,
+  ) async {
+    final done = await Navigator.of(context)
+        .pushNamed<bool>(pin, arguments: kind);
+    return done ?? false;
   }
 
   /// Öffnet den Eintrag mit der gegebenen ID, optional an einer Position.

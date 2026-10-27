@@ -1,11 +1,13 @@
 import 'dart:convert';
 
 import 'package:diary_core/diary_core.dart';
+import 'package:diary_keys/diary_keys.dart' show AppLockKeys;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/zitate/quote_library.dart';
 import '../services/app_services.dart';
+import 'app_lock.dart';
 import 'day.dart';
 
 /// Sprachen der Transkription (D12): Standarddeutsch in drei Varianten und
@@ -39,6 +41,7 @@ class AppSettings {
     this.language = TranscriptionLanguage.deDE,
     this.keepAudio = true,
     this.appLockEnabled = false,
+    this.appLockAfter = LockAfter.standard,
     this.onboardingDone = false,
     this.transcriptionEnabled = true,
     this.guidedReview = true,
@@ -51,7 +54,13 @@ class AppSettings {
   /// Schlüssel im `SettingsRepository`.
   static const keyLanguage = 'language';
   static const keyKeepAudio = 'keepAudio';
-  static const keyAppLock = 'appLock';
+
+  /// App-Sperre (D23): an/aus und "Sperren nach"; Hash, Salt, Fehlversuche
+  /// und Wartezeit verwaltet `AppLockNotifier` unter den Schlüsseln aus
+  /// `AppLockKeys`. Alle `appLock*`-Schlüssel sind gerätegebunden und wandern
+  /// nicht in Backup oder Gerätewechsel.
+  static const keyAppLock = AppLockKeys.enabled;
+  static const keyAppLockAfter = AppLockKeys.lockAfter;
   static const keyOnboardingDone = 'onboardingDone';
 
   /// "Transkription aktiv" (W5): Standard an; aus speichert nur Audio.
@@ -93,8 +102,11 @@ class AppSettings {
   final TranscriptionLanguage language;
   final bool keepAudio;
 
-  /// App-Sperre; im Gerüst ohne Funktion.
+  /// App-Sperre mit PIN (D23); gepflegt vom `AppLockNotifier`.
   final bool appLockEnabled;
+
+  /// Hintergrundzeit, nach der die Sperre greift (Standard eine Minute).
+  final LockAfter appLockAfter;
 
   final bool onboardingDone;
 
@@ -143,6 +155,7 @@ class AppSettings {
       language: TranscriptionLanguage.fromTag(await repo.get(keyLanguage)),
       keepAudio: await repo.get(keyKeepAudio) != 'false',
       appLockEnabled: await repo.get(keyAppLock) == 'true',
+      appLockAfter: LockAfter.fromSetting(await repo.get(keyAppLockAfter)),
       onboardingDone: await repo.get(keyOnboardingDone) == 'true',
       transcriptionEnabled: await repo.get(keyTranscription) != 'false',
       guidedReview: await repo.get(keyGuidedReview) != 'false',
@@ -184,6 +197,7 @@ class AppSettings {
     TranscriptionLanguage? language,
     bool? keepAudio,
     bool? appLockEnabled,
+    LockAfter? appLockAfter,
     bool? onboardingDone,
     bool? transcriptionEnabled,
     bool? guidedReview,
@@ -204,6 +218,7 @@ class AppSettings {
       language: language ?? this.language,
       keepAudio: keepAudio ?? this.keepAudio,
       appLockEnabled: appLockEnabled ?? this.appLockEnabled,
+      appLockAfter: appLockAfter ?? this.appLockAfter,
       onboardingDone: onboardingDone ?? this.onboardingDone,
       transcriptionEnabled: transcriptionEnabled ?? this.transcriptionEnabled,
       guidedReview: guidedReview ?? this.guidedReview,
@@ -270,9 +285,15 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
     (repo) => repo.set(AppSettings.keyKeepAudio, '$value'),
   );
 
+  /// Nur vom `AppLockNotifier` gerufen, der den PIN-Hash dazu verwaltet.
   Future<void> setAppLockEnabled(bool value) => _update(
     _current.copyWith(appLockEnabled: value),
     (repo) => repo.set(AppSettings.keyAppLock, '$value'),
+  );
+
+  Future<void> setAppLockAfter(LockAfter value) => _update(
+    _current.copyWith(appLockAfter: value),
+    (repo) => repo.set(AppSettings.keyAppLockAfter, value.setting),
   );
 
   Future<void> setTranscriptionEnabled(bool value) => _update(

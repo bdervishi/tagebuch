@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:diary_audio/diary_audio.dart';
 import 'package:diary_core/diary_core.dart';
+import 'package:diary_keys/diary_keys.dart' show DeviceBoundSettings;
 import 'package:diary_stt/diary_stt.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -35,8 +36,13 @@ class AppServices {
     this.sttDeviceInfo,
     this.clock = const SystemClock(),
     this.argon2Params = Argon2Params.standard,
+    this.pinKdfParams = Argon2Params.pin,
+    Future<void> Function()? resetAll,
     IdGenerator? ids,
-  }) : ids = ids ?? RandomIdGenerator();
+  }) : resetAll = resetAll ?? _noReset,
+       ids = ids ?? RandomIdGenerator();
+
+  static Future<void> _noReset() async {}
 
   /// Versionskennung im Manifest des Containers.
   static const String appVersion = '0.1.0';
@@ -91,6 +97,15 @@ class AppServices {
   /// Argon2id-Parameter des Backups (Tests: `Argon2Params.testing`).
   final Argon2Params argon2Params;
 
+  /// Argon2id-Parameter des PIN-Hashes der App-Sperre (D23; Tests:
+  /// `Argon2Params.testing`).
+  final Argon2Params pinKdfParams;
+
+  /// "App zurücksetzen" (D23, "PIN vergessen"): vernichtet alle lokalen Daten
+  /// samt Master-Key (Web: die ganze IndexedDB). Danach legt der Aufrufer die
+  /// Dienste neu an; die App beginnt beim Onboarding.
+  final Future<void> Function() resetAll;
+
   final PlatformFeatures features;
   final Clock clock;
   final IdGenerator ids;
@@ -124,7 +139,9 @@ class AppServices {
   BooksUseCase booksUseCase() =>
       BooksUseCase(journalId: journalId, books: books, ids: ids, clock: clock);
 
-  /// Backup und Gerätewechsel mit diesen Ports.
+  /// Backup und Gerätewechsel mit diesen Ports. Die Einstellungen der
+  /// App-Sperre bleiben außen vor (D23 Punkt 6): Sie gehören zum Gerät, und
+  /// ein eingespieltes Backup darf keinen vergessenen PIN zurückbringen.
   TransferUseCase transfer() => TransferUseCase(
     journalId: journalId,
     entries: entries,
@@ -133,7 +150,7 @@ class AppServices {
     notes: notes,
     goals: goals,
     books: books,
-    settings: settings,
+    settings: DeviceBoundSettings(settings),
     audioSource: audioFiles,
     audioSink: audioFiles,
     ids: ids,

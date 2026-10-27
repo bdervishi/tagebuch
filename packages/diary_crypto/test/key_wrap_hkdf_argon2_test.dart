@@ -98,6 +98,18 @@ void main() {
     expect(Argon2Params.standard.saltLength, 16);
   });
 
+  test('PIN-Parameter (D23) sind moderat, aber nicht die Testparameter', () {
+    expect(Argon2Params.pin.memoryKiB, 4096);
+    expect(Argon2Params.pin.iterations, 3);
+    expect(Argon2Params.pin.parallelism, 1);
+    expect(Argon2Params.pin.saltLength, 16);
+    expect(Argon2Params.pin.hashLength, 32);
+    expect(
+      Argon2Params.pin.memoryKiB,
+      greaterThan(Argon2Params.testing.memoryKiB * 8),
+    );
+  });
+
   test('constantTimeEquals', () {
     expect(constantTimeEquals([1, 2, 3], [1, 2, 3]), isTrue);
     expect(constantTimeEquals([1, 2, 3], [1, 2, 4]), isFalse);

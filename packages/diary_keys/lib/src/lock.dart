@@ -1,13 +1,18 @@
 import 'package:diary_core/diary_core.dart' show Clock;
 
 /// Zustand der App-Sperre: gesperrt nach Timeout im Hintergrund, entsperrt
-/// per Gerätecode oder Biometrie (D5). Die Prüfung selbst (BiometricPrompt,
-/// LocalAuthentication) macht die native Brücke; hier nur das Zeitfenster.
+/// per PIN (D23) oder später per Gerätecode oder Biometrie (D5). Die Prüfung
+/// selbst (PIN-Hash, BiometricPrompt, LocalAuthentication) liegt außerhalb;
+/// hier nur das Zeitfenster.
 class AppLock {
   AppLock(this._clock, {this.timeout = const Duration(seconds: 60)});
 
   final Clock _clock;
-  final Duration timeout;
+
+  /// Hintergrundzeit, nach der die App gesperrt ist; `Duration.zero` sperrt
+  /// bei jedem Wechsel in den Hintergrund ("Sofort"). Einstellung, deshalb
+  /// änderbar.
+  Duration timeout;
   DateTime? _unlockedAt;
   DateTime? _backgroundedAt;
 

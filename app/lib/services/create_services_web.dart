@@ -59,6 +59,13 @@ Future<AppServices> createAppServices() async {
     },
     features: const WebPlatformFeatures(),
     audioFiles: WebAudioFilesPort(files),
+    // "App zurücksetzen" (D23): Verbindung schließen, dann die ganze
+    // Datenbank samt Master-Key löschen (Crypto-Shredding, docs/05 3.4).
+    resetAll: () async {
+      await records.close();
+      db.close();
+      await IndexedDbStore.deleteDatabase();
+    },
     ids: ids,
   );
 }
