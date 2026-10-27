@@ -58,6 +58,21 @@ if grep -rnE "HttpClient\(|Socket\.connect|ServerSocket\.bind|RawDatagramSocket|
   bad "Netzwerk-API im Dart-Code gefunden (siehe oben)"
 fi
 
+# 5. Web (PWA, D16): CSP muss Verbindungen auf den eigenen Origin beschränken; keine fremden Hosts im Web-Code.
+if [ -f app/web/index.html ]; then
+  if ! grep -q "Content-Security-Policy" app/web/index.html; then
+    bad "app/web/index.html ohne Content-Security-Policy"
+  elif ! grep -q "connect-src 'self'" app/web/index.html; then
+    bad "CSP in app/web/index.html erlaubt connect-src außerhalb des eigenen Origins"
+  fi
+  # Erlaubt sind nur relative Pfade; jede absolute http(s)-URL im Web-Verzeichnis ist ein Befund
+  # (Ausnahmen: der Manifest-Namensraum und Kommentare/Lizenzhinweise mit "licen").
+  if grep -rnoE 'https?://[a-zA-Z0-9./_-]+' app/web --include='*.html' --include='*.json' --include='*.js' 2>/dev/null \
+       | grep -vE 'w3.org|licen|schemas|example' ; then
+    bad "Absolute URL im Web-Verzeichnis (siehe oben)"
+  fi
+fi
+
 if [ "$fail" -ne 0 ]; then
   say "Netz-Wächter: FEHLGESCHLAGEN"
   exit 1

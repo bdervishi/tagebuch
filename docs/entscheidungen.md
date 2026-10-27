@@ -2,7 +2,7 @@
 
 Stand: 3. September 2026 · Status: Entwurf zur Abstimmung
 
-Diese Entscheidungen sind die gemeinsame Grundlage aller Konzeptdokumente. Sie wurden aus den Rechercheberichten in `docs/recherche/` abgeleitet; jede Entscheidung ist eine Empfehlung an den Inhaber, bis sie bestätigt ist. Änderungshistorie: 6. 9. 2026 Umsetzungsstand zu D4 ergänzt (Krypto-Referenz in reinem Dart, Spike S4 entscheidet über libsodium). D4 am 3. 9. 2026 nach der Nachrecherche zum Audio-Container von Opus/secretstream auf AAC-LC/Chunk-AEAD umgestellt; D2, D3, D6, D9 und D13 entsprechend präzisiert. Redaktion am 3. 9. 2026: D4 Opus-Bitrate auf 16 bis 24 kbit/s vereinheitlicht (Rechenbasis 131 bis 197 MB/Jahr); D6 QR-Frame-Rechnung auf die AAC-LC-Basis umgestellt; D9 ohne Beträge (stehen nur in 07-geschaeftsmodell.md); D11 ohne Arbeitstitel (steht nur in README und 08-namensfindung.md).
+Diese Entscheidungen sind die gemeinsame Grundlage aller Konzeptdokumente. Sie wurden aus den Rechercheberichten in `docs/recherche/` abgeleitet; jede Entscheidung ist eine Empfehlung an den Inhaber, bis sie bestätigt ist. Änderungshistorie: 27. 10. 2026 D16 ergänzt (PWA zuerst, Web als erste Zielplattform; D13 und D14 um Web präzisiert). 6. 9. 2026 Umsetzungsstand zu D4 ergänzt (Krypto-Referenz in reinem Dart, Spike S4 entscheidet über libsodium). D4 am 3. 9. 2026 nach der Nachrecherche zum Audio-Container von Opus/secretstream auf AAC-LC/Chunk-AEAD umgestellt; D2, D3, D6, D9 und D13 entsprechend präzisiert. Redaktion am 3. 9. 2026: D4 Opus-Bitrate auf 16 bis 24 kbit/s vereinheitlicht (Rechenbasis 131 bis 197 MB/Jahr); D6 QR-Frame-Rechnung auf die AAC-LC-Basis umgestellt; D9 ohne Beträge (stehen nur in 07-geschaeftsmodell.md); D11 ohne Arbeitstitel (steht nur in README und 08-namensfindung.md).
 
 ## D1 · Stack
 
@@ -65,3 +65,25 @@ keine Analytics-, Crash-Reporting- oder Werbe-SDKs, keine Konten, keine Server d
 ## D15 · Quellenlage
 
 Aus der Recherche-Sandbox waren apple.com, support.apple.com, play.google.com, apps.apple.com, huggingface.co, Wikipedia und viele Nachrichtenseiten gesperrt; Apple-Dokumentation wurde über developer.apple.com-JSON-Endpunkte, Android-Dokumentation über developer.android.com und Quellcode über GitHub gelesen. Wo eine Zahl nur aus Sekundärquellen stammt oder in verifikation.json als "unklar" steht, ist sie im Dokument so zu kennzeichnen.
+
+## D16 · PWA zuerst
+
+Die erste ausgelieferte Fassung ist eine installierbare Web-App (Progressive Web App) aus derselben Flutter-Codebasis (Flutter Web); die Store-Apps für iOS und Android folgen danach aus demselben Code (D1 bleibt). Grund: Der Inhaber will die App sofort auf dem eigenen Smartphone nutzen, ohne Entwicklerkonten, Prüfverfahren und Testgeräte; eine PWA braucht nur statisches Hosting (z. B. GitHub Pages, siehe docs/ressourcen.md) und wird über "Zum Home-Bildschirm" installiert.
+
+Was auf dem Web gilt:
+
+1. **Speicherung lokal im Browser des Geräts.** Alle Daten liegen im Origin-Speicher der installierten PWA (IndexedDB, ergänzt um das Origin Private File System für Audio). Es gibt keinen Server, der Daten sieht; das Hosting liefert nur die unveränderten App-Dateien. Die App ruft `navigator.storage.persist()` auf und zeigt den gewährten Status an.
+2. **Verschlüsselung wie auf den Zielplattformen, Schlüsselverwahrung schwächer.** Audio und Metadaten werden mit denselben Formaten verschlüsselt (Chunk-AEAD aus `diary_chunkfile`, verschlüsselte Datensätze statt SQLCipher, weil SQLCipher im Browser nicht verfügbar ist). Der Master-Key ist ein nicht exportierbarer WebCrypto-Schlüssel (AES-256-GCM, `extractable: false`) in IndexedDB; JavaScript kann ihn nicht auslesen, aber der Browser hat keinen Secure-Enclave-Schutz wie Keychain oder Keystore. Diese Grenze steht im Onboarding der Web-Fassung und in docs/10-pwa.md. Die optionale Passphrase (Argon2id) ist auf dem Web deshalb der empfohlene Zusatzschutz für das Backup.
+3. **Datenverlust-Risiko ist größer als nativ.** Browser dürfen Origin-Speicher räumen (iOS Safari löscht Daten nicht installierter Web-Apps nach sieben Tagen Inaktivität; installierte PWAs sind davon ausgenommen, solange sie installiert bleiben). Deshalb: Backup-Datei (D6) ist auf dem Web Pflichtfunktion der ersten Fassung, mit Erinnerung nach dem dritten Eintrag und wöchentlich.
+4. **Spracherkennung lokal im Browser.** Die Web Speech API scheidet aus, weil Chrome und Safari Audio an Serverdienste senden. Stattdessen ein WebAssembly-Modell (Whisper small/base multilingual über transformers.js und ONNX Runtime Web mit WebGPU-Beschleunigung, Rückfall WASM; Moonshine-Web als Alternative im Spike). Das Modell (rund 150 bis 500 MB) wird einmalig vom selben statischen Host geladen und im Cache-Storage gehalten; Audio verlässt den Browser nicht. Erkennung läuft nach der Aufnahme, nicht live; Mittelklasse-Telefone brauchen dafür ein Vielfaches der Aufnahmedauer. Spike W1 misst Dauer und Qualität auf iPhone und einem Android-Mittelklassegerät; bis dahin ist die Transkription auf dem Web als "experimentell" gekennzeichnet.
+5. **Aufnahme über MediaRecorder** (Chrome: WebM/Opus, Safari: MP4/AAC), parallel PCM über AudioWorklet für die Erkennung; Codec je Aufnahme wird gespeichert (D4 lässt das zu). Aufnahme nur im Vordergrund; Bildschirm-aus beendet sie auf iOS.
+6. **Erinnerung ohne Server nur eingeschränkt.** Web-Benachrichtigungen setzen einen Push-Dienst voraus; den gibt es nicht (D14). Die Web-Fassung bietet stattdessen: einen Kalendereintrag (ICS-Datei "täglich 21:00") zum Import in die Kalender-App des Telefons, einen Hinweis zur Weckerfunktion des Systems und die Erinnerungslogik der App selbst beim Öffnen ("heute noch nicht aufgenommen"). Die echte tägliche Erinnerung (M2) wird erst mit den Store-Apps vollständig erfüllt; das steht als bekannte Lücke in docs/10-pwa.md.
+7. **Gerätewechsel und Backup** laufen über dieselbe Containerdatei wie nativ (Download über den Browser, Import per Dateiauswahl); QR-Scan über die Kamera (`BarcodeDetector`, Rückfall: Code eintippen).
+8. **Netz-Wächter für das Web:** Die PWA darf nach dem ersten Laden nur Anfragen an den eigenen Origin stellen (App-Dateien, Modelldateien). Die Content-Security-Policy im `index.html` setzt `connect-src 'self'`; der Service Worker arbeitet offline-first. Der Netz-Wächter prüft die CSP und dass kein fremder Host im Web-Code vorkommt.
+
+Nicht Teil der Web-Fassung: Hintergrundaufnahme, Widgets, Sperrbildschirm-Steuerung, Biometrie, Hardware-Schlüsselspeicher. Diese Punkte bleiben Argumente für die Store-Apps.
+
+D13 ergänzt: Web-Mindestanforderung sind aktuelle Versionen von Safari (iOS 17 oder neuer) und Chrome (Android 12 oder neuer); WebGPU beschleunigt die Erkennung, ist aber nicht Voraussetzung.
+
+D14 ergänzt: Statisches Hosting der App-Dateien (ohne Protokollierung personenbezogener Daten, ohne Tracker) ist kein "Server" im Sinne dieser Entscheidung; Daten verlassen das Gerät nie.
+
