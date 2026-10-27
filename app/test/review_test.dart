@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tagebuch_app/data/settings_notifier.dart';
 import 'package:tagebuch_app/features/aufnahme/recording_screen.dart';
 import 'package:tagebuch_app/features/eintrag/entry_screen.dart';
+import 'package:tagebuch_app/features/heute/day_timeline.dart';
 import 'package:tagebuch_app/features/heute/today_screen.dart';
 import 'package:tagebuch_app/features/kalender/calendar_screen.dart';
 import 'package:tagebuch_app/features/rueckblick/week_review_screen.dart';
@@ -110,12 +111,15 @@ void main() {
           services.notes.items.where((n) => n.promptKey == 'free'),
           isEmpty,
         );
-        // "Heute" zeigt den geschriebenen Eintrag.
+        // "Heute" zeigt die Antworten in der Zeitleiste "Dein Tag" (D22),
+        // je Zeile mit dem Etikett des Impulses.
         expect(find.byType(TodayScreen), findsOneWidget);
         await scrollTodayTo(tester, find.textContaining('Kaffee, Sonne'));
         expect(find.text('Heute noch nichts aufgenommen.'), findsNothing);
+        expect(find.byKey(dayTimelineKey), findsOneWidget);
         expect(find.textContaining('Kaffee, Sonne'), findsOneWidget);
-        expect(find.textContaining('Geschrieben um'), findsOneWidget);
+        expect(find.text('Gut gelaufen'), findsOneWidget);
+        expect(find.text('Schritt für morgen'), findsOneWidget);
       },
     );
 
@@ -414,8 +418,10 @@ void main() {
         ),
       ) as Checkbox;
       expect(box.value, isTrue);
-      // Die interne Notiz macht den Tag nicht zu einem "Eintrag mit Text".
-      expect(find.text('Heute noch nichts aufgenommen.'), findsNothing);
+      // Die interne Notiz macht den Tag nicht zu einem "Eintrag mit Text":
+      // keine Zeitleiste, die leise Zeile bleibt (D22).
+      expect(find.byKey(dayTimelineKey), findsNothing);
+      expect(find.text('Heute noch nichts aufgenommen.'), findsOneWidget);
 
       // Zurücknehmen ist erlaubt.
       await tester.ensureVisible(find.byKey(stepDoneKey));

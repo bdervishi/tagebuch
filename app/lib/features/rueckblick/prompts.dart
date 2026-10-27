@@ -2,9 +2,10 @@ import 'package:diary_core/diary_core.dart';
 
 import '../../l10n/app_localizations.dart';
 
-/// Texte der vier Impulse des geführten Rückblicks (D17) aus den ARB-Dateien.
-/// Die Schlüssel kommen aus [ReviewPrompts]; unbekannte Schlüssel (ältere
-/// oder künftige Fassungen) zeigen den Schlüssel selbst.
+/// Texte der vier Impulse des geführten Rückblicks (D17) und das Etikett der
+/// Kurznotiz (D22) aus den ARB-Dateien. Die Schlüssel kommen aus
+/// [ReviewPrompts]; unbekannte Schlüssel (ältere oder künftige Fassungen)
+/// zeigen den Schlüssel selbst.
 abstract final class PromptTexts {
   /// Sekunden, nach denen ein Impuls während der Aufnahme von selbst zum
   /// nächsten wechselt (eigene Festlegung, im Beta-Test prüfen).
@@ -33,6 +34,7 @@ abstract final class PromptTexts {
     ReviewPrompts.good => l10n.promptLabelGood,
     ReviewPrompts.lesson => l10n.promptLabelLesson,
     ReviewPrompts.next => l10n.promptLabelNext,
+    ReviewPrompts.quick => l10n.promptLabelQuick,
     _ => key,
   };
 

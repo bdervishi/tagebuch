@@ -42,6 +42,11 @@ void main() {
     expect(ReviewPrompts.isInternal(ReviewPrompts.nextDone), isTrue);
     expect(ReviewPrompts.isInternal(null), isFalse);
     expect(ReviewPrompts.review, ['free', 'good', 'lesson', 'next']);
+    // Kurznotizen (D22) sind kein Impuls und nicht intern: sichtbar,
+    // durchsuchbar, exportiert.
+    expect(ReviewPrompts.quick, 'quick');
+    expect(ReviewPrompts.isInternal(ReviewPrompts.quick), isFalse);
+    expect(ReviewPrompts.review, isNot(contains(ReviewPrompts.quick)));
   });
 
   test('PromptMarks: JSON-Round-Trip', () {

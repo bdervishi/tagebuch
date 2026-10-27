@@ -31,6 +31,11 @@ abstract final class ReviewPrompts {
   /// Die vier Impulse in Reihenfolge.
   static const List<String> review = [free, good, lesson, next];
 
+  /// Kurznotiz über den Tag (D22): ein kurzer getippter Text mit Uhrzeit,
+  /// beliebig viele je Tag. Kein Impuls des Rückblicks, aber sichtbar,
+  /// durchsuchbar und im Export enthalten wie jede andere Notiz.
+  static const String quick = 'quick';
+
   /// Interne Notiz an einem Eintrag: Zeitmarken der Impulswechsel während
   /// einer Aufnahme als JSON ([PromptMarks]). Wird nicht als Text gezeigt.
   static const String promptsAt = 'prompts_at';

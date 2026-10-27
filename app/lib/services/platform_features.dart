@@ -26,8 +26,9 @@ class StorageStatus {
 }
 
 /// Schnellaktion beim Start (Android: Symbol lange drücken, Manifest
-/// `shortcuts`): die App öffnet direkt die Aufnahme oder das Schreiben.
-enum StartAction { record, write }
+/// `shortcuts`): die App öffnet direkt die Aufnahme, die Sprachnotiz, die
+/// Kurznotiz (D22) oder das Schreiben.
+enum StartAction { record, quickVoice, quickText, write }
 
 /// Plattformfunktionen, die die Oberfläche nur auf dem Web braucht (D16):
 /// Installationshinweis, Speicherstatus, Kalenderdatei statt Benachrichtigung.

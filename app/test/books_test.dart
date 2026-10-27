@@ -77,8 +77,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // "Heute": ohne Bücher nur die leise Zeile mit der Taste "Lesebuch".
-      await tester.ensureVisible(find.byKey(todayBooksOpenKey));
-      await tester.pumpAndSettle();
+      await scrollTodayTo(tester, find.byKey(todayBooksOpenKey));
       expect(find.textContaining('Was liest du gerade?'), findsOneWidget);
       expect(find.byKey(todayReadingBookKey), findsNothing);
       await tester.tap(find.byKey(todayBooksOpenKey));
@@ -436,8 +435,7 @@ void main() {
       await tester.pumpWidget(buildTestApp(services: services));
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.byKey(todayReadingBookKey));
-      await tester.pumpAndSettle();
+      await scrollTodayTo(tester, find.byKey(todayReadingBookKey));
       expect(find.text('Lese ich: Der Sommer der Bücher'), findsOneWidget);
       expect(find.text('2 Passagen'), findsOneWidget);
       expect(find.byKey(todayBooksOpenKey), findsNothing);

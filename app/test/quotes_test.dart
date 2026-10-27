@@ -32,6 +32,9 @@ void main() {
     expect(find.textContaining(expected.de), findsOneWidget);
     expect(find.textContaining(expected.author), findsOneWidget);
 
+    // Seit den Aktionen "Sprachnotiz" und "Kurznotiz" (D22) liegt das Herz
+    // im Testfenster am unteren Rand; erst sichtbar machen.
+    await scrollTodayTo(tester, find.byKey(quoteFavoriteKey));
     await tester.tap(find.byKey(quoteFavoriteKey));
     await tester.pumpAndSettle();
     expect(

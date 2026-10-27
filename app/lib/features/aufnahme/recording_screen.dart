@@ -25,6 +25,7 @@ const Key pauseButtonKey = Key('recording-pause');
 const Key cancelButtonKey = Key('recording-cancel');
 const Key promptCardKey = Key('recording-prompt');
 const Key promptAdvanceKey = Key('recording-prompt-next');
+const Key promptNotesTodayKey = Key('recording-notes-today');
 
 /// Obergrenze je Aufnahme im kostenlosen Kern (D9).
 const Duration maxRecordingDuration = Duration(minutes: 5);
@@ -40,9 +41,19 @@ const Duration maxRecordingDuration = Duration(minutes: 5);
 /// Geführter Rückblick (D17): Mit der Einstellung erscheinen die vier
 /// Impulse nacheinander als Leitplanke, "Weiter" oder automatisch nach
 /// [PromptTexts.autoAdvance], ohne die Aufnahme zu unterbrechen. Die
-/// Zeitmarken der Wechsel landen als Notiz `prompts_at` am Eintrag.
+/// Zeitmarken der Wechsel landen als Notiz `prompts_at` am Eintrag. Beim
+/// Impuls `free` steht darunter, wie viele Stücke von heute schon im Eintrag
+/// liegen (D22), ohne Inhalte, damit die Aufnahme ruhig bleibt.
+///
+/// Schnellmodus [quick] (Sprachnotiz, D22): Titel "Sprachnotiz", keine
+/// Impuls-Karte und keine `prompts_at`-Notiz unabhängig von der Einstellung
+/// "Geführter Rückblick", Hinweis "Kurz und knapp. Stopp speichert.";
+/// sonst identisch (Pegel, Pause, Verwerfen, Transkription im Hintergrund).
 class RecordingScreen extends ConsumerStatefulWidget {
-  const RecordingScreen({super.key});
+  const RecordingScreen({super.key, this.quick = false});
+
+  /// Sprachnotiz ohne Impulse statt Tagesaufnahme.
+  final bool quick;
 
   @override
   ConsumerState<RecordingScreen> createState() => _RecordingScreenState();
@@ -71,6 +82,10 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
   Duration _promptStartedAt = Duration.zero;
   final List<PromptMark> _marks = [];
 
+  /// Stücke von heute, die vor dieser Aufnahme schon im Eintrag lagen
+  /// (Kurznotizen, Sprachnotizen; D22). Nur die Zahl, keine Inhalte.
+  int _notesToday = 0;
+
   @override
   void initState() {
     super.initState();
@@ -90,6 +105,15 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     try {
       final services = await ref.read(appServicesProvider.future);
       final settings = await ref.read(settingsProvider.future);
+      final guided = settings.guidedReview && !widget.quick;
+      if (guided) {
+        // Vor dem Start zählen: Die Aufnahme selbst gehört noch nicht dazu.
+        final today = await EntryView.forDay(
+          services,
+          LocalDay.forMoment(services.clock.now()),
+        );
+        _notesToday = today?.quickItems.length ?? 0;
+      }
       final active = await services
           .recordDay(transcribe: settings.transcriptionEnabled)
           .start(locale: settings.language.tag);
@@ -99,7 +123,7 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
         return;
       }
       _active = active;
-      _guided = settings.guidedReview;
+      _guided = guided;
       if (_guided) {
         _marks.add(
           PromptMark(promptKey: ReviewPrompts.review.first, at: Duration.zero),
@@ -296,7 +320,9 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
       child: Scaffold(
         key: const Key('recording-screen'),
         appBar: AppBar(
-          title: Text(l10n.recordingTitle),
+          title: Text(
+            widget.quick ? l10n.quickVoiceTitle : l10n.recordingTitle,
+          ),
           leading: IconButton(
             key: cancelButtonKey,
             tooltip: l10n.cancelButton,
@@ -364,6 +390,7 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                                 const SizedBox(height: 24),
                                 _PromptCard(
                                   index: _promptIndex,
+                                  notesToday: _notesToday,
                                   onAdvance:
                                       _promptIndex <
                                               ReviewPrompts.review.length - 1 &&
@@ -384,7 +411,9 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                               ),
                               const Spacer(),
                               Text(
-                                features.recordsRealAudio
+                                widget.quick
+                                    ? l10n.quickVoiceHint
+                                    : features.recordsRealAudio
                                     ? l10n.recordingWebHint
                                     : l10n.recordingSimulatedHint,
                                 textAlign: TextAlign.center,
@@ -498,12 +527,18 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
   }
 }
 
-/// Der aktuelle Impuls des geführten Rückblicks während der Aufnahme.
+/// Der aktuelle Impuls des geführten Rückblicks während der Aufnahme; beim
+/// ersten Impuls mit der Zahl der Stücke von heute (D22), ohne Inhalte.
 class _PromptCard extends StatelessWidget {
-  const _PromptCard({required this.index, required this.onAdvance});
+  const _PromptCard({
+    required this.index,
+    required this.onAdvance,
+    this.notesToday = 0,
+  });
 
   final int index;
   final VoidCallback? onAdvance;
+  final int notesToday;
 
   @override
   Widget build(BuildContext context) {
@@ -542,6 +577,28 @@ class _PromptCard extends StatelessWidget {
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSecondaryContainer,
                 ),
+              ),
+            ],
+            if (index == 0 && notesToday > 0) ...[
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Icon(
+                    Icons.short_text,
+                    size: 16,
+                    color: scheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      l10n.recordingNotesToday(notesToday),
+                      key: promptNotesTodayKey,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSecondaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
             Row(

@@ -246,12 +246,12 @@ void main() {
       );
       await tester.pumpWidget(screen(const TodayScreen(), many));
       await tester.pumpAndSettle();
+      // Die Karte steht unter "Deine Wege" (D19) und den Aktionen für
+      // Kurznotizen (D22); die Liste baut sie erst beim Scrollen.
+      await scrollTodayTo(tester, find.byKey(backupReminderCardKey));
       expect(find.byKey(backupReminderCardKey), findsOneWidget);
       expect(find.textContaining('Du hast schon 3 Einträge.'), findsOneWidget);
-
-      // Die Karte steht unter "Deine Wege" (D19); erst sichtbar machen.
-      await tester.ensureVisible(find.byKey(backupReminderLaterKey));
-      await tester.pumpAndSettle();
+      await scrollTodayTo(tester, find.byKey(backupReminderLaterKey));
       await tester.tap(find.byKey(backupReminderLaterKey));
       await tester.pumpAndSettle();
       expect(find.byKey(backupReminderCardKey), findsNothing);
@@ -268,6 +268,9 @@ void main() {
       );
       await tester.pumpWidget(screen(const TodayScreen(), recent));
       await tester.pumpAndSettle();
+      // Bis zum heutigen Abschnitt scrollen, damit die Liste alles gebaut
+      // hat, was sie zeigen würde.
+      await scrollTodayTo(tester, find.text('Heute noch nichts aufgenommen.'));
       expect(find.byKey(backupReminderCardKey), findsNothing);
 
       final stale = TestServices(seed: seeds);
@@ -277,6 +280,7 @@ void main() {
       );
       await tester.pumpWidget(screen(const TodayScreen(), stale));
       await tester.pumpAndSettle();
+      await scrollTodayTo(tester, find.byKey(backupReminderCardKey));
       expect(
         find.text('Dein letztes Backup ist älter als eine Woche.'),
         findsOneWidget,

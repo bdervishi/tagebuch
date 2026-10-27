@@ -33,6 +33,7 @@ class SeedEntry {
     this.segments,
     this.withRecording = true,
     this.notes = const {},
+    this.quickNotes = const [],
     this.mood,
   });
 
@@ -49,6 +50,10 @@ class SeedEntry {
   /// freien Text) auf Text; Reihenfolge ist Anlagereihenfolge.
   final Map<String, String> notes;
 
+  /// Kurznotizen über den Tag (D22), ab 9 Uhr im Abstand von zwei Stunden;
+  /// Kennung `note-<id>-quick-<index>`.
+  final List<String> quickNotes;
+
   /// Stimmung 1 bis 5.
   final int? mood;
 }
@@ -61,6 +66,7 @@ SeedEntry testEntry({
   List<String>? segments,
   bool withRecording = true,
   Map<String, String> notes = const {},
+  List<String> quickNotes = const [],
   int? mood,
 }) => SeedEntry(
   id: id,
@@ -70,6 +76,7 @@ SeedEntry testEntry({
   segments: segments,
   withRecording: withRecording,
   notes: notes,
+  quickNotes: quickNotes,
   mood: mood,
 );
 
@@ -114,6 +121,19 @@ class TestServices {
           ),
         );
         noteIndex++;
+      }
+      for (final (i, text) in s.quickNotes.indexed) {
+        final at = s.day.add(Duration(hours: 9 + 2 * i));
+        noteItems.add(
+          EntryNote(
+            id: 'note-${s.id}-quick-$i',
+            entryId: s.id,
+            createdAt: at,
+            updatedAt: at,
+            text: text,
+            promptKey: ReviewPrompts.quick,
+          ),
+        );
       }
       if (!s.withRecording) continue;
       recordingItems.add(

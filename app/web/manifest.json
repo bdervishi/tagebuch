@@ -53,6 +53,32 @@
             ]
         },
         {
+            "name": "Sprachnotiz",
+            "short_name": "Sprachnotiz",
+            "description": "Kurze Sprachnotiz ohne Impulse aufnehmen",
+            "url": "./?start=sprachnotiz",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Kurznotiz",
+            "short_name": "Kurznotiz",
+            "description": "Kurze Notiz zum Tag schreiben",
+            "url": "./?start=kurznotiz",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
             "name": "Schreiben",
             "short_name": "Schreiben",
             "description": "Heutigen Eintrag schreiben",

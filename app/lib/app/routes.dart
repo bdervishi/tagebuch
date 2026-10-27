@@ -24,6 +24,13 @@ class EntryRouteArgs {
   final Duration? jumpTo;
 }
 
+/// Argumente der Aufnahme-Route: [quick] öffnet die Aufnahme im Schnellmodus
+/// "Sprachnotiz" (D22): ohne Impulse, sonst identisch.
+class RecordRouteArgs {
+  const RecordRouteArgs({this.quick = false});
+  final bool quick;
+}
+
 /// Argumente der Schreiben-Route (D17): der Kalendertag und optional eine
 /// vorhandene Notiz, die bearbeitet wird.
 class WriteRouteArgs {
@@ -35,7 +42,8 @@ class WriteRouteArgs {
 /// Benannte Routen. Die drei Reiter (Heute, Kalender, Einstellungen) leben in
 /// der Start-Route; Aufnahme, Eintrag, Schreiben und Woche liegen darüber.
 abstract final class AppRoutes {
-  /// Vollbild-Aufnahme (M3: ein Tipp, und es läuft).
+  /// Vollbild-Aufnahme (M3: ein Tipp, und es läuft); Argument optional
+  /// [RecordRouteArgs].
   static const String record = '/record';
 
   /// Eintrag; Argument ist eine Eintrags-ID als [String] oder [EntryRouteArgs].
@@ -69,9 +77,11 @@ abstract final class AppRoutes {
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case record:
+        final args = settings.arguments;
+        final quick = args is RecordRouteArgs && args.quick;
         return SheetPageRoute<void>(
           settings: settings,
-          builder: (_) => const RecordingScreen(),
+          builder: (_) => RecordingScreen(quick: quick),
         );
       case entry:
         final args = switch (settings.arguments) {
@@ -161,9 +171,16 @@ abstract final class AppRoutes {
         .pushNamed(entry, arguments: EntryRouteArgs(entryId, jumpTo: jumpTo));
   }
 
-  /// Öffnet die Aufnahme als Vollbild-Route.
-  static Future<void> openRecording(BuildContext context) {
-    return Navigator.of(context).pushNamed(record);
+  /// Öffnet die Aufnahme als Vollbild-Route; mit [quick] als Sprachnotiz
+  /// ohne Impulse (D22).
+  static Future<void> openRecording(
+    BuildContext context, {
+    bool quick = false,
+  }) {
+    return Navigator.of(context).pushNamed(
+      record,
+      arguments: quick ? const RecordRouteArgs(quick: true) : null,
+    );
   }
 
   /// Öffnet den Bildschirm "Wege".

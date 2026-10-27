@@ -14,16 +14,23 @@ import '../../widgets/step_card.dart';
 import '../lesebuch/today_reading_section.dart';
 import '../wege/today_goals_section.dart';
 import '../zitate/quote_card.dart';
+import 'day_timeline.dart';
+import 'quick_note_sheet.dart';
 
 export '../../widgets/record_button.dart' show recordButtonKey;
 
 /// Widget-Key der kleineren Aktion "Schreiben" (D17).
 const Key writeButtonKey = Key('write-button');
 
+/// Widget-Keys der kleinen Aktionen "Sprachnotiz" und "Kurznotiz" (D22).
+const Key quickVoiceKey = Key('quick-voice');
+const Key quickTextKey = Key('quick-text');
+
 /// Startbildschirm: große Aufnahmetaste und die kleinere Aktion "Schreiben",
-/// darunter das Zitat zum Tag (D20), "Dein Schritt für heute", der Abschnitt
-/// "Deine Wege" (D19), die Zeile "Lese ich" aus dem Lesebuch (D21), der
-/// heutige Eintrag aus dem Repository,
+/// darunter die kleinen Aktionen "Sprachnotiz" und "Kurznotiz" (D22), das
+/// Zitat zum Tag (D20), "Dein Schritt für heute", der Abschnitt
+/// "Deine Wege" (D19), die Zeile "Lese ich" aus dem Lesebuch (D21), der Tag
+/// als Zeitleiste "Dein Tag" aus den Stücken des heutigen Eintrags (D22),
 /// bei Bedarf die Karte "Zeit für ein Backup" und die Rückblicke "Vor einem
 /// Jahr" und "Vor einem Monat". Zustand statt Mahnung: kein Zähler, keine
 /// Kette (docs/03 Abschnitt 3, D17). Die Abschnitte erscheinen beim Öffnen
@@ -100,16 +107,50 @@ class TodayScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-            const Reveal(index: 2, child: QuoteCard()),
-            const Reveal(index: 3, child: StepCard()),
-            const Reveal(index: 4, child: TodayGoalsSection()),
-            const Reveal(index: 5, child: TodayReadingSection()),
-            const Reveal(index: 6, child: BackupReminderCard()),
+            const SizedBox(height: 12),
+            // Stücke über den Tag (D22): klein und nebeneinander, damit die
+            // Aufnahmetaste die Hauptaktion bleibt.
             Reveal(
-              index: 6,
+              index: 2,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton.icon(
+                    key: quickVoiceKey,
+                    onPressed: () =>
+                        AppRoutes.openRecording(context, quick: true),
+                    icon: const Icon(Icons.mic_none, size: 18),
+                    label: Text(
+                      l10n.quickVoiceButton,
+                      semanticsLabel: l10n.quickVoiceSemantics,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton.icon(
+                    key: quickTextKey,
+                    onPressed: () => showQuickNoteSheet(context),
+                    icon: const Icon(Icons.short_text, size: 18),
+                    label: Text(
+                      l10n.quickTextButton,
+                      semanticsLabel: l10n.quickTextSemantics,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Reveal(index: 3, child: QuoteCard()),
+            const Reveal(index: 4, child: StepCard()),
+            const Reveal(index: 5, child: TodayGoalsSection()),
+            const Reveal(index: 6, child: TodayReadingSection()),
+            const Reveal(index: 7, child: BackupReminderCard()),
+            Reveal(
+              index: 7,
               child: switch (today) {
-                AsyncData(value: null) => Padding(
+                // Ohne Stücke (kein Eintrag oder nur interne Notizen wie
+                // das Häkchen am Schritt) bleibt die leise Zeile.
+                AsyncData(value: null) ||
+                AsyncData(value: EntryView(items: [])) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
                     l10n.todayNoEntry,
@@ -122,9 +163,9 @@ class TodayScreen extends ConsumerWidget {
                 AsyncData(value: final view?) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionTitle(l10n.todayEntriesHeading),
+                    _SectionTitle(l10n.todayTimelineHeading),
                     const SizedBox(height: 10),
-                    EntryTile(view: view),
+                    DayTimeline(view: view),
                   ],
                 ),
                 AsyncError() => Text(
@@ -142,7 +183,7 @@ class TodayScreen extends ConsumerWidget {
             ),
             for (final (i, lookback) in lookbacks.indexed)
               Reveal(
-                index: 7 + i,
+                index: 8 + i,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 24),
                   child: Column(

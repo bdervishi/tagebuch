@@ -4,7 +4,9 @@ import 'package:diary_core/diary_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/formats.dart';
 import '../../app/motion.dart';
+import '../../app/routes.dart';
 import '../../data/entry_view.dart';
 import '../../data/settings_notifier.dart';
 import '../../l10n/app_localizations.dart';
@@ -27,6 +29,14 @@ const Key writeCloseKey = Key('write-close');
 const Key writeBackKey = Key('write-back');
 const Key writeNextKey = Key('write-next');
 
+/// Keys der Liste "Heute bisher" im ersten Schritt (D22) und ihrer Taste
+/// "Alle im Eintrag".
+const Key writeTodaySoFarKey = Key('write-today-so-far');
+const Key writeTodaySoFarAllKey = Key('write-today-so-far-all');
+
+/// Höchstens so viele Stücke zeigt "Heute bisher" (die letzten).
+const int writeTodaySoFarMax = 8;
+
 /// Entprellung des automatischen Speicherns.
 const Duration writeAutosaveDelay = Duration(seconds: 1);
 
@@ -40,6 +50,9 @@ const Duration writeAutosaveDelay = Duration(seconds: 1);
 /// geleertes Feld löscht seine Notiz. Ohne die Einstellung gibt es ein
 /// freies Feld. Mit [noteId] wird genau diese Notiz bearbeitet. Beim Impuls
 /// `next` lässt sich der Schritt per Chip einem aktiven Weg zuordnen (D19).
+/// Der erste Schritt zeigt über dem Feld die Stücke des Tages (Kurznotizen
+/// und Sprachnotizen, D22) als leise, zusammenklappbare Liste "Heute bisher",
+/// nur lesen, nur wenn es welche gibt.
 class WriteScreen extends ConsumerStatefulWidget {
   const WriteScreen({super.key, required this.day, this.noteId});
 
@@ -58,6 +71,10 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
 
   /// Aktive Wege für die Chips am Impuls `next` (D19).
   List<Goal> _goals = const [];
+
+  /// Stücke des Tages für "Heute bisher" (D22), die letzten höchstens
+  /// [writeTodaySoFarMax], zeitlich geordnet; leer außerhalb des Assistenten.
+  List<EntryItem> _todaySoFar = const [];
 
   /// Der Zähler für die lesenden Provider; als Objekt gehalten, weil das
   /// Speichern beim Verlassen nach dem Dispose des Widgets endet und `ref`
@@ -90,6 +107,13 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           ? const <EntryNote>[]
           : await services.notes.listForEntry(entry.id);
       final goals = await services.goals.listActive(services.journalId);
+      var todaySoFar = const <EntryItem>[];
+      if (entry != null && widget.noteId == null && settings.guidedReview) {
+        final all = (await EntryView.load(services, entry)).quickItems;
+        todaySoFar = all.length > writeTodaySoFarMax
+            ? all.sublist(all.length - writeTodaySoFarMax)
+            : all;
+      }
       final fields = <_NoteField>[];
       final noteId = widget.noteId;
       if (noteId != null) {
@@ -130,6 +154,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         _entry = entry;
         _guided = widget.noteId == null && settings.guidedReview;
         _goals = goals;
+        _todaySoFar = todaySoFar;
         _fields.addAll(fields);
         _ready = true;
       });
@@ -382,10 +407,21 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             itemBuilder: (context, index) {
               if (index < _fields.length) {
                 final f = _fields[index];
+                final entryId = _entry?.id;
                 return ListView(
                   key: ValueKey('write-step-$index'),
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                   children: [
+                    if (index == 0 &&
+                        _todaySoFar.isNotEmpty &&
+                        entryId != null) ...[
+                      _TodaySoFar(
+                        items: _todaySoFar,
+                        onOpenEntry: () =>
+                            AppRoutes.openEntry(context, entryId),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     _PromptField(
                       field: f,
                       onChanged: () => _onChanged(f),
@@ -487,6 +523,89 @@ class _Header extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Leise, zusammenklappbare Liste "Heute bisher" (D22): Uhrzeit und Text der
+/// Kurznotizen und Sprachnotiz-Transkripte des Tages, nur lesen; "Alle im
+/// Eintrag" öffnet den Eintrag. Das Auf- und Zuklappen ist die erlaubte
+/// Ausnahme für Größenänderung (docs/12 Abschnitt 3), Dauer und Kurve aus
+/// [Motion].
+class _TodaySoFar extends StatelessWidget {
+  const _TodaySoFar({required this.items, required this.onOpenEntry});
+
+  final List<EntryItem> items;
+  final VoidCallback onOpenEntry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final muted = theme.textTheme.bodySmall?.copyWith(
+      color: scheme.onSurfaceVariant,
+    );
+    return ExpansionTile(
+      key: writeTodaySoFarKey,
+      initiallyExpanded: true,
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: const EdgeInsets.only(bottom: 4),
+      shape: const Border(),
+      collapsedShape: const Border(),
+      expansionAnimationStyle: AnimationStyle(
+        duration: Motion.enter,
+        curve: Motion.easeOut,
+      ),
+      leading: Icon(Icons.short_text, size: 20, color: scheme.primary),
+      title: Text(
+        l10n.writeTodaySoFar,
+        style: theme.textTheme.titleSmall?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
+      ),
+      children: [
+        for (final item in items)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 48,
+                  child: Text(
+                    formatTime(context, item.at),
+                    style: muted?.copyWith(
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    switch (item) {
+                      RecordingItem(:final transcript) =>
+                        (transcript?.text.trim().isNotEmpty ?? false)
+                            ? transcript!.text.trim()
+                            : l10n.transcriptPending,
+                      NoteItem(:final note) => note.text.trim(),
+                    },
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            key: writeTodaySoFarAllKey,
+            onPressed: onOpenEntry,
+            child: Text(l10n.writeTodaySoFarAll),
+          ),
         ),
       ],
     );

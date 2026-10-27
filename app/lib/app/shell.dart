@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/einstellungen/settings_screen.dart';
+import '../features/heute/quick_note_sheet.dart';
 import '../features/heute/today_screen.dart';
 import '../features/kalender/calendar_screen.dart';
 import '../l10n/app_localizations.dart';
@@ -14,8 +15,9 @@ import 'routes.dart';
 /// Die Reiter behalten ihren Zustand über einen [IndexedStack]. Der Wechsel
 /// selbst ist bewusst ohne Animation: Er passiert dutzende Male am Tag.
 /// Die Leiste sitzt auf einer Haarlinie statt eines Schattens. Eine
-/// Schnellaktion des Starts (Manifest-Shortcut "Aufnehmen" oder "Schreiben")
-/// öffnet nach dem ersten Frame direkt die passende Route.
+/// Schnellaktion des Starts (Manifest-Shortcut "Aufnehmen", "Sprachnotiz",
+/// "Kurznotiz" oder "Schreiben") öffnet nach dem ersten Frame direkt die
+/// passende Route oder das Blatt.
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
@@ -36,6 +38,10 @@ class _AppShellState extends ConsumerState<AppShell> {
       switch (action) {
         case StartAction.record:
           AppRoutes.openRecording(context);
+        case StartAction.quickVoice:
+          AppRoutes.openRecording(context, quick: true);
+        case StartAction.quickText:
+          showQuickNoteSheet(context);
         case StartAction.write:
           AppRoutes.openWrite(context, LocalDay.forMoment(DateTime.now()));
       }

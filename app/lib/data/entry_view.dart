@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/app_services.dart';
 
 /// Ein Element der chronologischen Eintragsliste: Aufnahme mit Transkript
-/// oder geschriebene Notiz (D17).
+/// oder geschriebene Notiz (D17), darunter Kurznotizen (D22).
 sealed class EntryItem {
   const EntryItem();
   DateTime get at;
@@ -74,6 +74,19 @@ class EntryView {
     ]..sort((a, b) => a.at.compareTo(b.at));
     return list;
   }
+
+  /// Die Stücke über den Tag (D22): Kurznotizen und Aufnahmen ohne Impulse
+  /// (Sprachnotizen oder Aufnahmen ohne geführten Rückblick), zeitlich
+  /// geordnet. Antworten auf Impulse und geführte Aufnahmen gehören zum
+  /// Abendrückblick und fehlen hier.
+  List<EntryItem> get quickItems => [
+    for (final item in items)
+      if (switch (item) {
+        RecordingItem(:final promptMarks) => promptMarks == null,
+        NoteItem(:final note) => note.promptKey == ReviewPrompts.quick,
+      })
+        item,
+  ];
 
   /// Zeitmarken der Impulse zu einer Aufnahme oder `null`.
   PromptMarks? promptMarksFor(String recordingId) {
