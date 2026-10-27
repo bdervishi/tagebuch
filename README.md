@@ -15,7 +15,7 @@ Eine App für iOS und Android, mit der man den eigenen Tag per Stimme statt per 
 
 ## Aktueller Status
 
-Konzeptphase abgeschlossen, Projektgerüst angelegt. Das Repository enthält Anforderungen, Rechercheberichte, eine Faktenprüfung, zehn Konzeptdokumente und ein lauffähiges Flutter-Gerüst mit den Kernpaketen; die nativen Teile (Aufnahme, Spracherkennung, Schlüsselverwahrung, Erinnerungen) folgen in den Spikes aus `docs/09-roadmap.md`. Alle Dokumente tragen den Status „Entwurf“.
+Konzeptphase abgeschlossen, Projektgerüst angelegt; die erste Zielplattform ist eine installierbare Web-App (PWA, Entscheidung D16, Konzept in `docs/10-pwa.md`), die Store-Apps folgen aus demselben Code. Das Repository enthält Anforderungen, Rechercheberichte, eine Faktenprüfung, zehn Konzeptdokumente und ein lauffähiges Flutter-Gerüst mit den Kernpaketen; die nativen Teile (Aufnahme, Spracherkennung, Schlüsselverwahrung, Erinnerungen) folgen in den Spikes aus `docs/09-roadmap.md`. Alle Dokumente tragen den Status „Entwurf“.
 
 ## Projektgerüst
 
@@ -49,6 +49,7 @@ Einstieg für Entwickler: `CLAUDE.md` (Befehle, Regeln), `docs/entscheidungen.md
 | [docs/06-geraetewechsel-qr-transfer.md](docs/06-geraetewechsel-qr-transfer.md) | Verfahren „QR + Datei“ für den Gerätewechsel, Containerformat, dieselbe Datei als Backup, Ausbaustufen und verworfene Alternativen. |
 | [docs/07-geschaeftsmodell.md](docs/07-geschaeftsmodell.md) | Zielgruppen, Preisvergleich mit dem Wettbewerb, drei Erlösvarianten mit Rechnung, Lizenzfrage und Markteinführung; das einzige Dokument mit eigenen Preisen (Wettbewerberpreise stehen in Dokument 01). |
 | [docs/08-namensfindung.md](docs/08-namensfindung.md) | Kriterien, Shortlist mit Bewertung, Empfehlung und die Prüfpflichten vor der Festlegung des Namens. |
+| [docs/10-pwa.md](docs/10-pwa.md) | Web-Fassung zuerst: was gleich bleibt, was im Browser anders ist (Speicher, Schlüssel, Erkennung, Erinnerung), Architektur und Reihenfolge W0 bis W6. |
 | [docs/09-roadmap.md](docs/09-roadmap.md) | Phasen von den technischen Spikes bis zum Store-Start, Prüfkriterien je Phase, Risiken und die Entscheidungen, die jetzt anstehen. |
 | [docs/entscheidungen.md](docs/entscheidungen.md) | Die verbindlichen Entscheidungen D1 bis D15, aus den Rechercheberichten abgeleitet und Grundlage aller Konzeptdokumente. |
 | [docs/recherche/README.md](docs/recherche/README.md) | Übersicht der Rechercheberichte, der Nachrecherchen (`nachrecherche-audio-container.md`, `nachrecherche-nutzerstimmen-stores.md`), der Faktenprüfung (`verifikation.json`) und der Einschränkungen der Quellenlage. |

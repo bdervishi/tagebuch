@@ -44,6 +44,12 @@ Grundregel für jede Auswahl: Der Dienst darf nie Nutzerdaten der App sehen. Er 
 | Mobile App Distribution über Drittanbieter für Store-Builds | Store-Builds gehen nur über TestFlight, Play Console und F-Droid; Drittverteiler höchstens für Android-Testbuilds an bekannte Tester. |
 | Cloud-Gerätefarmen mit echten Daten | Nur synthetische Testdaten (Abschnitt 10 Punkt 6 im Technikkonzept). |
 
+## Im Einsatz
+
+| Dienst | Seit | Konto | Was der Dienst sieht |
+|--------|------|-------|----------------------|
+| GitHub (Repository, Actions, Pages) | September 2026 | Inhaber | Quellcode, Build-Protokolle, die statischen Dateien der PWA. Keine Nutzerdaten; die PWA sendet nichts an den Host zurück. GitHub Pages protokolliert Zugriffe serverseitig ohne Einfluss von uns; wer das vermeiden will, hostet die Dateien selbst. |
+
 ## Pflege
 
 - Wenn ein Dienst eingesetzt wird: hier eintragen, mit Datum, Kontoinhaber und was der Dienst sieht.
