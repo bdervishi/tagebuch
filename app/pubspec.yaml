@@ -41,6 +41,17 @@ dependencies:
   intl: ^0.20.3
   flutter_riverpod: ^3.4.3
 
+  # Kernpakete des Workspace (Ports, Fakes, Web-Umsetzungen).
+  diary_core:
+    path: ../packages/diary_core
+  diary_audio:
+    path: ../packages/diary_audio
+  diary_stt:
+    path: ../packages/diary_stt
+  # Nur im Web-Build eingebunden (bedingter Import in lib/services/create_services.dart).
+  diary_web:
+    path: ../packages/diary_web
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -97,4 +108,3 @@ flutter:
     - family: Inter
       fonts:
         - asset: assets/fonts/Inter.ttf
-

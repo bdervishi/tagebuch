@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/routes.dart';
-import '../../data/diary_entry.dart';
-import '../../data/entries_notifier.dart';
+import '../../data/day.dart';
+import '../../data/entry_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/entry_tile.dart';
 
 /// Widget-Key der großen Aufnahmetaste (für Tests).
 const Key recordButtonKey = Key('record-button');
 
-/// Startbildschirm: große Aufnahmetaste, darunter der heutige Eintrag.
-/// Zustand statt Mahnung: kein Zähler, keine Kette (docs/03 Abschnitt 3).
+/// Startbildschirm: große Aufnahmetaste, darunter der heutige Eintrag aus dem
+/// Repository. Zustand statt Mahnung: kein Zähler, keine Kette (docs/03
+/// Abschnitt 3).
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
 
@@ -20,8 +21,8 @@ class TodayScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final materialL10n = MaterialLocalizations.of(context);
     final theme = Theme.of(context);
-    final day = today();
-    final todaysEntries = ref.watch(entriesProvider).onDay(day);
+    final day = dayOf(DateTime.now());
+    final today = ref.watch(todayViewProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.todayTitle)),
@@ -60,23 +61,37 @@ class TodayScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 40),
-            if (todaysEntries.isEmpty)
-              Text(
+            switch (today) {
+              AsyncData(value: null) => Text(
                 l10n.todayNoEntry,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
-              )
-            else ...[
-              Text(l10n.todayEntriesHeading, style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              for (final entry in todaysEntries)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: EntryTile(entry: entry),
+              ),
+              AsyncData(value: final view?) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.todayEntriesHeading,
+                    style: theme.textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  EntryTile(view: view),
+                ],
+              ),
+              AsyncError() => Text(
+                l10n.startError,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium,
+              ),
+              _ => Center(
+                child: Semantics(
+                  label: l10n.loadingLabel,
+                  child: const CircularProgressIndicator(),
                 ),
-            ],
+              ),
+            },
           ],
         ),
       ),

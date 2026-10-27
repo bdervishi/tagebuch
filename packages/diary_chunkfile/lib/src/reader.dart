@@ -43,6 +43,26 @@ class ChunkFileReader {
     required KeyWrap keyWrap,
     required Uint8List masterKey,
     bool allowTruncated = false,
+  }) => openWith(
+    source,
+    aead: aead,
+    allowTruncated: allowTruncated,
+    unwrapFileKey: (wrapped) => keyWrap.unwrap(
+      masterKey: masterKey,
+      wrapped: wrapped,
+      purpose: ChunkFileFormat.keyWrapPurpose,
+    ),
+  );
+
+  /// Wie [open], aber der Aufrufer entpackt den gewrappten Dateischlüssel aus
+  /// dem Kopf selbst (für Master-Keys, die die Anwendung nicht als Bytes
+  /// erreichen, z. B. WebCrypto, D16). [unwrapFileKey] erhält den Blob aus
+  /// dem Kopf und wirft [AuthenticationException], wenn er nicht passt.
+  static Future<ChunkFileReader> openWith(
+    RandomAccessSource source, {
+    required Aead aead,
+    required Future<Uint8List> Function(Uint8List wrappedFileKey) unwrapFileKey,
+    bool allowTruncated = false,
   }) async {
     final total = source.length;
     final headerBytes = await source.read(
@@ -50,11 +70,7 @@ class ChunkFileReader {
       math.min(total, ChunkFileFormat.headerLength(aead.id)),
     );
     final header = ChunkFileHeader.parse(headerBytes, expectedAeadId: aead.id);
-    final fileKey = await keyWrap.unwrap(
-      masterKey: masterKey,
-      wrapped: header.wrappedFileKey,
-      purpose: ChunkFileFormat.keyWrapPurpose,
-    );
+    final fileKey = await unwrapFileKey(header.wrappedFileKey);
     if (fileKey.length != ChunkFileFormat.fileKeyLength) {
       zeroize(fileKey);
       throw const ChunkFileFormatException(

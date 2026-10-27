@@ -15,7 +15,6 @@
   "todayEntriesHeading": "Dein Eintrag von heute",
   "localOnlyHint": "Alles bleibt auf diesem Gerät.",
   "openEntry": "Eintrag öffnen",
-  "playPlaceholder": "Abspielen (folgt)",
   "durationFormatted": "{minutes} Min. {seconds} Sek.",
   "@durationFormatted": {
     "description": "Dauer eines Eintrags",
@@ -46,7 +45,7 @@
       "seconds": {"type": "int"}
     }
   },
-  "levelMeterSemantics": "Pegelanzeige, Platzhalter",
+  "levelMeterSemantics": "Pegelanzeige",
   "pauseButton": "Pause",
   "resumeButton": "Weiter",
   "stopButton": "Fertig",
@@ -55,14 +54,13 @@
   "discardDialogBody": "Die bisherige Aufnahme wird nicht gespeichert.",
   "discardDialogKeep": "Weiter aufnehmen",
   "discardDialogDiscard": "Verwerfen",
-  "recordingSimulatedHint": "Simulierte Aufnahme ohne Mikrofon. Die echte Aufnahme folgt.",
+  "recordingSimulatedHint": "Simulierte Aufnahme ohne Mikrofon. Die echte Aufnahme folgt mit den Store-Apps.",
   "transcriptPending": "Transkription folgt",
 
   "entryTitle": "Eintrag",
   "entryNotFound": "Eintrag nicht gefunden.",
   "durationLabel": "Dauer",
   "languageLabel": "Sprache",
-  "playerPlaceholder": "Wiedergabe folgt",
   "transcriptHeading": "Text",
   "audioKept": "Mit Audio",
   "audioRemoved": "Nur Text",
@@ -151,5 +149,57 @@
   "onboardingStep3Title": "Sprache",
   "onboardingStep3Body": "Wähle Deutsch (Deutschland, Österreich oder Schweiz) oder Englisch. Hochdeutsch liefert die zuverlässigsten Ergebnisse. Das Sprachmodell wird einmalig vom Betriebssystem oder App-Store geladen. Du kannst die Sprache jederzeit in den Einstellungen ändern.",
   "onboardingStep4Title": "Erinnerung",
-  "onboardingStep4Body": "Einmal am Tag, zu einer Uhrzeit, die du wählst. Vorschlag: 21:00 Uhr. Die Benachrichtigung enthält nie Tagebuchtext, nur „Zeit für deinen Eintrag“. Kein Zähler, keine Kette, kein Vorwurf."
+  "onboardingStep4Body": "Einmal am Tag, zu einer Uhrzeit, die du wählst. Vorschlag: 21:00 Uhr. Die Benachrichtigung enthält nie Tagebuchtext, nur „Zeit für deinen Eintrag“. Kein Zähler, keine Kette, kein Vorwurf.",
+  "loadingLabel": "Wird geladen …",
+  "startError": "Die App konnte ihre Daten nicht öffnen. Bitte neu laden; bleibt der Fehler, hilft ein aktueller Browser.",
+  "entryBackdated": "Nachtrag",
+  "transcriptMissing": "Kein Text zu dieser Aufnahme. Die Erkennung ist experimentell; das Audio ist gespeichert.",
+  "recordingWebHint": "Aufnahme läuft im Browser. Bildschirm aus oder App-Wechsel beendet sie; bis dahin Aufgenommenes bleibt erhalten.",
+  "recordingStarting": "Mikrofon wird geöffnet …",
+  "recordingMicError": "Kein Zugriff auf das Mikrofon. Erlaube den Zugriff in den Einstellungen des Browsers oder Systems und versuche es erneut.",
+  "recordingSaving": "Wird gespeichert …",
+
+  "playButton": "Abspielen",
+  "playerLoading": "Audio wird entschlüsselt …",
+  "playerError": "Wiedergabe nicht möglich.",
+  "playbackSpeed": "Geschwindigkeit",
+  "playbackSpeedValue": "{speed}×",
+  "@playbackSpeedValue": {
+    "placeholders": {"speed": {"type": "String"}}
+  },
+  "playerPositionSemantics": "Position {position} von {duration}",
+  "@playerPositionSemantics": {
+    "placeholders": {
+      "position": {"type": "String"},
+      "duration": {"type": "String"}
+    }
+  },
+  "waveformSemantics": "Wellenform der Aufnahme",
+
+  "reminderWebNote": "Im Browser gibt es ohne Server keine Benachrichtigung. Lege stattdessen einen täglichen Kalendereintrag mit Alarm an oder stelle den Wecker deines Telefons. Beim Öffnen zeigt die App, ob du heute schon aufgenommen hast.",
+  "reminderCreateCalendar": "Kalendereintrag erstellen",
+  "reminderCreateCalendarSubtitle": "Lädt eine Kalenderdatei (.ics) mit täglicher Wiederholung und Alarm.",
+  "reminderIcsTitle": "Zeit für deinen Eintrag",
+  "reminderIcsDescription": "Tagebuch: einmal am Tag kurz sprechen.",
+  "reminderCalendarCreated": "Kalenderdatei erstellt. Öffne sie, um den Termin in deinen Kalender zu übernehmen.",
+
+  "storageTitle": "Speicher auf diesem Gerät",
+  "storagePersisted": "Dauerhaft zugesichert: Der Browser räumt den Speicher nicht automatisch.",
+  "storageNotPersisted": "Nicht zugesichert: Der Browser darf den Speicher bei Platzmangel räumen. Installiere die App auf dem Home-Bildschirm und erstelle Backups.",
+  "storageUsage": "{used} MB belegt, {free} MB frei",
+  "@storageUsage": {
+    "placeholders": {
+      "used": {"type": "String"},
+      "free": {"type": "String"}
+    }
+  },
+  "storageUnknown": "Speicherstatus nicht verfügbar.",
+  "webDataNote": "Deine Daten liegen verschlüsselt im Browser dieses Geräts; der Schlüssel verlässt den Browser nicht. Ein Backup ist Pflicht: Wird der Browser-Speicher gelöscht, sind die Einträge weg.",
+  "privacyCspSentence": "Die Web-Fassung erlaubt dem Browser über ihre Content-Security-Policy nur Verbindungen zum Ort der App-Dateien; Einträge, Audio und Einstellungen werden nirgendwohin gesendet.",
+
+  "onboardingInstallTitle": "Als App installieren",
+  "onboardingInstallBodyIos": "Tippe in Safari unten auf Teilen (das Quadrat mit Pfeil) und dann auf „Zum Home-Bildschirm“. Danach öffnest du das Tagebuch wie eine App. Wichtig: Nur installiert bleibt dein Speicher sicher vor dem automatischen Aufräumen des Browsers.",
+  "onboardingInstallBodyAndroid": "Öffne das Menü des Browsers (drei Punkte) und wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“. Danach öffnest du das Tagebuch wie eine App, und der Speicher bleibt dauerhaft erhalten.",
+  "onboardingStep1TitleWeb": "Deine Daten bleiben in diesem Browser",
+  "onboardingStep1BodyWeb": "Einträge, Audio und Einstellungen liegen verschlüsselt im Speicher dieser Web-App auf diesem Gerät. Den Schlüssel kennt nur dieser Browser; er hat aber keinen Hardware-Schutz wie eine Store-App. Deshalb: Ein Backup ist Pflicht. Wird der Browser-Speicher gelöscht oder das Gerät gewechselt, stellt nur deine Backup-Datei die Einträge wieder her."
 }

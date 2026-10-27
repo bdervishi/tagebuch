@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/day.dart';
-import '../../data/diary_entry.dart';
-import '../../data/entries_notifier.dart';
+import '../../data/entry_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/entry_tile.dart';
 import 'month_grid.dart';
@@ -12,8 +11,8 @@ import 'month_grid.dart';
 const Key searchFieldKey = Key('calendar-search');
 
 /// Kalender und Suche: Monatsraster mit markierten Tagen, darunter die
-/// Einträge des Monats oder des gewählten Tags; ein Suchtext filtert über
-/// alle Transkripte (In-Memory-Platzhalter für FTS5).
+/// Einträge des Monats oder des gewählten Tags; ein Suchtext fragt das
+/// `SearchRepository` (Web: Index im Speicher, nativ später FTS5).
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key, this.initialMonth});
 
@@ -57,8 +56,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final l10n = AppLocalizations.of(context);
     final materialL10n = MaterialLocalizations.of(context);
     final theme = Theme.of(context);
-    final entries = ref.watch(entriesProvider);
     final searching = _query.trim().isNotEmpty;
+    final monthViews = ref.watch(
+      monthViewsProvider((_month.year, _month.month)),
+    );
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.calendarTitle)),
@@ -89,7 +90,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
             const SizedBox(height: 16),
             if (searching)
-              ..._buildSearchResults(context, entries.search(_query))
+              ..._buildSearchResults(context)
             else ...[
               Row(
                 children: [
@@ -118,12 +119,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               const SizedBox(height: 8),
               MonthGrid(
                 month: _month,
-                markedDays: entries.daysWithEntriesIn(_month),
+                markedDays: {
+                  for (final v in monthViews.value ?? const <EntryView>[])
+                    v.entry.day.day,
+                },
                 selectedDay: _selectedDay,
                 onDaySelected: _selectDay,
               ),
               const SizedBox(height: 24),
-              ..._buildMonthList(context, entries),
+              ..._buildMonthList(context, monthViews),
             ],
           ],
         ),
@@ -131,14 +135,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 
-  List<Widget> _buildSearchResults(
-    BuildContext context,
-    List<DiaryEntry> results,
-  ) {
+  List<Widget> _buildSearchResults(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    if (results.isEmpty) {
-      return [
+    final results = ref.watch(searchViewsProvider(_query.trim()));
+    return switch (results) {
+      AsyncData(value: final list) when list.isEmpty => [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Text(
@@ -147,30 +149,48 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             style: theme.textTheme.bodyLarge,
           ),
         ),
-      ];
-    }
-    return [
-      Text(
-        l10n.searchResultCount(results.length),
-        style: theme.textTheme.titleSmall,
-      ),
-      const SizedBox(height: 8),
-      for (final entry in results)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: EntryTile(entry: entry, showDate: true),
+      ],
+      AsyncData(value: final list) => [
+        Text(
+          l10n.searchResultCount(list.length),
+          style: theme.textTheme.titleSmall,
         ),
-    ];
+        const SizedBox(height: 8),
+        for (final result in list)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: EntryTile(
+              view: result.view,
+              showDate: true,
+              snippet: result.snippet,
+              jumpTo: result.jumpTo,
+            ),
+          ),
+      ],
+      AsyncError() => [Text(l10n.startError)],
+      _ => [
+        Center(
+          child: Semantics(
+            label: l10n.loadingLabel,
+            child: const CircularProgressIndicator(),
+          ),
+        ),
+      ],
+    };
   }
 
-  List<Widget> _buildMonthList(BuildContext context, List<DiaryEntry> entries) {
+  List<Widget> _buildMonthList(
+    BuildContext context,
+    AsyncValue<List<EntryView>> monthViews,
+  ) {
     final l10n = AppLocalizations.of(context);
     final materialL10n = MaterialLocalizations.of(context);
     final theme = Theme.of(context);
     final selected = _selectedDay;
+    final all = monthViews.value ?? const <EntryView>[];
     final list = selected == null
-        ? entries.inMonth(_month)
-        : entries.onDay(selected);
+        ? all
+        : all.where((v) => isSameDay(v.day, selected)).toList();
     final heading = selected == null
         ? materialL10n.formatMonthYear(_month)
         : materialL10n.formatFullDate(selected);
@@ -186,7 +206,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         ],
       ),
       const SizedBox(height: 8),
-      if (list.isEmpty)
+      if (monthViews.isLoading && !monthViews.hasValue)
+        Center(
+          child: Semantics(
+            label: l10n.loadingLabel,
+            child: const CircularProgressIndicator(),
+          ),
+        )
+      else if (list.isEmpty)
         Text(
           selected == null ? l10n.noEntriesThisMonth : l10n.noEntriesThisDay,
           style: theme.textTheme.bodyMedium?.copyWith(
@@ -194,10 +221,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           ),
         )
       else
-        for (final entry in list)
+        for (final view in list)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: EntryTile(entry: entry, showDate: selected == null),
+            child: EntryTile(view: view, showDate: selected == null),
           ),
     ];
   }

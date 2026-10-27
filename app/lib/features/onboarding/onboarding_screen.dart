@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../services/app_services.dart';
 
 /// Keys für Tests.
 const Key onboardingSkipKey = Key('onboarding-skip');
 const Key onboardingNextKey = Key('onboarding-next');
 
-/// Einmaliges Onboarding in vier Textschritten (docs/03 Abschnitt 3):
-/// Gerätecode und Backup-Hinweis, Mikrofon, Sprache, Erinnerung.
+/// Einmaliges Onboarding in Textschritten (docs/03 Abschnitt 3): Schutz und
+/// Backup-Hinweis, Mikrofon, Sprache, Erinnerung. Auf dem Web (D16) voran ein
+/// Schritt "Als App installieren", solange die PWA nicht installiert läuft,
+/// und ein angepasster erster Schritt (Daten im Browser, Backup Pflicht).
 /// Überspringbar; [onFinished] wird bei "Überspringen" und am Ende gerufen.
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key, required this.onFinished});
 
   final VoidCallback onFinished;
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
-  static const int _stepCount = 4;
-
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _controller = PageController();
   int _page = 0;
 
@@ -30,8 +32,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _next() {
-    if (_page >= _stepCount - 1) {
+  void _next(int stepCount) {
+    if (_page >= stepCount - 1) {
       widget.onFinished();
       return;
     }
@@ -50,12 +52,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final isLast = _page == _stepCount - 1;
+    final features = ref.watch(platformFeaturesProvider);
+    final showInstall = features.isWeb && !features.isStandalone;
     final steps = [
+      if (showInstall)
+        (
+          icon: Icons.add_to_home_screen,
+          title: l10n.onboardingInstallTitle,
+          body: features.isIos
+              ? l10n.onboardingInstallBodyIos
+              : l10n.onboardingInstallBodyAndroid,
+        ),
       (
         icon: Icons.lock_outline,
-        title: l10n.onboardingStep1Title,
-        body: l10n.onboardingStep1Body,
+        title: features.isWeb
+            ? l10n.onboardingStep1TitleWeb
+            : l10n.onboardingStep1Title,
+        body: features.isWeb
+            ? l10n.onboardingStep1BodyWeb
+            : l10n.onboardingStep1Body,
       ),
       (
         icon: Icons.mic_none,
@@ -70,9 +85,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       (
         icon: Icons.notifications_none,
         title: l10n.onboardingStep4Title,
-        body: l10n.onboardingStep4Body,
+        body: features.isWeb ? l10n.reminderWebNote : l10n.onboardingStep4Body,
       ),
     ];
+    final stepCount = steps.length;
+    final isLast = _page == stepCount - 1;
 
     return Scaffold(
       appBar: AppBar(
@@ -128,7 +145,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    l10n.onboardingStepOf(_page + 1, _stepCount),
+                    l10n.onboardingStepOf(_page + 1, stepCount),
                     textAlign: TextAlign.center,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
@@ -137,7 +154,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const SizedBox(height: 12),
                   FilledButton(
                     key: onboardingNextKey,
-                    onPressed: _next,
+                    onPressed: () => _next(stepCount),
                     style: FilledButton.styleFrom(
                       minimumSize: const Size.fromHeight(52),
                     ),

@@ -54,4 +54,40 @@ void main() {
     expect(PlaybackSpeeds.clamp(3.0), 2.0);
     expect(PlaybackSpeeds.clamp(0.5), 0.8);
   });
+  test('Simulierter Recorder zählt pausierte Zeit nicht', () async {
+    final rec = SimulatedRecorder(tick: const Duration(milliseconds: 10));
+    final session = await rec.start(fileName: 'x.tgbc', sampleRate: 16000);
+    // Ohne Hörer würde close() der Frame-Quelle nie abschließen.
+    final sub = session.frames.listen((_) {});
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    await session.pause();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await session.resume();
+    await Future<void>.delayed(const Duration(milliseconds: 30));
+    final audio = await session.stop();
+    await sub.cancel();
+    expect(audio.duration.inMilliseconds, lessThan(140));
+  });
+
+  test(
+    'Simulierter Player läuft, springt und begrenzt die Geschwindigkeit',
+    () async {
+      final player = SimulatedPlayer(
+        duration: const Duration(seconds: 2),
+        tick: const Duration(milliseconds: 10),
+      );
+      final states = <bool>[];
+      player.playing.listen(states.add);
+      await player.setSpeed(2.0);
+      await player.play();
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(player.current.inMilliseconds, greaterThanOrEqualTo(80));
+      await player.pause();
+      expect(player.isPlaying, isFalse);
+      await player.seek(const Duration(seconds: 5));
+      expect(player.current, const Duration(seconds: 2));
+      await player.dispose();
+      expect(states, containsAllInOrder([true, false]));
+    },
+  );
 }

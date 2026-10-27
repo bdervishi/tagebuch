@@ -1,0 +1,32 @@
+name: diary_web
+description: Web-Umsetzungen der Ports des Sprach-Tagebuchs (D16). WebCrypto-Master-Key, verschluesselte Datensaetze und Audiodateien in IndexedDB, MediaRecorder-Aufnahme, Wiedergabe, Speicherstatus und ICS-Erinnerung.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.47.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  web: ^1.1.1
+  meta: ^1.16.0
+  diary_core:
+    path: ../diary_core
+  diary_crypto:
+    path: ../diary_crypto
+  diary_chunkfile:
+    path: ../diary_chunkfile
+  diary_keys:
+    path: ../diary_keys
+  diary_audio:
+    path: ../diary_audio
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:

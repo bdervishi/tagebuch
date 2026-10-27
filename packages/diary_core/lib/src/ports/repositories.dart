@@ -11,6 +11,7 @@ abstract interface class JournalRepository {
 }
 
 abstract interface class EntryRepository {
+  Future<DiaryEntry?> byId(String entryId);
   Future<DiaryEntry?> findByDay(String journalId, LocalDay day);
   Future<DiaryEntry> getOrCreate(String journalId, LocalDay day, DateTime now);
   Future<void> update(DiaryEntry entry);
@@ -25,6 +26,11 @@ abstract interface class RecordingRepository {
   Future<void> insert(Recording recording);
   Future<List<Recording>> listForEntry(String entryId);
   Future<void> markAudioDeleted(String recordingId);
+
+  /// Löscht eine Aufnahme samt Transkripten ("Verwerfen" nach dem Stopp);
+  /// liefert den Dateinamen, dessen Datei anschließend entfernt wird, oder
+  /// `null`, wenn die Aufnahme unbekannt ist.
+  Future<String?> delete(String recordingId);
 }
 
 abstract interface class TranscriptRepository {

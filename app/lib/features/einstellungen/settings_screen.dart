@@ -2,12 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/routes.dart';
-import '../../data/diary_entry.dart';
+import '../../data/day.dart';
 import '../../data/settings_notifier.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/app_services.dart';
+import '../../services/platform_features.dart';
+
+/// Widget-Keys für Tests.
+const Key reminderCalendarKey = Key('settings-reminder-calendar');
+const Key storageTileKey = Key('settings-storage');
+
+/// Speicherstatus der Plattform (Web: `navigator.storage`).
+final storageStatusProvider = FutureProvider<StorageStatus?>(
+  (ref) => ref.watch(platformFeaturesProvider).storageStatus(),
+);
 
 /// Einstellungen: Erinnerung, Transkription, Audio, Schutz, Daten,
-/// Datenschutz. Alles Seltene an einem Ort (docs/03 Abschnitt 3).
+/// Datenschutz. Alles Seltene an einem Ort (docs/03 Abschnitt 3). Auf dem Web
+/// zusätzlich: Kalenderdatei statt Benachrichtigung, Speicherstatus, Hinweis
+/// auf den Browser-Speicher und die CSP.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -16,10 +29,11 @@ class SettingsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final materialL10n = MaterialLocalizations.of(context);
     final theme = Theme.of(context);
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.watch(settingsProvider).value ?? const AppSettings();
     final notifier = ref.read(settingsProvider.notifier);
+    final features = ref.watch(platformFeaturesProvider);
     final alwaysUse24Hour = MediaQuery.alwaysUse24HourFormatOf(context);
-    final day = today();
+    final day = dayOf(DateTime.now());
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
@@ -49,7 +63,7 @@ class SettingsScreen extends ConsumerWidget {
                   context: context,
                   initialTime: settings.reminderTime,
                 );
-                if (picked != null) notifier.setReminderTime(picked);
+                if (picked != null) await notifier.setReminderTime(picked);
               },
             ),
             ListTile(
@@ -90,10 +104,30 @@ class SettingsScreen extends ConsumerWidget {
                   firstDate: day,
                   lastDate: day.add(const Duration(days: 365)),
                 );
-                if (picked != null) notifier.pauseReminderUntil(picked);
+                if (picked != null) await notifier.pauseReminderUntil(picked);
               },
             ),
-            _Note(l10n.reminderPlaceholderNote),
+            if (features.isWeb) ...[
+              ListTile(
+                key: reminderCalendarKey,
+                leading: const Icon(Icons.event_available),
+                title: Text(l10n.reminderCreateCalendar),
+                subtitle: Text(l10n.reminderCreateCalendarSubtitle),
+                onTap: () {
+                  features.downloadReminderCalendar(
+                    hour: settings.reminderTime.hour,
+                    minute: settings.reminderTime.minute,
+                    title: l10n.reminderIcsTitle,
+                    description: l10n.reminderIcsDescription,
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.reminderCalendarCreated)),
+                  );
+                },
+              ),
+              _Note(l10n.reminderWebNote),
+            ] else
+              _Note(l10n.reminderPlaceholderNote),
             const Divider(),
             _SectionHeader(l10n.sectionTranscription),
             ListTile(
@@ -122,6 +156,10 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const Divider(),
             _SectionHeader(l10n.sectionData),
+            if (features.isWeb) ...[
+              const _StorageTile(),
+              _Note(l10n.webDataNote),
+            ],
             ListTile(
               enabled: false,
               leading: const Icon(Icons.save_alt),
@@ -152,7 +190,10 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        l10n.privacyPromiseBody,
+                        features.isWeb
+                            ? '${l10n.privacyPromiseBody} '
+                                  '${l10n.privacyCspSentence}'
+                            : l10n.privacyPromiseBody,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           height: 1.4,
                         ),
@@ -205,7 +246,7 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
     if (picked != null) {
-      ref.read(settingsProvider.notifier).setLanguage(picked);
+      await ref.read(settingsProvider.notifier).setLanguage(picked);
     }
   }
 
@@ -219,6 +260,41 @@ class SettingsScreen extends ConsumerWidget {
       TranscriptionLanguage.deCH => l10n.languageDeCH,
       TranscriptionLanguage.en => l10n.languageEn,
     };
+  }
+}
+
+/// Speicherstatus der PWA: zugesichert oder nicht, belegt und frei.
+class _StorageTile extends ConsumerWidget {
+  const _StorageTile();
+
+  static String _megabytes(int bytes) =>
+      (bytes / (1024 * 1024)).toStringAsFixed(bytes < 10 * 1024 * 1024 ? 1 : 0);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final status = ref.watch(storageStatusProvider);
+    final value = status.value;
+    final String subtitle;
+    if (status.isLoading) {
+      subtitle = l10n.loadingLabel;
+    } else if (value == null) {
+      subtitle = l10n.storageUnknown;
+    } else {
+      subtitle =
+          '${value.persisted ? l10n.storagePersisted : l10n.storageNotPersisted}\n'
+          '${l10n.storageUsage(_megabytes(value.usageBytes), _megabytes(value.freeBytes))}';
+    }
+    return ListTile(
+      key: storageTileKey,
+      leading: Icon(
+        value?.persisted ?? false ? Icons.verified_outlined : Icons.storage,
+      ),
+      title: Text(l10n.storageTitle),
+      subtitle: Text(subtitle),
+      isThreeLine: true,
+      onTap: () => ref.invalidate(storageStatusProvider),
+    );
   }
 }
 

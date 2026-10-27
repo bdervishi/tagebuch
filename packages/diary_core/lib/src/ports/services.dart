@@ -49,6 +49,14 @@ abstract interface class AudioRecorderPort {
 abstract interface class RecordingSession {
   Stream<PcmFrame> get frames;
   Stream<double> get levels;
+
+  /// Hält die Aufnahme an; Pegel und PCM-Blöcke pausieren, die Datei bleibt
+  /// offen. Nicht pausierte Zeit zählt zur Dauer.
+  Future<void> pause();
+
+  /// Setzt eine pausierte Aufnahme fort.
+  Future<void> resume();
+
   Future<RecordedAudio> stop();
 }
 

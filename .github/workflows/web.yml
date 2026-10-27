@@ -45,8 +45,10 @@ jobs:
             --base-href "${{ steps.base.outputs.href }}"
       - name: Nur eigene Hosts im Build (CanvasKit lokal, keine CDN-Loader)
         run: |
-          if grep -q "www.gstatic.com/flutter-canvaskit" app/build/web/flutter_bootstrap.js; then
-            echo "FEHLER: CanvasKit würde vom CDN geladen"; exit 1; fi
+          # Der Flutter-Loader enthält die CDN-Adresse immer als Rückfallzweig; entscheidend ist die
+          # Build-Konfiguration useLocalCanvasKit, die --no-web-resources-cdn auf true setzt.
+          if ! grep -q 'useLocalCanvasKit":true' app/build/web/flutter_bootstrap.js; then
+            echo "FEHLER: CanvasKit würde vom CDN geladen (useLocalCanvasKit fehlt)"; exit 1; fi
           ls app/build/web/canvaskit/canvaskit.wasm
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -30,19 +30,27 @@ Der Inhaber will das Tagebuch sofort auf dem eigenen Smartphone nutzen, ohne Ent
 ```
 app/ (Flutter Web, PWA)
  ├─ web/manifest.json, index.html mit CSP, Service Worker (offline-first)
- └─ lib/platform/web/…   Verdrahtung der Web-Implementierungen
-packages/diary_web/       Web-spezifische Umsetzungen der Ports aus diary_core
- ├─ WebMasterKeyStore     WebCrypto AES-256-GCM, extractable=false, in IndexedDB; wrappt die Dateischlüssel
- ├─ IndexedDbRecordStore  verschlüsselte Datensätze (Einträge, Aufnahmen, Transkripte, Einstellungen)
- ├─ OpfsChunkSink/Source  Audio als Chunk-AEAD-Datei im Origin Private File System (Rückfall IndexedDB-Blob)
- ├─ MediaRecorderCapture  Aufnahme, Pegel, Wellenform; PCM-Abgriff über AudioWorklet für die Erkennung
- ├─ WasmSttEngine         Whisper über transformers.js / ONNX Runtime Web (Spike W1)
- └─ IcsReminderExport     Kalenderdatei für die tägliche Erinnerung
+ └─ lib/services/create_services_web.dart   Verdrahtung der Web-Implementierungen (bedingter Import)
+packages/diary_web/       Web-spezifische Umsetzungen der Ports aus diary_core (nur dart:js_interop und package:web)
+ ├─ IndexedDbStore        Promise-/Event-Brücke zu IndexedDB: Datenbank `tagebuch`, Stores keys, records, files, meta
+ ├─ WebMasterKeyStore     WebCrypto AES-256-GCM, extractable=false, als CryptoKey in IndexedDB; wrappt alle Schlüssel (DekWrapper)
+ ├─ EncryptedRecordStore  verschlüsselte JSON-Datensätze (Einträge, Aufnahmen, Transkripte, Einstellungen), AAD = <Sammlung>/<ID>
+ ├─ EncryptedFileStore    Audio als Chunk-AEAD-Datei (diary_chunkfile) im Store `files`; OPFS als spätere Ausbaustufe
+ ├─ Web…Repository        Repositories aus diary_core auf dem EncryptedRecordStore, WebSearchRepository mit Index im Speicher
+ ├─ MediaRecorderCapture  Aufnahme, Pegel, Wellenform; PCM-Abgriff über AnalyserNode (AudioWorklet folgt mit der Erkennung, W5)
+ ├─ WebAudioPlayer        Wiedergabe aus dem Speicher (Blob-URL), Geschwindigkeit 0,8 bis 2,0
+ ├─ WebStorageInfo        navigator.storage.persist/estimate, installiert?, iOS?
+ ├─ WasmSttEngine         Whisper über transformers.js / ONNX Runtime Web (Spike W1, noch nicht gebaut)
+ └─ IcsReminder           Kalenderdatei für die tägliche Erinnerung, Download über Blob-URL
 ```
 
-Schlüsselhierarchie wie D5: Der WebCrypto-Master-Key wrappt pro Aufnahme einen zufälligen Dateischlüssel; die Audiodatei wird mit `diary_chunkfile` (AES-256-GCM, `AeadId.aes256Gcm`, damit WebCrypto und die Dart-Referenz dasselbe Format lesen) geschrieben. Datensätze (JSON) werden mit demselben Verfahren einzeln verschlüsselt; Zusatzdaten sind Datensatztyp und Kennung, damit Datensätze nicht vertauscht werden können.
+Schlüsselhierarchie wie D5: Der WebCrypto-Master-Key wrappt pro Aufnahme einen zufälligen Dateischlüssel (Zweck `chunkfile-v1`) und einmalig den Datensatz-Schlüssel (Zweck `records-v1`); die Audiodatei wird mit `diary_chunkfile` (AES-256-GCM, `AeadId.aes256Gcm`, damit WebCrypto und die Dart-Referenz dasselbe Format lesen) geschrieben. Weil der Master-Key die Anwendung nie als Bytes erreicht, bietet `diary_chunkfile` die Varianten `ChunkFileWriter.withWrappedFileKey` und `ChunkFileReader.openWith`; das Byte-Layout bleibt identisch, und der gewrappte Dateischlüssel steht sowohl im Dateikopf als auch in `Recording.fileKeyWrapped` (Crypto-Shredding löscht den Datensatz-Blob). Datensätze (JSON) werden einzeln mit `nonce || AES-256-GCM(JSON)` verschlüsselt; Zusatzdaten sind `<Sammlung>/<ID>`, damit Datensätze nicht vertauscht werden können.
 
-Suche: Beim Entsperren werden alle Transkripte entschlüsselt in den Speicher geladen (ein Jahr Text liegt bei rund 1 MB) und tokenisiert; Umlaute und ß werden wie in `diary_storage` normalisiert. Ab mehreren Jahren Daten wäre sqlite3 im Browser (drift mit WASM und OPFS) die Ausbaustufe; der Index läge dann unverschlüsselt im OPFS, deshalb erst nach Bewertung.
+Abweichung vom ursprünglichen Bild (Stand W2/W3): Audiodateien liegen als Ganzes im IndexedDB-Store `files`, nicht im Origin Private File System. Für Tagebuchaufnahmen (3 Minuten bei 32 kbit/s sind rund 0,7 MB) reicht das; die Datei wird zum Abspielen vollständig in den Speicher entschlüsselt. OPFS mit chunkweisem Lesen bleibt die Ausbaustufe für sehr lange Aufnahmen (Plus, 30 Minuten). Der PCM-Abgriff läuft über einen `AnalyserNode` (Momentaufnahmen alle 100 ms): genug für Pegel, Wellenform und die Fake-Erkennung, nicht lückenlos; die echte Erkennung (W5) braucht den `AudioWorklet`.
+
+Suche: Beim ersten Suchen werden alle Transkripte entschlüsselt in den Speicher geladen (ein Jahr Text liegt bei rund 1 MB) und gefaltet; Umlaute und ß werden wie in `diary_storage` normalisiert (Kopie der Regeln in `diary_web/src/text_normalization.dart`, gemeinsam zu pflegen). Jede Änderung macht den Index ungültig. Ab mehreren Jahren Daten wäre sqlite3 im Browser (drift mit WASM und OPFS) die Ausbaustufe; der Index läge dann unverschlüsselt im OPFS, deshalb erst nach Bewertung.
+
+Tests: `packages/diary_web/test` läuft mit `flutter test --platform chrome` im Chromium (Master-Key, Datensätze überleben Schließen und Öffnen, Dateien mit der Dart-Referenz lesbar, Repositories, Suche, ICS). MediaRecorder und Player sind headless nur bis zur Konstruktion prüfbar (kein Mikrofon, keine echte Aufnahme); der Weg Mikrofon → Datei → Wiedergabe wird auf dem Telefon geprüft (Prüfkriterium W3).
 
 ## 5. Bekannte Lücken der Web-Fassung
 
@@ -58,8 +66,8 @@ Suche: Beim Entsperren werden alle Transkripte entschlüsselt in den Speicher ge
 |---------|--------|---------------|
 | W0 | Web-Plattform, PWA-Manifest, Service Worker, CSP, Icons, Installationshinweis | `flutter build web` baut; Lighthouse-PWA-Prüfung bestanden; offline startbar |
 | W1 (Spike) | Whisper im Browser: Dauer und Wortfehlerrate auf iPhone und Android-Mittelklasse, Modellwahl | Tabelle in `docs/`, Entscheidung Modell und Mindestgerät |
-| W2 | `diary_web`: WebCrypto-Schlüssel, verschlüsselte Datensätze, OPFS-Audio, Tests im Chromium | Daten überleben Neuladen; Chunk-Dateien mit Dart-Referenz lesbar |
-| W3 | Aufnahme und Wiedergabe im Browser, Wellenform, Einträge mit echtem Audio | 3-Minuten-Aufnahme auf iPhone und Android, Wiedergabe mit Sprung |
+| W2 | `diary_web`: WebCrypto-Schlüssel, verschlüsselte Datensätze, Audio als Chunk-Datei in IndexedDB, Tests im Chromium | Daten überleben Neuladen; Chunk-Dateien mit Dart-Referenz lesbar (umgesetzt, Tests grün) |
+| W3 | Aufnahme und Wiedergabe im Browser, Wellenform, Einträge mit echtem Audio; App auf die Ports umgestellt | 3-Minuten-Aufnahme auf iPhone und Android, Wiedergabe mit Sprung (Code umgesetzt; Telefon-Test offen) |
 | W4 | Backup-Datei und Import, QR-Gerätewechsel über Datei | Round-Trip zwischen zwei Browsern |
 | W5 | Transkription aus W1 eingebaut, Suche | Flugmodus-Test im Browser: alle Schritte offline |
 | W6 | Veröffentlichung auf GitHub Pages, Anleitung "Installieren" | Inhaber nutzt die App täglich |

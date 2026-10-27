@@ -42,6 +42,8 @@ jobs:
           for p in diary_audio diary_stt diary_keys diary_reminders; do
             echo "== $p"; (cd packages/$p && flutter test)
           done
+      - name: Tests der Web-Umsetzungen im Chromium
+        run: cd packages/diary_web && flutter test --platform chrome
       - name: Tests der App
         run: cd app && flutter test
 

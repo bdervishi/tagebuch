@@ -103,6 +103,12 @@ class ActiveRecording {
 
   Stream<double> get levels => _session.levels;
 
+  /// Hält die Aufnahme an (Zeit zählt nicht weiter).
+  Future<void> pause() => _session.pause();
+
+  /// Setzt eine pausierte Aufnahme fort.
+  Future<void> resume() => _session.resume();
+
   Future<RecordDayResult> stop() async {
     final audio = await _session.stop();
     final recording = Recording(

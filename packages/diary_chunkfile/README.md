@@ -178,6 +178,13 @@ Schnittstellen für andere Ziele: `ChunkSink` (`write`, `patchHeaderLength`,
 `MemoryRandomAccessSource` dienen Tests und kleinen Dateien;
 `ChunkFileWriter.withFileKey` setzt einen vorgegebenen Dateischlüssel (Tests).
 
+Wenn der Master-Key die Anwendung nicht als Bytes erreicht (Web-Fassung, D16:
+nicht exportierbarer WebCrypto-Schlüssel), wrappt der Aufrufer den
+Dateischlüssel selbst mit dem Zweck `ChunkFileFormat.keyWrapPurpose` und
+übergibt den Blob an `ChunkFileWriter.withWrappedFileKey`; gelesen wird dann
+mit `ChunkFileReader.openWith(source, aead: ..., unwrapFileKey: ...)`. Das
+Byte-Layout der Datei ist in beiden Fällen identisch.
+
 ## Testvektoren
 
 `test_vectors/chunkfile_v1.json` enthält je AEAD-Primitive vier Dateien mit

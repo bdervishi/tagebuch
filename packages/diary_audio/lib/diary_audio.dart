@@ -12,4 +12,5 @@ library;
 export 'src/config.dart';
 export 'src/player.dart';
 export 'src/resampler.dart';
+export 'src/simulated_player.dart';
 export 'src/simulated_recorder.dart';

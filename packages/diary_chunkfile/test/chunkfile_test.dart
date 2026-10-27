@@ -741,4 +741,88 @@ void main() {
       throwsA(isA<ChunkFileFormatException>()),
     );
   });
+  group('vorgewrappter Dateischlüssel (Web-Weg, D16)', () {
+    final aead = CryptographyAead.aes256Gcm();
+    final masterKey = SequentialRandomSource(0xb0).bytes(32);
+    final keyWrap = KeyWrap(aead, SecureRandomSource());
+
+    test('withWrappedFileKey schreibt, open und openWith lesen', () async {
+      final fileKey = SequentialRandomSource(0x40).bytes(32);
+      final wrapped = await keyWrap.wrap(
+        masterKey: masterKey,
+        key: fileKey,
+        purpose: ChunkFileFormat.keyWrapPurpose,
+      );
+      final sink = MemoryChunkSink();
+      final writer = ChunkFileWriter.withWrappedFileKey(
+        sink,
+        aead: aead,
+        random: SecureRandomSource(),
+        fileKey: fileKey,
+        wrappedFileKey: wrapped,
+        chunkSize: chunkSize,
+      );
+      final plaintext = pattern(150, 3);
+      await writer.add(plaintext);
+      await writer.close();
+      final file = sink.bytes;
+
+      // Standardweg mit KeyWrap und Master-Key.
+      final reader = await ChunkFileReader.open(
+        MemoryRandomAccessSource(file),
+        aead: aead,
+        keyWrap: keyWrap,
+        masterKey: masterKey,
+      );
+      expect(reader.header.wrappedFileKey, wrapped);
+      expect(await reader.readAll(), plaintext);
+      reader.close();
+
+      // Eigene Entpack-Funktion, wie sie der WebMasterKeyStore liefert.
+      var seen = Uint8List(0);
+      final reader2 = await ChunkFileReader.openWith(
+        MemoryRandomAccessSource(file),
+        aead: aead,
+        unwrapFileKey: (blob) async {
+          seen = blob;
+          return Uint8List.fromList(fileKey);
+        },
+      );
+      expect(seen, wrapped);
+      expect(await reader2.readAll(), plaintext);
+      reader2.close();
+    });
+
+    test('Blob mit falscher Länge wird abgewiesen', () async {
+      final writer = ChunkFileWriter.withWrappedFileKey(
+        MemoryChunkSink(),
+        aead: aead,
+        random: SecureRandomSource(),
+        fileKey: Uint8List(32),
+        wrappedFileKey: Uint8List(24 + 32 + 16),
+      );
+      await expectLater(writer.add([1, 2, 3]), throwsArgumentError);
+    });
+
+    test('openWith reicht AuthenticationException durch', () async {
+      final sink = MemoryChunkSink();
+      final writer = ChunkFileWriter(
+        sink,
+        aead: aead,
+        random: SecureRandomSource(),
+        keyWrap: keyWrap,
+        masterKey: masterKey,
+      );
+      await writer.add([1, 2, 3]);
+      await writer.close();
+      await expectLater(
+        ChunkFileReader.openWith(
+          MemoryRandomAccessSource(sink.bytes),
+          aead: aead,
+          unwrapFileKey: (_) async => throw const AuthenticationException(),
+        ),
+        throwsA(isA<AuthenticationException>()),
+      );
+    });
+  });
 }

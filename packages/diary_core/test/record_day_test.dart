@@ -13,6 +13,9 @@ class _Ids implements IdGenerator {
 class _Entries implements EntryRepository {
   final Map<String, DiaryEntry> byDay = {};
   @override
+  Future<DiaryEntry?> byId(String entryId) async =>
+      byDay.values.where((e) => e.id == entryId).firstOrNull;
+  @override
   Future<DiaryEntry?> findByDay(String journalId, LocalDay day) async =>
       byDay[day.iso];
   @override
@@ -48,6 +51,12 @@ class _Recordings implements RecordingRepository {
       items.where((r) => r.entryId == entryId).toList();
   @override
   Future<void> markAudioDeleted(String recordingId) async {}
+  @override
+  Future<String?> delete(String recordingId) async {
+    final i = items.indexWhere((r) => r.id == recordingId);
+    if (i < 0) return null;
+    return items.removeAt(i).fileName;
+  }
 }
 
 class _Transcripts implements TranscriptRepository {
@@ -78,6 +87,10 @@ class _Session implements RecordingSession {
   Stream<PcmFrame> get frames => _frames.stream;
   @override
   Stream<double> get levels => _levels.stream;
+  @override
+  Future<void> pause() async {}
+  @override
+  Future<void> resume() async {}
   @override
   Future<RecordedAudio> stop() async {
     await _frames.close();

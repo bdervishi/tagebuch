@@ -142,8 +142,7 @@ final class ChunkFileHeader {
     }
     final out = Uint8List(ChunkFileFormat.aadLength);
     out.setAll(0, prefix);
-    ByteData.sublistView(out)
-        .setUint64(ChunkFileFormat.prefixLength, index, Endian.big);
+    _setUint64Be(out, ChunkFileFormat.prefixLength, index);
     out[ChunkFileFormat.prefixLength + 8] = isLast ? 1 : 0;
     return out;
   }
@@ -178,7 +177,7 @@ final class ChunkFileHeader {
       if (plaintextLength < 0) {
         throw ArgumentError.value(plaintextLength, 'plaintextLength');
       }
-      ByteData.sublistView(out).setUint64(0, plaintextLength, Endian.big);
+      _setUint64Be(out, 0, plaintextLength);
     }
     return out;
   }
@@ -254,12 +253,25 @@ final class ChunkFileHeader {
       throw ArgumentError.value(field.length, 'field', 'erwartet 8 Byte');
     }
     if (field.every((b) => b == 0xff)) return null;
-    final value = ByteData.sublistView(field).getUint64(0, Endian.big);
-    if (value < 0) {
-      // Werte ab 2^63 sind in Dart nicht als nicht-negative int darstellbar
-      // und für Audiodateien ohnehin ausgeschlossen.
-      throw const ChunkFileFormatException('Klartextlänge größer als 2^63');
+    final data = ByteData.sublistView(field);
+    final high = data.getUint32(0, Endian.big);
+    if (high >= 0x200000) {
+      // Werte ab 2^53 sind in JavaScript nicht exakt darstellbar und für
+      // Audiodateien ohnehin ausgeschlossen (die Grenze gilt auf allen
+      // Plattformen gleich, damit das Format überall dasselbe akzeptiert).
+      throw const ChunkFileFormatException('Klartextlänge größer als 2^53');
     }
-    return value;
+    return high * 0x100000000 + data.getUint32(4, Endian.big);
+  }
+
+  /// Schreibt [value] als u64 BE in zwei 32-Bit-Hälften; `setUint64` fehlt
+  /// im Web (dart2js, DDC). Werte sind auf 0 bis 2^53 begrenzt.
+  static void _setUint64Be(Uint8List out, int offset, int value) {
+    if (value < 0 || value > 0x1FFFFFFFFFFFFF) {
+      throw ArgumentError.value(value, 'value', 'erwartet 0 bis 2^53');
+    }
+    final data = ByteData.sublistView(out);
+    data.setUint32(offset, value ~/ 0x100000000, Endian.big);
+    data.setUint32(offset + 4, value % 0x100000000, Endian.big);
   }
 }

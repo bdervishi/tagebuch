@@ -52,6 +52,30 @@ class ChunkFileWriter {
     int chunkSize = ChunkFileFormat.defaultChunkSize,
   }) : this._(sink, aead, random, keyWrap, masterKey, fileKey, chunkSize);
 
+  /// Variante für Umgebungen, in denen der Master-Key die Anwendung nicht als
+  /// Bytes erreicht (z. B. ein nicht exportierbarer WebCrypto-Schlüssel,
+  /// D16): Der Aufrufer wrappt [fileKey] selbst mit dem Zweck
+  /// [ChunkFileFormat.keyWrapPurpose] und übergibt das Ergebnis als
+  /// [wrappedFileKey]; es landet unverändert im Kopf. Die Blob-Länge muss zu
+  /// [aead] passen (`nonce || Chiffrat(32) || Tag`).
+  ChunkFileWriter.withWrappedFileKey(
+    ChunkSink sink, {
+    required Aead aead,
+    required RandomSource random,
+    required Uint8List fileKey,
+    required Uint8List wrappedFileKey,
+    int chunkSize = ChunkFileFormat.defaultChunkSize,
+  }) : this._(
+         sink,
+         aead,
+         random,
+         null,
+         null,
+         fileKey,
+         chunkSize,
+         wrappedFileKey: wrappedFileKey,
+       );
+
   ChunkFileWriter._(
     this._sink,
     this._aead,
@@ -59,9 +83,13 @@ class ChunkFileWriter {
     this._keyWrap,
     this._masterKey,
     Uint8List fileKey,
-    this.chunkSize,
-  ) : _fileKey = Uint8List.fromList(fileKey),
-      _headerNonce = _random.bytes(ChunkFileFormat.headerNonceLength) {
+    this.chunkSize, {
+    Uint8List? wrappedFileKey,
+  }) : _fileKey = Uint8List.fromList(fileKey),
+       _presetWrappedFileKey = wrappedFileKey == null
+           ? null
+           : Uint8List.fromList(wrappedFileKey),
+       _headerNonce = _random.bytes(ChunkFileFormat.headerNonceLength) {
     if (chunkSize < 1 || chunkSize > ChunkFileFormat.maxChunkSize) {
       throw ArgumentError.value(
         chunkSize,
@@ -81,8 +109,9 @@ class ChunkFileWriter {
   final ChunkSink _sink;
   final Aead _aead;
   final RandomSource _random;
-  final KeyWrap _keyWrap;
-  final Uint8List _masterKey;
+  final KeyWrap? _keyWrap;
+  final Uint8List? _masterKey;
+  final Uint8List? _presetWrappedFileKey;
   final Uint8List _fileKey;
   final Uint8List _headerNonce;
   final BytesBuilder _pending = BytesBuilder(copy: true);
@@ -168,14 +197,16 @@ class ChunkFileWriter {
   Future<ChunkFileHeader> _ensureHeader() async {
     final existing = _header;
     if (existing != null) return existing;
-    final wrapped = await _keyWrap.wrap(
-      masterKey: _masterKey,
-      key: _fileKey,
-      purpose: ChunkFileFormat.keyWrapPurpose,
-    );
+    final wrapped =
+        _presetWrappedFileKey ??
+        await _keyWrap!.wrap(
+          masterKey: _masterKey!,
+          key: _fileKey,
+          purpose: ChunkFileFormat.keyWrapPurpose,
+        );
     if (wrapped.length != ChunkFileFormat.wrappedKeyLength(_aead.id)) {
       throw ArgumentError(
-        'KeyWrap muss dieselbe AEAD-Primitive verwenden wie die Datei '
+        'Gewrappter Dateischlüssel muss zur AEAD-Primitive der Datei passen '
         '(${_aead.id.name}); Blob hat ${wrapped.length} Byte',
       );
     }

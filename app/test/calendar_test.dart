@@ -1,5 +1,6 @@
+import 'package:diary_core/diary_core.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tagebuch_app/data/diary_entry.dart';
 import 'package:tagebuch_app/features/kalender/calendar_screen.dart';
 import 'package:tagebuch_app/features/kalender/month_grid.dart';
 
@@ -16,7 +17,7 @@ void main() {
     await tester.pumpWidget(
       buildTestScreen(
         CalendarScreen(initialMonth: DateTime(2026, 9)),
-        entries: entries,
+        seed: entries,
       ),
     );
     await tester.pumpAndSettle();
@@ -39,6 +40,14 @@ void main() {
       find.bySemanticsLabel(RegExp(r'^\w+, 7\. September 2026, kein Eintrag$')),
       findsOneWidget,
     );
+    // Monatsliste unter dem Raster: nur Einträge dieses Monats.
+    await tester.scrollUntilVisible(
+      find.text('Kaffee im Park'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Regen, Buch'), findsOneWidget);
+    expect(find.text('August'), findsNothing);
   });
 
   testWidgets('Monatswechsel zeigt die Markierung des Vormonats', (
@@ -47,7 +56,7 @@ void main() {
     await tester.pumpWidget(
       buildTestScreen(
         CalendarScreen(initialMonth: DateTime(2026, 9)),
-        entries: entries,
+        seed: entries,
       ),
     );
     await tester.pumpAndSettle();
@@ -63,11 +72,11 @@ void main() {
     expect(find.byKey(calendarMarkerKey(DateTime(2026, 8, 6))), findsNothing);
   });
 
-  testWidgets('Suche filtert über den Text', (tester) async {
+  testWidgets('Suche filtert über das SearchRepository', (tester) async {
     await tester.pumpWidget(
       buildTestScreen(
         CalendarScreen(initialMonth: DateTime(2026, 9)),
-        entries: entries,
+        seed: entries,
       ),
     );
     await tester.pumpAndSettle();
@@ -83,11 +92,31 @@ void main() {
     expect(find.text('Nichts gefunden.'), findsOneWidget);
   });
 
-  test('Abfragen über Einträge', () {
-    expect(entries.daysWithEntriesIn(DateTime(2026, 9)), {6, 21});
-    expect(entries.daysWithEntriesIn(DateTime(2026, 7)), isEmpty);
-    expect(entries.onDay(DateTime(2026, 9, 6)).single.id, 'a');
-    expect(entries.search('BUCH').single.id, 'b');
-    expect(entries.search('  '), hasLength(3));
-  });
+  test(
+    'In-Memory-Suche: Strasse findet Straße, Sprungziel aus Segment',
+    () async {
+      final services = TestServices(
+        seed: [
+          testEntry(
+            id: 'a',
+            day: DateTime(2026, 9, 6),
+            transcript: 'Kaffee im Park. Dann über die Straße.',
+            segments: ['Kaffee im Park.', 'Dann über die Straße.'],
+            duration: const Duration(seconds: 60),
+          ),
+          testEntry(id: 'b', day: DateTime(2026, 9, 21), transcript: 'Buch'),
+        ],
+      );
+      final hits = await services.services.search.search('Strasse');
+      expect(hits, hasLength(1));
+      expect(hits.single.entryId, 'a');
+      expect(hits.single.day, LocalDay(2026, 9, 6));
+      expect(hits.single.jumpTo, const Duration(seconds: 30));
+      expect(
+        (await services.services.search.search('BUCH')).single.entryId,
+        'b',
+      );
+      expect(await services.services.search.search('  '), isEmpty);
+    },
+  );
 }

@@ -45,7 +45,10 @@ class _SimulatedSession implements RecordingSession {
   int _samples = 0;
   double _t = 0;
 
+  bool _paused = false;
+
   void _emit(Duration tick) {
+    if (_paused) return;
     final n = (_sampleRate * tick.inMilliseconds / 1000).round();
     final buf = Int16List(n);
     final env = 0.3 + 0.2 * math.sin(_t * 0.7);
@@ -67,6 +70,12 @@ class _SimulatedSession implements RecordingSession {
 
   @override
   Stream<double> get levels => _levels.stream;
+
+  @override
+  Future<void> pause() async => _paused = true;
+
+  @override
+  Future<void> resume() async => _paused = false;
 
   @override
   Future<RecordedAudio> stop() async {

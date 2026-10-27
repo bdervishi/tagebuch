@@ -33,23 +33,41 @@ class TagebuchApp extends StatelessWidget {
   }
 }
 
-/// Entscheidet innerhalb der Start-Route zwischen Onboarding und Hauptansicht.
-/// Bewusst kein Routenwechsel: So greift die Umschaltung sofort, sobald das
-/// Onboarding abgeschlossen oder übersprungen wurde.
+/// Entscheidet innerhalb der Start-Route zwischen Onboarding und Hauptansicht,
+/// sobald Dienste und Einstellungen geladen sind (im Browser: Datenbank
+/// öffnen, Schlüssel entpacken). Bewusst kein Routenwechsel: So greift die
+/// Umschaltung sofort, sobald das Onboarding abgeschlossen ist.
 class RootScreen extends ConsumerWidget {
   const RootScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final onboardingDone = ref.watch(
-      settingsProvider.select((s) => s.onboardingDone),
-    );
-    if (!onboardingDone) {
-      return OnboardingScreen(
+    final l10n = AppLocalizations.of(context);
+    final settings = ref.watch(settingsProvider);
+    return switch (settings) {
+      AsyncData(:final value) when !value.onboardingDone => OnboardingScreen(
         onFinished: () =>
             ref.read(settingsProvider.notifier).completeOnboarding(),
-      );
-    }
-    return const AppShell();
+      ),
+      AsyncData() => const AppShell(),
+      AsyncError() => Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(l10n.startError, textAlign: TextAlign.center),
+            ),
+          ),
+        ),
+      ),
+      _ => Scaffold(
+        body: Center(
+          child: Semantics(
+            label: l10n.loadingLabel,
+            child: const CircularProgressIndicator(),
+          ),
+        ),
+      ),
+    };
   }
 }
