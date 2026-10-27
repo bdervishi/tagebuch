@@ -79,7 +79,7 @@ Tests: `packages/diary_web/test` läuft mit `flutter test --platform chrome` im 
 
 | Schritt | Inhalt | Prüfkriterium |
 |---------|--------|---------------|
-| W0 | Web-Plattform, PWA-Manifest, Service Worker, CSP, Icons, Installationshinweis | `flutter build web` baut; Lighthouse-PWA-Prüfung bestanden; offline startbar |
+| W0 | Web-Plattform, PWA-Manifest, Service Worker, CSP, Icons, Installationshinweis | erledigt (27. 10. 2026): `tool/build_web.sh` baut ohne CDN; eigener Service Worker (`tool/generate_sw.py`, Flutter 3.47 liefert nur noch einen Stub) lädt 27 Kern-Dateien (19 MB) vor; Offline-Neustart im Chromium mit Playwright geprüft; Lighthouse auf dem Telefon offen |
 | W1 (Spike) | Whisper im Browser: Dauer und Wortfehlerrate auf iPhone und Android-Mittelklasse, Modellwahl | Messung mit dem W5-Einbau: (a) CI-Protokoll des Pages-Workflows: alle Modelldateien geladen, echte Größen (`ls -l`), Build enthält `stt/`; (b) auf iPhone (Safari) und Android-Mittelklasse (Chrome) je 1-, 3- und 5-Minuten-Aufnahme in Hochdeutsch: Dauer der Erkennung je Aufnahmeminute (Faktor zur Aufnahmedauer), Wortfehlerrate gegen ein mitgeschriebenes Referenztranskript (WER = (Ersetzungen + Auslassungen + Einfügungen) / Wörter der Referenz), Beschleunigung (WebGPU oder WASM, die Einstellungen zeigen sie), Modell-Downloadgröße und -dauer beim ersten Start, Verhalten im Flugmodus nach dem ersten Laden; Ergebnisse in `docs/stt-web-messprotokoll.md`, daraus Entscheidung Modell (tiny/base/small) und Mindestgerät |
 | W2 | `diary_web`: WebCrypto-Schlüssel, verschlüsselte Datensätze, Audio als Chunk-Datei in IndexedDB, Tests im Chromium | Daten überleben Neuladen; Chunk-Dateien mit Dart-Referenz lesbar (umgesetzt, Tests grün) |
 | W3 | Aufnahme und Wiedergabe im Browser, Wellenform, Einträge mit echtem Audio; App auf die Ports umgestellt | 3-Minuten-Aufnahme auf iPhone und Android, Wiedergabe mit Sprung (Code umgesetzt; Telefon-Test offen) |
@@ -97,3 +97,13 @@ Danach die Store-Spikes S1 bis S7 aus `09-roadmap.md`.
 - Ob Safari auf iOS den `BarcodeDetector` bereitstellt oder der QR-Code eingetippt werden muss.
 - Verhalten des Origin Private File System auf iOS bei großen Audiodateien (Speicherkontingent, Räumung).
 - Ob die Store-Apps später den Browser-Speicher der PWA übernehmen können (nein, geplant ist der Weg über die Backup-Datei).
+
+## 8. Service Worker und Aktualisierung
+
+Flutter 3.47 erzeugt keinen Offline-Service-Worker mehr, sondern nur einen Stub, der sich selbst deregistriert. Die PWA bringt deshalb einen eigenen mit (`tool/generate_sw.py`, aufgerufen von `tool/build_web.sh`, registriert durch `app/web/sw_register.js`):
+
+- Kern-Dateien (App-Shell, CanvasKit, Schriften, Icons; rund 19 MB) werden bei der Installation vorgeladen; die Cache-Version ist eine Prüfsumme über diese Dateien, alte Versionen werden beim Aktivieren gelöscht.
+- Alles Weitere vom eigenen Origin (Laufzeit und Modelle der Spracherkennung) wird beim ersten Abruf zwischengespeichert und danach aus dem Cache bedient; fremde Origins werden nie angefasst.
+- Neue Versionen werden beim nächsten Start mit Netz im Hintergrund geladen und gelten ab dem übernächsten Start (`skipWaiting` + `clients.claim`); ein Hinweis "Neu laden" in der Oberfläche ist ein offener Punkt.
+- Geprüft im Chromium (Playwright): nach dem ersten Laden sind 27 Dateien im Cache; mit getrennter Verbindung startet die App vollständig (`main.dart.js` und CanvasKit aus dem Cache, Oberfläche gerendert).
+

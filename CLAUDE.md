@@ -37,11 +37,11 @@ tool/check_no_network.sh
 export CHROME_EXECUTABLE=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome   # Chromium für Browser-Tests
 (cd packages/diary_web && flutter test --platform chrome)
 tool/fetch_stt_vendor.sh                                          # einmalig: transformers.js/ONNX-Runtime (43 MB, nicht im Git) nach app/web/stt/vendor
-(cd app && flutter build web --release --no-web-resources-cdn)   # ohne CDN: CanvasKit und Schriften liegen lokal
+tool/build_web.sh [base-href]                                    # kompletter PWA-Build: Flutter Web ohne CDN + eigener Service Worker (tool/generate_sw.py)
 (cd app/build/web && python3 -m http.server 8765)                 # lokal ansehen; Headless-Screenshot siehe Git-Historie
 ```
 
-Web-Regeln (D16): `--no-web-resources-cdn` ist Pflicht; die CSP in `app/web/index.html` bleibt bei `connect-src 'self'`; keine externen Skripte, Schriften oder Modelle von fremden Hosts (Modelle für die Browser-Erkennung werden vom eigenen Origin ausgeliefert). GitHub Pages veröffentlicht den Standardzweig über `.github/workflows/web.yml`.
+Web-Regeln (D16): immer über `tool/build_web.sh` bauen (Flutter 3.47 liefert keinen Offline-Service-Worker mehr; `tool/generate_sw.py` erzeugt `sw.js`, `app/web/sw_register.js` registriert ihn); `--no-web-resources-cdn` ist Pflicht; die CSP in `app/web/index.html` bleibt bei `connect-src 'self'`; keine externen Skripte, Schriften oder Modelle von fremden Hosts (Modelle für die Browser-Erkennung werden vom eigenen Origin ausgeliefert). GitHub Pages veröffentlicht den Standardzweig über `.github/workflows/web.yml`.
 
 Kein Android-SDK und kein Xcode in dieser Umgebung: Builds laufen in der CI (`.github/workflows/ci.yml`) oder lokal beim Inhaber.
 

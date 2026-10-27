@@ -33,8 +33,8 @@ Bekannte Grenzen auf iOS: Aufnahme nur, solange die App im Vordergrund ist (Bild
 
 ## Aktualisierungen
 
-Der Service Worker lädt neue Versionen beim nächsten Start mit Internet im Hintergrund; die App meldet, wenn ein Neustart nötig ist. Daten bleiben bei Updates erhalten.
+Der Service Worker lädt neue Versionen beim nächsten Start mit Internet im Hintergrund; sie gelten ab dem übernächsten Start (ein Hinweis in der App folgt). Daten bleiben bei Updates erhalten.
 
 ## Selbst hosten
 
-Wer GitHub Pages nicht nutzen will: `cd app && flutter build web --release --no-web-resources-cdn --base-href /` und den Inhalt von `app/build/web/` auf einen beliebigen statischen Webserver mit HTTPS legen (HTTPS ist für Mikrofon und Service Worker Pflicht). Der Server braucht keine Konfiguration; er darf keine Protokolle mit personenbezogenen Daten führen, wenn das Datenschutzversprechen gelten soll.
+Wer GitHub Pages nicht nutzen will: `tool/build_web.sh /` und den Inhalt von `app/build/web/` auf einen beliebigen statischen Webserver mit HTTPS legen (HTTPS ist für Mikrofon und Service Worker Pflicht). Der Server braucht keine Konfiguration; er darf keine Protokolle mit personenbezogenen Daten führen, wenn das Datenschutzversprechen gelten soll.

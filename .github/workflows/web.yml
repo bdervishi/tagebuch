@@ -40,26 +40,16 @@ jobs:
       - name: Base-Href bestimmen (Projektseite: /<repo>/)
         id: base
         run: echo "href=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_OUTPUT"
-      - name: Browser-Laufzeit der Spracherkennung holen (npm, feste Versionen, Prüfsummen)
-        run: tool/fetch_stt_vendor.sh
-      - name: Bauen
+      - name: Bauen (Laufzeit der Spracherkennung, Flutter Web ohne CDN, eigener Service Worker)
+        run: tool/build_web.sh "${{ steps.base.outputs.href }}"
+      - name: Build prüfen (lokales CanvasKit, Service Worker, Spracherkennungsdateien)
         run: |
-          cd app
-          flutter build web --release --no-web-resources-cdn --pwa-strategy offline-first \
-            --base-href "${{ steps.base.outputs.href }}"
-      - name: Nur eigene Hosts im Build (CanvasKit lokal, keine CDN-Loader)
-        run: |
-          # Der Flutter-Loader enthält die CDN-Adresse immer als Rückfallzweig; entscheidend ist die
-          # Build-Konfiguration useLocalCanvasKit, die --no-web-resources-cdn auf true setzt.
-          if ! grep -q 'useLocalCanvasKit":true' app/build/web/flutter_bootstrap.js; then
-            echo "FEHLER: CanvasKit würde vom CDN geladen (useLocalCanvasKit fehlt)"; exit 1; fi
-          ls app/build/web/canvaskit/canvaskit.wasm
-      - name: Spracherkennung im Build (Worker und Laufzeit vom eigenen Origin)
-        run: |
+          grep -q 'useLocalCanvasKit":true' app/build/web/flutter_bootstrap.js
+          test -s app/build/web/sw.js
           for f in stt/stt_worker.js stt/vendor/transformers.min.js \
                    stt/vendor/ort-wasm-simd-threaded.asyncify.mjs stt/vendor/ort-wasm-simd-threaded.asyncify.wasm \
                    stt/vendor/ort-wasm-simd-threaded.mjs stt/vendor/ort-wasm-simd-threaded.wasm; do
-            ls -l "app/build/web/$f" || { echo "FEHLER: $f fehlt im Build"; exit 1; }
+            test -f "app/build/web/$f" || { echo "FEHLT: $f"; exit 1; }
           done
       - name: Modell herunterladen (onnx-community/whisper-base, Dateiliste in app/web/stt/MODELS.md)
         env:
