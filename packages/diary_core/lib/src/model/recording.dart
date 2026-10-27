@@ -7,7 +7,20 @@ enum AudioCodec { aacLc, opus }
 
 /// Container der Audiodatei vor der Verschlüsselung (`webm`: MediaRecorder im
 /// Browser mit Opus, D16).
-enum AudioContainer { m4a, adts, ogg, webm }
+enum AudioContainer {
+  m4a,
+  adts,
+  ogg,
+  webm;
+
+  /// MIME-Typ, mit dem ein Browser oder Decoder den Container erkennt.
+  String get mimeType => switch (this) {
+    AudioContainer.m4a => 'audio/mp4',
+    AudioContainer.adts => 'audio/aac',
+    AudioContainer.ogg => 'audio/ogg',
+    AudioContainer.webm => 'audio/webm',
+  };
+}
 
 /// Zustand einer Aufnahme.
 enum RecordingState {

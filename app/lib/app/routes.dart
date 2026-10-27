@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../features/aufnahme/recording_screen.dart';
+import '../features/daten/backup_screen.dart';
+import '../features/daten/restore_screen.dart';
+import '../features/daten/transfer_screen.dart';
 import '../features/eintrag/entry_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 
@@ -23,6 +26,11 @@ abstract final class AppRoutes {
 
   /// Onboarding zum erneuten Ansehen aus den Einstellungen.
   static const String onboarding = '/onboarding';
+
+  /// Backup erstellen, wiederherstellen und Gerätewechsel (D6).
+  static const String backup = '/backup';
+  static const String restore = '/restore';
+  static const String transfer = '/transfer';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -50,6 +58,21 @@ abstract final class AppRoutes {
           fullscreenDialog: true,
           builder: (context) =>
               OnboardingScreen(onFinished: () => Navigator.of(context).pop()),
+        );
+      case backup:
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const BackupScreen(),
+        );
+      case restore:
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const RestoreScreen(),
+        );
+      case transfer:
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const TransferScreen(),
         );
     }
     return null;

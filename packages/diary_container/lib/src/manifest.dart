@@ -39,11 +39,20 @@ class ContainerManifest {
     required this.recordingCount,
     required this.files,
     this.formatVersion = 1,
+    this.compression = compressionNone,
     this.firstDay,
     this.lastDay,
   });
 
+  /// Keine Kompression der Nutzdaten (Stand W4: Audio ist bereits
+  /// komprimiert, der Text klein; zstd fehlt in Dart ohne native Brücke).
+  /// Ein späterer Wert wie `zstd` gilt dann für `db.ndjson`.
+  static const String compressionNone = 'none';
+
   final int formatVersion;
+
+  /// Kompression der Nutzdaten innerhalb des Stroms ([compressionNone]).
+  final String compression;
   final DateTime createdAt;
   final String appVersion;
 
@@ -55,8 +64,13 @@ class ContainerManifest {
   final String? lastDay;
   final List<ManifestFile> files;
 
+  /// Datei im Manifest nach Namen oder `null`.
+  ManifestFile? fileNamed(String name) =>
+      files.where((f) => f.name == name).firstOrNull;
+
   String toJsonString() => jsonEncode({
     'format': formatVersion,
+    'compression': compression,
     'createdAt': createdAt.toUtc().toIso8601String(),
     'appVersion': appVersion,
     'schemaVersion': schemaVersion,
@@ -73,8 +87,15 @@ class ContainerManifest {
     if (format != 1) {
       throw FormatException('Manifest-Format $format wird nicht unterstützt');
     }
+    final compression = j['compression'] as String? ?? compressionNone;
+    if (compression != compressionNone) {
+      throw FormatException(
+        'Kompression "$compression" wird nicht unterstützt',
+      );
+    }
     return ContainerManifest(
       formatVersion: format,
+      compression: compression,
       createdAt: DateTime.parse(j['createdAt']! as String),
       appVersion: j['appVersion']! as String,
       schemaVersion: j['schemaVersion']! as int,

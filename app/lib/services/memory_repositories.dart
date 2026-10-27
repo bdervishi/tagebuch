@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:diary_core/diary_core.dart';
 
+import 'app_services.dart';
+
 /// In-Memory-Umsetzungen der Repository-Ports für die native App ohne
 /// Speicherschicht (bis Spike S4 `diary_storage` anbindet) und für Tests.
 /// Alles ist flüchtig; die Web-Fassung nutzt stattdessen `diary_web`.
@@ -81,6 +83,11 @@ class InMemoryEntryRepository implements EntryRepository {
   }
 
   @override
+  Future<List<DiaryEntry>> listAll(String journalId) async =>
+      items.where((e) => e.journalId == journalId).toList()
+        ..sort((a, b) => a.day.compareTo(b.day));
+
+  @override
   Future<List<String>> delete(String entryId) async {
     final files = <String>[];
     final recordings = this.recordings;
@@ -116,6 +123,9 @@ class InMemoryRecordingRepository implements RecordingRepository {
   Future<List<Recording>> listForEntry(String entryId) async =>
       items.where((r) => r.entryId == entryId).toList()
         ..sort((a, b) => a.startedAt.compareTo(b.startedAt));
+
+  @override
+  Future<List<Recording>> listAll() async => List.of(items);
 
   @override
   Future<void> markAudioDeleted(String recordingId) async {
@@ -154,6 +164,10 @@ class InMemoryTranscriptRepository implements TranscriptRepository {
       .firstOrNull;
 
   @override
+  Future<List<Transcript>> listForRecording(String recordingId) async =>
+      items.where((t) => t.recordingId == recordingId).toList();
+
+  @override
   Future<void> updateText(
     String transcriptId,
     String text, {
@@ -186,6 +200,35 @@ class InMemorySettingsRepository implements SettingsRepository {
 
   @override
   Future<void> set(String key, String value) async => _values[key] = value;
+
+  @override
+  Future<Map<String, String>> all() async => Map.of(_values);
+}
+
+/// Audiodateien im Speicher für die native App ohne Speicherschicht und für
+/// Tests: Der `SimulatedRecorder` schreibt keine Datei, deshalb liefert
+/// [read] für seine Aufnahmen `null` (Export ohne Audio). Importiertes Audio
+/// wird im Speicher gehalten.
+class InMemoryAudioFiles implements AudioFiles {
+  InMemoryAudioFiles({Map<String, Uint8List> initial = const {}})
+    : files = {...initial};
+
+  final Map<String, Uint8List> files;
+
+  @override
+  Future<Uint8List?> read(Recording recording) async =>
+      recording.state == RecordingState.audioDeleted
+      ? null
+      : files[recording.fileName];
+
+  @override
+  Future<StoredAudioFile> write(String fileName, Uint8List bytes) async {
+    files[fileName] = Uint8List.fromList(bytes);
+    return StoredAudioFile(
+      fileKeyWrapped: Uint8List.fromList(List.filled(60, 1)),
+      sizeBytes: bytes.length,
+    );
+  }
 }
 
 /// Suche über die In-Memory-Transkripte: Kleinschreibung, `ß → ss`,

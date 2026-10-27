@@ -9,6 +9,7 @@ void main() {
   final session = rnd.bytes(16);
   final pk = rnd.bytes(32);
   final sh = rnd.bytes(24);
+  final check = rnd.bytes(8);
 
   test('Kopf für Gerätewechsel: Round-Trip', () {
     final h = ContainerHeader(
@@ -16,10 +17,11 @@ void main() {
       cipher: ContainerCipher.secretstreamXchacha20,
       sessionId: session,
       ephemeralPublicKey: pk,
+      keyCheck: check,
       streamHeader: sh,
     );
     final bytes = h.encode();
-    expect(bytes.length, 4 + 3 + 16 + 32 + 1 + 24);
+    expect(bytes.length, 4 + 3 + 16 + 32 + 8 + 1 + 24);
     final (back, used) = ContainerHeader.decode(
       Uint8List.fromList([...bytes, 9, 9, 9]),
     );
@@ -27,6 +29,7 @@ void main() {
     expect(back.keyKind, ContainerKeyKind.recipientX25519);
     expect(back.ephemeralPublicKey, pk);
     expect(back.sessionId, session);
+    expect(back.keyCheck, check);
     expect(back.streamHeader, sh);
   });
 
@@ -38,6 +41,7 @@ void main() {
       sessionId: session,
       salt: salt,
       argon2Params: Argon2Params.standard,
+      keyCheck: check,
       streamHeader: sh,
     );
     final (back, _) = ContainerHeader.decode(h.encode());
@@ -54,6 +58,7 @@ void main() {
       cipher: ContainerCipher.secretstreamXchacha20,
       sessionId: session,
       ephemeralPublicKey: pk,
+      keyCheck: check,
       streamHeader: sh,
     ).encode();
     expect(
@@ -99,9 +104,16 @@ void main() {
     );
     final back = ContainerManifest.fromJsonString(m.toJsonString());
     expect(back.entryCount, 3);
+    expect(back.compression, ContainerManifest.compressionNone);
     expect(back.files.single.name, 'db.ndjson.gz');
     expect(
       () => ContainerManifest.fromJsonString('{"format":2}'),
+      throwsFormatException,
+    );
+    expect(
+      () => ContainerManifest.fromJsonString(
+        m.toJsonString().replaceFirst('"none"', '"zstd"'),
+      ),
       throwsFormatException,
     );
   });

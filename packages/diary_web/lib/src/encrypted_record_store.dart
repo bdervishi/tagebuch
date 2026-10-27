@@ -120,6 +120,20 @@ class EncryptedRecordStore {
     return out;
   }
 
+  /// Alle Kennungen einer Sammlung (ohne Entschlüsselung).
+  Future<List<String>> getAllKeys(String collection) async {
+    _checkOpen();
+    final prefix = recordKey(
+      collection,
+      '_',
+    ).substring(0, collection.length + 1);
+    final keys = await _db.getAllKeys(
+      IndexedDbStore.recordsStore,
+      prefix: prefix,
+    );
+    return [for (final k in keys) k.substring(prefix.length)];
+  }
+
   Future<void> delete(String collection, String id) async {
     _checkOpen();
     await _db.delete(IndexedDbStore.recordsStore, recordKey(collection, id));

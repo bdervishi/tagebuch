@@ -7,12 +7,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/formats.dart';
 import '../../data/entry_view.dart';
+import '../../data/settings_notifier.dart';
+import '../../data/transcription_jobs.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
 
 /// Widget-Keys für Tests.
 const Key playButtonKey = Key('player-play');
 const Key playerSliderKey = Key('player-slider');
+const Key retranscribeButtonKey = Key('entry-retranscribe');
 
 /// Eintrag: Datum, Dauer, Sprach-Badge, Player mit Wellenform, Transkript.
 /// Bearbeiten, Ergänzen, Löschen und Export folgen mit den Fachpaketen.
@@ -109,17 +112,99 @@ class _EntryBody extends StatelessWidget {
         Text(l10n.transcriptHeading, style: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
         if (text.isEmpty)
-          Text(
-            l10n.transcriptMissing,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
-          )
+          _MissingTranscript(view: view)
         else
           SelectableText(
             text,
             style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
           ),
+      ],
+    );
+  }
+}
+
+/// Aufnahme ohne Text: Hinweis, dazu "Transkription läuft …" während der
+/// Hintergrund-Erkennung oder "Erneut transkribieren", wenn eine
+/// Datei-Erkennung vorhanden ist und das Audio noch da ist (W5).
+class _MissingTranscript extends ConsumerStatefulWidget {
+  const _MissingTranscript({required this.view});
+
+  final EntryView view;
+
+  @override
+  ConsumerState<_MissingTranscript> createState() => _MissingTranscriptState();
+}
+
+class _MissingTranscriptState extends ConsumerState<_MissingTranscript> {
+  bool _failed = false;
+
+  Recording? get _candidate => widget.view.recordings
+      .where(
+        (r) =>
+            r.state != RecordingState.audioDeleted &&
+            widget.view.transcripts[r.id] == null,
+      )
+      .firstOrNull;
+
+  Future<void> _retranscribe(Recording recording) async {
+    setState(() => _failed = false);
+    final locale = (await ref.read(settingsProvider.future)).language.tag;
+    final ok = await ref
+        .read(transcriptionJobsProvider.notifier)
+        .retranscribe(recording, locale: locale);
+    if (!ok && mounted) setState(() => _failed = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final jobs = ref.watch(transcriptionJobsProvider);
+    final services = ref.watch(appServicesProvider).value;
+    final recording = _candidate;
+    final running = recording != null && jobs.contains(recording.id);
+    final canRetry =
+        recording != null && !running && services?.fileTranscriber != null;
+    final muted = theme.textTheme.bodyMedium?.copyWith(
+      color: scheme.onSurfaceVariant,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (running)
+          Row(
+            children: [
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 12),
+              Text(l10n.transcriptionRunning, style: muted),
+            ],
+          )
+        else
+          Text(l10n.transcriptMissing, style: muted),
+        if (_failed && !running) ...[
+          const SizedBox(height: 8),
+          Text(
+            l10n.retranscribeFailed,
+            style: theme.textTheme.bodySmall?.copyWith(color: scheme.error),
+          ),
+        ],
+        if (canRetry) ...[
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.tonalIcon(
+              key: retranscribeButtonKey,
+              onPressed: () => _retranscribe(recording),
+              icon: const Icon(Icons.refresh),
+              label: Text(l10n.retranscribe),
+            ),
+          ),
+        ],
       ],
     );
   }

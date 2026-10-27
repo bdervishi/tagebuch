@@ -1,0 +1,25 @@
+name: diary_stt_web
+description: Lokale Spracherkennung im Browser (D16 Punkt 4, experimentell). Whisper ueber transformers.js und ONNX Runtime Web in einem Web Worker, Modell und Laufzeit vom eigenen Origin.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.47.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  web: ^1.1.1
+  diary_core:
+    path: ../diary_core
+  diary_stt:
+    path: ../diary_stt
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:

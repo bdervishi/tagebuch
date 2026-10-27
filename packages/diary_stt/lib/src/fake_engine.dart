@@ -1,10 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:diary_core/diary_core.dart';
 
 import 'engine.dart';
 
 /// Engine ohne Modell: liefert einen festen Text und Segmentgrenzen aus der
-/// Audiodauer. Für Oberfläche, Tests und Simulator.
-class FakeSttEngine implements SttEngine {
+/// Audiodauer. Für Oberfläche, Tests und Simulator. Erfüllt beide Wege der
+/// Erkennung (mitlaufend und aus der Datei), damit sie überall als Rückfall
+/// einsetzbar ist.
+class FakeSttEngine implements SttEngine, AudioFileTranscriberPort {
   FakeSttEngine({
     this.text = 'Transkription folgt.',
     this.locales = const ['de-DE', 'de-AT', 'de-CH', 'en-US'],
@@ -46,6 +50,19 @@ class FakeSttEngine implements SttEngine {
       rate = f.sampleRate;
     }
     final duration = Duration(microseconds: (samples * 1000000 / rate).round());
+    return _result(locale, duration);
+  }
+
+  /// Dauer geschätzt aus der Größe bei 32 kbit/s (Rechenbasis D4: 4000 Byte
+  /// je Sekunde), weil die Fake-Engine die Datei nicht dekodiert.
+  @override
+  Future<TranscriptionResult> transcribeAudio(
+    Uint8List bytes, {
+    required String mimeType,
+    required String locale,
+  }) async => _result(locale, Duration(seconds: bytes.length ~/ 4000));
+
+  TranscriptionResult _result(String locale, Duration duration) {
     return TranscriptionResult(
       engine: id,
       modelVersion: modelVersion,

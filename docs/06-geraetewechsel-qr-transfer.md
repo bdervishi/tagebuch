@@ -1,10 +1,10 @@
 # 06 · Gerätewechsel und QR-Transfer
 
-Stand: 3. September 2026 · Status: Entwurf
+Stand: 27. Oktober 2026 (Abschnitt 13 Umsetzungsstand ergänzt) · Status: Entwurf
 
 Dieses Dokument beschreibt, wie ein Tagebuch ohne Cloud von einem Gerät auf ein anderes kommt (Anforderung M8) und wie dieselbe Datei als verschlüsseltes Offline-Backup dient (Annahme A8). Es setzt die verbindliche Entscheidung D6 um und baut auf der Speicherschicht aus `04-technik-architektur.md` auf (Envelope-Verschlüsselung, chunkweise AEAD-verschlüsselte AAC-Audiodateien, SQLCipher). Preise werden hier nicht genannt.
 
-Hinweis zur Quellenlage: Die Faktenprüfung (`docs/recherche/verifikation.json`, 30 Aussagen: 18 bestätigt, 12 präzisiert) liegt vor; sie prüft Transkriptions- und Plattformaussagen der Technikberichte und enthält keine der in diesem Dokument verwendeten Zahlen [43]. Zahlen, die nur aus Sekundärquellen oder Presse-Spiegeln stammen und nicht in der Faktenprüfung enthalten sind, bleiben deshalb mit "(unverifiziert)" gekennzeichnet (D15). Eigene Rechnungen sind als solche ausgewiesen. Die Nachrecherche zum Audio-Container [41] hat am 3. September 2026 D4 von Opus/secretstream auf AAC-LC in M4A mit Chunk-AEAD umgestellt; die Datenmengen in diesem Dokument rechnen seitdem mit AAC-LC 32 kbit/s als MVP-Basis, die Opus-Werte stehen als späterer Opus-Pfad daneben. Der Transfer-Container selbst bleibt bei libsodium secretstream (D6).
+Hinweis zur Quellenlage: Die Faktenprüfung (`docs/recherche/verifikation.json`, 30 Aussagen: 18 bestätigt, 12 präzisiert) liegt vor; sie prüft Transkriptions- und Plattformaussagen der Technikberichte und enthält keine der in diesem Dokument verwendeten Zahlen [43]. Zahlen, die nur aus Sekundärquellen oder Presse-Spiegeln stammen und nicht in der Faktenprüfung enthalten sind, bleiben deshalb mit "(unverifiziert)" gekennzeichnet (D15). Eigene Rechnungen sind als solche ausgewiesen. Die Nachrecherche zum Audio-Container [41] hat am 3. September 2026 D4 von Opus/secretstream auf AAC-LC in M4A mit Chunk-AEAD umgestellt; die Datenmengen in diesem Dokument rechnen seitdem mit AAC-LC 32 kbit/s als MVP-Basis, die Opus-Werte stehen als späterer Opus-Pfad daneben. Der Transfer-Container ist im Konzept mit libsodium secretstream beschrieben (D6); umgesetzt ist zunächst die gleichwertige Dart-Referenz mit Cipher-Kennung 2 (Abschnitt 13).
 
 ## 1. Was M8 verlangt und wie es gelesen wird
 
@@ -316,6 +316,46 @@ Für den Fall, dass gar kein Dateiweg zur Verfügung steht, kann der reine Text 
 8. Standardbitrate 24, 32 oder 48 kbit/s AAC-LC (Hörtest im Audio-Spike, D4) verändert die Containergröße für ein Jahr zwischen rund 197, 263 und 394 MB; der spätere Opus-Pfad (16 bis 24 kbit/s) halbiert sie etwa. Der Import muss M4A- und spätere Ogg/Opus-Dateien nebeneinander akzeptieren (Felder `codec`/`container` je Aufnahme).
 9. Wi-Fi Aware iOS 26 ↔ Android 14+: Interoperabilitäts-Prototyp vor jeder Planung.
 10. Einordnung der Container-Kryptografie (libsodium) für `ITSAppUsesNonExemptEncryption` und Exportkontrolle, abgestimmt mit dem Rechtsdokument.
+
+## 13. Umsetzungsstand (W4, 27. Oktober 2026)
+
+Backup und Gerätewechsel sind in `packages/diary_container` (Format), `packages/diary_core` (`TransferUseCase`), `packages/diary_web` (Dateien, Download, Dateiauswahl, Kamera) und der App (Einstellungen → Daten) umgesetzt und laufen in der Web-Fassung; die Store-Apps lesen und schreiben später dieselbe Datei. Wo die Umsetzung von den Abschnitten 5 und 6 abweicht, steht hier der Grund. Das Format ist Version 1 und wird in `packages/diary_container/README.md` mit Byte-Layout beschrieben.
+
+### 13.1 Tatsächliches Format
+
+| Punkt | Konzept (Abschnitte 5 und 6) | Umsetzung | Grund |
+|---|---|---|---|
+| Dateiendung | `.tagebuch` (vorläufig) | `.tgbx`, Dateiname `tagebuch-backup-JJJJ-MM-TT.tgbx` bzw. `tagebuch-transfer-JJJJ-MM-TT.tgbx` | kurz, eindeutig, unabhängig vom endgültigen App-Namen (D11); UTI/MIME folgen mit den Store-Apps |
+| Kopf | Magic 8 Byte, Version 2 Byte, Headerlänge | Magic `TGBX` (4) · Version u8 · Schlüsselart u8 (1 = X25519, 2 = Passphrase) · Cipher u8 · Sitzungs-ID (16) · Schlüsselblock · Schlüsselprüfwert (8) · Strom-Header-Länge u8 · Strom-Header (24) | kompakter; neue Felder kommen über eine neue Version, nicht über eine Headerlänge. Schlüsselblock X25519 = ephemerer öffentlicher Schlüssel E (32); Passphrase = Salt-Länge u8 · Salt · memoryKiB u32 · iterations u8 · parallelism u8 |
+| Stromverschlüsselung | libsodium `crypto_secretstream_xchacha20poly1305` (Cipher-Kennung 1) | **Cipher-Kennung 2**: Folge von Nachrichten `u32 Länge · tag u8 · XChaCha20-Poly1305(Klartext)`; Nonce = Strom-Header XOR Zähler (u64 BE in den letzten 8 Byte), AAD = Kopf-Bytes ‖ Zähler (u64 BE) ‖ tag; tag 1 markiert die letzte Nachricht; Nachrichten zu 64 KiB Klartext | libsodium ist in der Web-Fassung und in der reinen Dart-Referenz nicht verfügbar (D16, Umsetzungsstand zu D4). Das Verfahren bietet dieselben Garantien (Abschneiden, Entfernen, Umsortieren, Vertauschen zwischen Dateien, Verändern werden erkannt); auf das Rekeying von secretstream wird verzichtet, weil jeder Containerschlüssel genau einmal verwendet wird. Spike S5 kann Kennung 1 ergänzen; der Leser erkennt beide am Kopf |
+| Schlüsselprüfwert | BLAKE2b(K_c ‖ "check") | HKDF-SHA-256(ikm = K_c, salt = Sitzungs-ID, info = `tagebuch-container-v1/check`, 8 Byte) | BLAKE2b fehlt in der Dart-Referenz; HKDF ist vorhanden und für diesen Zweck gleichwertig. Der Prüfwert unterscheidet "Passphrase falsch" von "Datei beschädigt", ohne einen Entschlüsselungsversuch |
+| Ableitung Gerätewechsel | HKDF-Info `"tagebuch/container/v1" ‖ E ‖ R` | `K_c = HKDF-SHA-256(ikm = X25519(e, R), salt = Sitzungs-ID, info = "tagebuch-container-v1", 32)` | E steht im Kopf und der Kopf ist AAD jeder Nachricht; Sitzungs-ID im Salt bindet an die Sitzung. Beide öffentlichen Schlüssel zusätzlich in `info` wären redundant |
+| Prüfcode | sechs Dezimalstellen aus BLAKE2b(K_c ‖ "sas") | sechs Dezimalstellen aus dem öffentlichen Schlüssel R des Empfängers (`QrPayload.verificationCode`) | beide Geräte können ihn vor dem Export zeigen (das neue Gerät kennt K_c erst nach dem Lesen der Datei); Zweck bleibt: ein untergeschobener Code fällt auf |
+| QR-Inhalt | 57 Byte mit Containerversion, Plattform, App-Version, Erstellzeit | `tgb1:` + Base64url(Version u8 · Plattform u8 · Sitzungs-ID 16 · R 32) = 50 Byte, rund 72 Zeichen | kleiner Code; Versionsverhandlung über die QR-Version, Erstellzeit zeigt das neue Gerät selbst an |
+| Kompression | `manifest.json.zst`, `db.ndjson.zst` | **keine Kompression**; Manifest trägt `"compression": "none"` | zstd gibt es in Dart ohne native Brücke nicht; Audio ist ohnehin komprimiert, der Text eines Jahres liegt bei rund 1 MB. Ein späterer Wert (`zstd`) im Manifest macht alte Dateien nicht ungültig; Leser lehnen unbekannte Werte ab |
+| Audio im Container | Chunk-AEAD-Dateien im Ruheformat, Dateischlüssel im Manifest | Audio als **entschlüsselte Rohbytes** (`audio/<Dateiname>`, M4A oder WebM) | der Container ist selbst verschlüsselt; das Zielgerät wrappt mit seinem eigenen Master-Key neu (D5). Auf dem Web sind Dateien beim Lesen ohnehin als Ganzes im Speicher; die Store-Apps können später die Ruheformat-Variante als zweiten Datensatztyp ergänzen |
+| Prüfsummen | BLAKE2b-256 je Datei, Trailer mit Manifest-Hash | SHA-256 je Datei im Manifest; der Strom selbst ist durch das Final-Tag abgeschlossen | gleiche Funktion mit vorhandener Primitive; ein separater Trailer entfällt, weil jede Datei gegen Größe und Hash geprüft wird und das Final-Tag das Ende authentifiziert |
+| Datenbank-Export | NDJSON der SQLCipher-Tabellen | `db.ndjson`, eine JSON-Zeile je Datensatz mit Feld `type` (`entry`, `recording`, `transcript`, `reminder`, `setting`), Serialisierung `ModelJson` aus `diary_core`, `schemaVersion` 1 im Manifest | plattformneutral; Web und Store-Apps schreiben dieselben Zeilen. Unbekannte Typen werden beim Lesen übersprungen; `fileKeyWrapped` wird nicht exportiert |
+| Passphrase | mindestens zwölf Zeichen oder Wortfolge | mindestens acht Zeichen, Hinweis auf Satz oder Wortfolge; Argon2id mit 64 MiB, t = 3, p = 1, Salt 16 Byte (D5), Parameter im Kopf | Untergrenze der Oberfläche; die Wortfolgen-Vorschlagsfunktion folgt |
+| Wiederherstellungstest nach dem Erstellen | Pflicht | noch nicht | im Browser ist die heruntergeladene Datei für die App nicht erneut lesbar, ohne dass der Nutzer sie auswählt; Ersatz: "Backup wiederherstellen" ist jederzeit mit derselben Datei möglich |
+
+### 13.2 Import
+
+Wie in 5.6 beschrieben: Ein Tag, den es auf dem Zielgerät schon gibt, behält seinen Eintrag; die Aufnahmen aus dem Container werden angehängt. Aufnahmen mit bereits vorhandener Kennung werden übersprungen; nichts wird überschrieben, Löschungen werden nicht übertragen. Einstellungen werden nur ergänzt (vorhandene Werte bleiben), die Erinnerungszeit nur auf einem Gerät ohne eigene Einträge übernommen. Vor dem Import zeigt die App die Zusammenfassung aus dem Manifest (Anzahl Einträge und Aufnahmen, Zeitraum, Erstellzeit, App-Version); erst nach Bestätigung werden Audiodateien geschrieben und Datensätze angelegt. Eine Aufnahme ohne Audiodatei im Container wird als "nur Text" (Zustand `audioDeleted`) übernommen.
+
+Die Empfangssitzung des neuen Geräts (Sitzungs-ID und X25519-Paar) wird bis zum Import gespeichert, weil die Datei meist erst später eintrifft; auf dem Web liegt sie wie alle Einstellungen verschlüsselt im Datensatz-Store. Nach erfolgreichem Import wird sie vernichtet (Sitzung verbraucht). Eine Datei für eine andere Sitzung wird mit "für einen anderen Code erstellt" abgewiesen.
+
+### 13.3 Oberfläche (Web-Fassung)
+
+Einstellungen → Daten: "Backup erstellen" (Passphrase zweimal, Fortschritt, Download), "Backup wiederherstellen" (Datei wählen, Passphrase, Zusammenfassung, Übernehmen), "Auf neues Gerät übertragen" (Rolle wählen: das neue Gerät zeigt QR-Code, Prüfcode und den Text `tgb1:…` zum Eintippen; das alte liest den Code per Kamera (`BarcodeDetector`, wo vorhanden) oder Texteingabe, zeigt den Prüfcode und erzeugt die Datei). Auf "Heute" erscheint ab dem dritten Eintrag die Karte "Zeit für ein Backup", wenn das letzte Backup fehlt oder älter als sieben Tage ist (D16 Punkt 3); "Später" stellt eine Woche zurück. Der Zeitpunkt des letzten Backups steht im `SettingsRepository`.
+
+### 13.4 Offen
+
+- Dauer von Argon2id (64 MiB, reines Dart im Browser) auf iPhone und Android-Mittelklasse messen; bei mehr als wenigen Sekunden WebAssembly-Argon2 oder ein Web Worker.
+- Container liegt beim Export und Import vollständig im Arbeitsspeicher (wie die Audiodateien der Web-Fassung); für mehrere Jahre Audio streamende Schreib- und Lesewege (OPFS) ergänzen.
+- Wiederherstellungstest direkt nach dem Erstellen (6.1) und Wortfolgen-Vorschlag für die Passphrase.
+- libsodium secretstream (Cipher-Kennung 1) in Spike S5, falls die native Messung es rechtfertigt; Leser müssen dann beide Kennungen unterstützen.
+- `BarcodeDetector` auf iOS Safari (offene Frage in docs/10): bis dahin Texteingabe.
 
 ## Quellen
 

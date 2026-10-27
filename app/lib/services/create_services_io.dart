@@ -26,9 +26,13 @@ Future<AppServices> createAppServices() async {
     search: InMemorySearchRepository(entries, recordings, transcripts),
     recorder: SimulatedRecorder(),
     transcriber: FakeSttEngine(text: fakeTranscriptText),
+    // Noch keine lokale Engine (Spikes S1/S2): Status "nicht eingebaut".
+    sttEngine: null,
+    fileTranscriber: null,
     playerFor: (recording) => SimulatedPlayer(duration: recording.duration),
     deleteFiles: (_) async {},
     features: const NativePlatformFeatures(),
+    audioFiles: InMemoryAudioFiles(),
     ids: ids,
   );
 }

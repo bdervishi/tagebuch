@@ -5,14 +5,15 @@ import '../../app/routes.dart';
 import '../../data/day.dart';
 import '../../data/entry_view.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/backup_reminder_card.dart';
 import '../../widgets/entry_tile.dart';
 
 /// Widget-Key der großen Aufnahmetaste (für Tests).
 const Key recordButtonKey = Key('record-button');
 
 /// Startbildschirm: große Aufnahmetaste, darunter der heutige Eintrag aus dem
-/// Repository. Zustand statt Mahnung: kein Zähler, keine Kette (docs/03
-/// Abschnitt 3).
+/// Repository und bei Bedarf die Karte "Zeit für ein Backup". Zustand statt
+/// Mahnung: kein Zähler, keine Kette (docs/03 Abschnitt 3).
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
 
@@ -61,6 +62,7 @@ class TodayScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 40),
+            const BackupReminderCard(),
             switch (today) {
               AsyncData(value: null) => Text(
                 l10n.todayNoEntry,

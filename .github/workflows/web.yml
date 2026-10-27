@@ -3,6 +3,8 @@ name: Web (PWA)
 # Baut die Web-Fassung (D16) ohne CDN-Ressourcen und veröffentlicht sie auf GitHub Pages.
 # Veröffentlichung nur vom Standardzweig; auf anderen Zweigen wird nur gebaut und als Artefakt abgelegt.
 # Hosting liefert ausschließlich statische Dateien; die CSP der App erlaubt nur den eigenen Origin.
+# Die Modelldateien der Browser-Spracherkennung (W5) werden hier beim Veröffentlichen von Hugging Face
+# geladen und vom eigenen Origin ausgeliefert; die App selbst spricht nie mit huggingface.co.
 
 on:
   push:
@@ -38,6 +40,8 @@ jobs:
       - name: Base-Href bestimmen (Projektseite: /<repo>/)
         id: base
         run: echo "href=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_OUTPUT"
+      - name: Browser-Laufzeit der Spracherkennung holen (npm, feste Versionen, Prüfsummen)
+        run: tool/fetch_stt_vendor.sh
       - name: Bauen
         run: |
           cd app
@@ -50,6 +54,40 @@ jobs:
           if ! grep -q 'useLocalCanvasKit":true' app/build/web/flutter_bootstrap.js; then
             echo "FEHLER: CanvasKit würde vom CDN geladen (useLocalCanvasKit fehlt)"; exit 1; fi
           ls app/build/web/canvaskit/canvaskit.wasm
+      - name: Spracherkennung im Build (Worker und Laufzeit vom eigenen Origin)
+        run: |
+          for f in stt/stt_worker.js stt/vendor/transformers.min.js \
+                   stt/vendor/ort-wasm-simd-threaded.asyncify.mjs stt/vendor/ort-wasm-simd-threaded.asyncify.wasm \
+                   stt/vendor/ort-wasm-simd-threaded.mjs stt/vendor/ort-wasm-simd-threaded.wasm; do
+            ls -l "app/build/web/$f" || { echo "FEHLER: $f fehlt im Build"; exit 1; }
+          done
+      - name: Modell herunterladen (onnx-community/whisper-base, Dateiliste in app/web/stt/MODELS.md)
+        env:
+          MODEL: onnx-community/whisper-base
+          # Nur die Dateien, die der Worker lädt (dtype je Gerät: WebGPU Encoder fp32, WASM Encoder q8,
+          # Decoder q8 = Suffix _quantized). Aufnahme neuer Dateien zuerst in MODELS.md eintragen.
+          FILES: >-
+            config.json
+            generation_config.json
+            preprocessor_config.json
+            tokenizer.json
+            tokenizer_config.json
+            onnx/encoder_model.onnx
+            onnx/encoder_model_quantized.onnx
+            onnx/decoder_model_merged_quantized.onnx
+        run: |
+          pip install -q huggingface_hub
+          target="app/build/web/models/$MODEL"
+          includes=()
+          for f in $FILES; do includes+=(--include "$f"); done
+          hf download "$MODEL" "${includes[@]}" --local-dir "$target"
+          rm -rf "$target/.cache"
+          missing=0
+          for f in $FILES; do
+            if [ -s "$target/$f" ]; then ls -l "$target/$f"; else echo "FEHLER: $target/$f fehlt oder ist leer"; missing=1; fi
+          done
+          [ "$missing" -eq 0 ] || exit 1
+          du -sh "$target"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/build/web

@@ -38,3 +38,9 @@ app/ios/Flutter/flutter_export_environment.sh
 app/ios/Runner/GeneratedPluginRegistrant.*
 app/lib/l10n/*.dart
 coverage/
+
+# Browser-Laufzeit der Spracherkennung: 43 MB Fremddateien, werden mit tool/fetch_stt_vendor.sh
+# aus der npm-Registry geholt (Versionen und Prüfsummen im Repo).
+app/web/stt/vendor/*
+!app/web/stt/vendor/LICENSES.md
+!app/web/stt/vendor/SHA256SUMS

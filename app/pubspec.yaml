@@ -40,6 +40,8 @@ dependencies:
     sdk: flutter
   intl: ^0.20.3
   flutter_riverpod: ^3.4.3
+  # QR-Code des Gerätewechsels zeichnen (D6): reines Dart, BSD, kein Netzwerkzugriff.
+  qr: ^4.0.0
 
   # Kernpakete des Workspace (Ports, Fakes, Web-Umsetzungen).
   diary_core:
@@ -51,6 +53,8 @@ dependencies:
   # Nur im Web-Build eingebunden (bedingter Import in lib/services/create_services.dart).
   diary_web:
     path: ../packages/diary_web
+  diary_stt_web:
+    path: ../packages/diary_stt_web
 
 dev_dependencies:
   flutter_test:

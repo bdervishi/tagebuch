@@ -10,12 +10,13 @@ Lokales Sprach-Tagebuch für iOS und Android: täglich zu einer selbst gewählte
 - `docs/ressourcen.md`: kostenlose Dienste aus free-for.dev und wo wir sie einsetzen (CI, iOS-Builds ohne Mac, Übersetzung, Website, Support-Mail) und wo bewusst nicht (Crash-Reporter, Analytics). Vor dem Anbinden eines Dienstes dort nachsehen und eintragen.
 - `app/`: Flutter-App (Paket `tagebuch_app`, Anwendungs-ID `dev.tagebuch.app` als Platzhalter bis zur Namenswahl). Erste Zielplattform ist das Web als installierbare PWA (D16, `docs/10-pwa.md`); `app/web/` enthält Manifest, `index.html` mit Content-Security-Policy und Icons.
 - `packages/`: Kernpakete, jedes einzeln testbar:
-  - `diary_core` Domänenmodell, Ports, Anwendungsfall `RecordDayUseCase` (reines Dart)
+  - `diary_core` Domänenmodell, Ports, Anwendungsfälle `RecordDayUseCase` und `TransferUseCase` (Backup, Gerätewechsel; reines Dart)
   - `diary_crypto` AEAD-Schnittstelle, Key-Wrapping, HKDF, Argon2id-Parameter (reines Dart, Referenz mit `package:cryptography`)
   - `diary_chunkfile` Chunk-AEAD-Dateiformat mit wahlfreiem Zugriff (Format in dessen README, Testvektoren für Swift/Kotlin)
-  - `diary_container` Kopf, QR-Nutzlast, Manifest und Rahmung des Transfer-/Backup-Containers
+  - `diary_container` Transfer-/Backup-Container: Kopf, QR-Nutzlast, Manifest, Rahmung, Schlüsselableitung (Argon2id, X25519/HKDF), Stromverschlüsselung (Referenz Kennung 2) und Writer/Reader (Format in dessen README)
   - `diary_storage` drift-Schema, FTS5, SQLCipher-Öffnung
   - `diary_audio`, `diary_stt`, `diary_keys`, `diary_reminders` Schnittstellen mit Fakes; native Brücken folgen in den Spikes
+  - `diary_stt_web` Whisper im Browser (transformers.js + ONNX Runtime Web im Worker `app/web/stt/`, Modell vom eigenen Origin; Dateiliste `app/web/stt/MODELS.md`), experimentell (W5)
   - `diary_web` Web-Umsetzungen der Ports: WebCrypto-Master-Key, verschlüsselte Datensätze und Audiodateien in IndexedDB, MediaRecorder-Aufnahme, Player, ICS-Erinnerung (Tests laufen im Chromium)
 - `tool/check_no_network.sh`: Netz-Wächter (keine INTERNET-Berechtigung, keine gesperrten Pakete, keine Netzwerk-APIs). Läuft in der CI.
 - `models/`, `test_assets/`: nur Manifeste und Skripte, keine Binärdateien, keine echten Aufnahmen.
@@ -35,6 +36,7 @@ tool/check_no_network.sh
 # Web / PWA
 export CHROME_EXECUTABLE=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome   # Chromium für Browser-Tests
 (cd packages/diary_web && flutter test --platform chrome)
+tool/fetch_stt_vendor.sh                                          # einmalig: transformers.js/ONNX-Runtime (43 MB, nicht im Git) nach app/web/stt/vendor
 (cd app && flutter build web --release --no-web-resources-cdn)   # ohne CDN: CanvasKit und Schriften liegen lokal
 (cd app/build/web && python3 -m http.server 8765)                 # lokal ansehen; Headless-Screenshot siehe Git-Historie
 ```

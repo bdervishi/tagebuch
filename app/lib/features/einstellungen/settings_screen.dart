@@ -7,10 +7,15 @@ import '../../data/settings_notifier.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
 import '../../services/platform_features.dart';
+import '../daten/transfer_support.dart';
+import 'transcription_section.dart';
 
 /// Widget-Keys für Tests.
 const Key reminderCalendarKey = Key('settings-reminder-calendar');
 const Key storageTileKey = Key('settings-storage');
+const Key backupCreateKey = Key('settings-backup-create');
+const Key backupRestoreKey = Key('settings-backup-restore');
+const Key deviceTransferKey = Key('settings-device-transfer');
 
 /// Speicherstatus der Plattform (Web: `navigator.storage`).
 final storageStatusProvider = FutureProvider<StorageStatus?>(
@@ -139,6 +144,8 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _Note(l10n.languageHint),
             const Divider(),
+            const TranscriptionEngineSection(),
+            const Divider(),
             _SectionHeader(l10n.sectionAudio),
             SwitchListTile(
               title: Text(l10n.keepAudio),
@@ -160,18 +167,20 @@ class SettingsScreen extends ConsumerWidget {
               const _StorageTile(),
               _Note(l10n.webDataNote),
             ],
+            const _BackupTile(),
             ListTile(
-              enabled: false,
-              leading: const Icon(Icons.save_alt),
-              title: Text(l10n.backupCreate),
-              subtitle: Text(l10n.notYetAvailable),
+              key: backupRestoreKey,
+              leading: const Icon(Icons.settings_backup_restore),
+              title: Text(l10n.backupRestore),
+              subtitle: Text(l10n.backupRestoreSubtitle),
+              onTap: () => Navigator.of(context).pushNamed(AppRoutes.restore),
             ),
             _Note(l10n.backupExplanation),
             ListTile(
-              enabled: false,
+              key: deviceTransferKey,
               leading: const Icon(Icons.qr_code_2),
               title: Text(l10n.deviceTransfer),
-              subtitle: Text(l10n.notYetAvailable),
+              onTap: () => Navigator.of(context).pushNamed(AppRoutes.transfer),
             ),
             _Note(l10n.deviceTransferExplanation),
             const Divider(),
@@ -260,6 +269,29 @@ class SettingsScreen extends ConsumerWidget {
       TranscriptionLanguage.deCH => l10n.languageDeCH,
       TranscriptionLanguage.en => l10n.languageEn,
     };
+  }
+}
+
+/// "Backup erstellen" mit Datum des letzten Backups.
+class _BackupTile extends ConsumerWidget {
+  const _BackupTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final materialL10n = MaterialLocalizations.of(context);
+    final last = ref.watch(lastBackupProvider).value;
+    return ListTile(
+      key: backupCreateKey,
+      leading: const Icon(Icons.save_alt),
+      title: Text(l10n.backupCreate),
+      subtitle: Text(
+        last == null
+            ? l10n.backupNever
+            : l10n.backupLast(materialL10n.formatMediumDate(last)),
+      ),
+      onTap: () => Navigator.of(context).pushNamed(AppRoutes.backup),
+    );
   }
 }
 

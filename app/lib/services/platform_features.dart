@@ -1,3 +1,14 @@
+import 'dart:typed_data';
+
+/// Kamera-Scanner für QR-Codes (Web: `BarcodeDetector`). Das Kamerabild wird
+/// als Platform-View mit [viewType] gezeigt; [codes] liefert erkannte Texte.
+abstract interface class QrScanner {
+  String get viewType;
+  Stream<String> get codes;
+  Future<void> start();
+  Future<void> stop();
+}
+
 /// Speicherstatus des Geräts (Web: `navigator.storage`).
 class StorageStatus {
   const StorageStatus({
@@ -43,6 +54,19 @@ abstract interface class PlatformFeatures {
     required String title,
     String? description,
   });
+
+  /// Gibt die verschlüsselte Containerdatei (Backup, Gerätewechsel) an den
+  /// Nutzer: Web als Download, nativ später über das Teilen-Blatt.
+  Future<void> saveContainerFile(String fileName, Uint8List bytes);
+
+  /// Lässt den Nutzer eine Containerdatei wählen; `null` bei Abbruch.
+  Future<Uint8List?> pickContainerFile();
+
+  /// Ob die Kamera QR-Codes lesen kann (sonst: Code eintippen).
+  bool get canScanQr;
+
+  /// Neuer Kamera-Scanner oder `null`, wenn [canScanQr] falsch ist.
+  QrScanner? createQrScanner();
 }
 
 /// Nativ und in Tests: nichts davon ist nötig oder verfügbar.
@@ -74,4 +98,16 @@ class NativePlatformFeatures implements PlatformFeatures {
     required String title,
     String? description,
   }) {}
+
+  @override
+  Future<void> saveContainerFile(String fileName, Uint8List bytes) async {}
+
+  @override
+  Future<Uint8List?> pickContainerFile() async => null;
+
+  @override
+  bool get canScanQr => false;
+
+  @override
+  QrScanner? createQrScanner() => null;
 }

@@ -9,6 +9,10 @@ abstract final class EngineIds {
   static const sherpaParakeetV3 = 'sherpa_parakeet_v3';
   static const whisperKitLargeV3 = 'whisperkit_large_v3_v20240930';
   static const androidSystem = 'android_system';
+
+  /// Whisper base (mehrsprachig) über transformers.js im Browser
+  /// (`diary_stt_web`, D16 Punkt 4, experimentell).
+  static const webWhisperBase = 'web_whisper_base';
   static const fake = 'fake';
 }
 

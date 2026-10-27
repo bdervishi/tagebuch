@@ -124,6 +124,8 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).last,
     );
+    await tester.ensureVisible(find.text('Audio behalten'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Audio behalten'));
     await tester.pumpAndSettle();
     expect(await services.settings.get('keepAudio'), 'false');
@@ -185,6 +187,11 @@ void main() {
     );
     expect(find.textContaining('Nicht zugesichert'), findsOneWidget);
     expect(find.textContaining('3.0 MB belegt, 100 MB frei'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.textContaining('Backup ist Pflicht'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
     expect(find.textContaining('Backup ist Pflicht'), findsOneWidget);
 
     await tester.scrollUntilVisible(

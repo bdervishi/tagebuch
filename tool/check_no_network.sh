@@ -4,7 +4,9 @@
 #  1. android.permission.INTERNET im main- oder release-Manifest (oder im gemergten Release-Manifest, falls gebaut);
 #  2. Pakete aus der Sperrliste in pubspec.lock (HTTP-Clients, Analytics, Crash-Reporter, Werbung, Cloud-SDKs);
 #  3. Netzwerk-Entitlements oder Local-Network-Schlüssel in der iOS-Konfiguration;
-#  4. Direkte Socket-/HTTP-Nutzung im Dart-Code der App und der Pakete.
+#  4. Direkte Socket-/HTTP-Nutzung im Dart-Code der App und der Pakete;
+#  5. Web (PWA): CSP mit connect-src 'self', keine absoluten URLs im Web-Verzeichnis;
+#  6. Browser-Spracherkennung: Worker lädt Modell und WASM nur vom eigenen Origin (W5).
 # Für die spätere WLAN-Direktübertragung (D6, Version 1.x) wird diese Datei bewusst und sichtbar angepasst.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -67,9 +69,28 @@ if [ -f app/web/index.html ]; then
   fi
   # Erlaubt sind nur relative Pfade; jede absolute http(s)-URL im Web-Verzeichnis ist ein Befund
   # (Ausnahmen: der Manifest-Namensraum und Kommentare/Lizenzhinweise mit "licen").
-  if grep -rnoE 'https?://[a-zA-Z0-9./_-]+' app/web --include='*.html' --include='*.json' --include='*.js' 2>/dev/null \
-       | grep -vE 'w3.org|licen|schemas|example' ; then
+  # Ausgenommen ist nur app/web/stt/vendor/: unveränderte Fremdbibliotheken (transformers.js, ONNX Runtime),
+  # deren Bundle Adressen von huggingface.co und einem CDN als Voreinstellung enthält. Dass sie nie
+  # benutzt werden, prüft Punkt 6 am eigenen Worker-Code; zur Laufzeit gelten zusätzlich connect-src 'self'
+  # und der fetch-Wächter im Worker.
+  if grep -rnoE 'https?://[a-zA-Z0-9./_-]+' app/web --include='*.html' --include='*.json' --include='*.js' --include='*.mjs' \
+       --exclude-dir=vendor 2>/dev/null | grep -vE 'w3.org|licen|schemas|example' ; then
     bad "Absolute URL im Web-Verzeichnis (siehe oben)"
+  fi
+fi
+
+# 6. Browser-Spracherkennung (W5): Der Worker darf Modelle und WASM nur vom eigenen Origin laden.
+worker=app/web/stt/stt_worker.js
+if [ -f "$worker" ]; then
+  grep -qE "env\.allowRemoteModels *= *false" "$worker" || bad "$worker: env.allowRemoteModels = false fehlt"
+  grep -qE "env\.localModelPath *= *(new URL\('\.\./models/'|MODELS_URL)" "$worker" || bad "$worker: localModelPath zeigt nicht auf ../models/ relativ zum Worker"
+  grep -qE "wasmPaths *= *\{" "$worker" || bad "$worker: wasmPaths nicht auf ./vendor/ gesetzt"
+  grep -qE "VENDOR_URL *= *new URL\('\./vendor/', import\.meta\.url\)" "$worker" || bad "$worker: VENDOR_URL nicht relativ zum Worker"
+  grep -qE "url\.origin !== ORIGIN" "$worker" || bad "$worker: fetch-Wächter auf den eigenen Origin fehlt"
+  # Die Laufzeitdateien liegen nicht im Git (tool/fetch_stt_vendor.sh); fehlen sie, ist das hier nur ein Hinweis,
+  # in der CI schlägt der Web-Workflow fehl, wenn sie im Build fehlen.
+  if [ ! -f app/web/stt/vendor/transformers.min.js ]; then
+    say "Hinweis: app/web/stt/vendor/ ist leer; vor einem Web-Build tool/fetch_stt_vendor.sh ausführen."
   fi
 fi
 

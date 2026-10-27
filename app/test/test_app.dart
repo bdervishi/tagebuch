@@ -57,6 +57,8 @@ class TestServices {
     bool onboardingDone = true,
     List<SeedEntry> seed = const [],
     PlatformFeatures features = const NativePlatformFeatures(),
+    this.sttEngine,
+    this.fileTranscriber,
   }) {
     final entryItems = <DiaryEntry>[];
     final recordingItems = <Recording>[];
@@ -137,18 +139,30 @@ class TestServices {
       search: InMemorySearchRepository(entries, recordings, transcripts),
       recorder: SimulatedRecorder(),
       transcriber: FakeSttEngine(text: fakeTranscript),
+      sttEngine: sttEngine,
+      fileTranscriber: fileTranscriber,
       playerFor: (r) => SimulatedPlayer(
         duration: r.duration,
         tick: const Duration(milliseconds: 100),
       ),
       deleteFiles: (names) async => deletedFiles.addAll(names),
       features: features,
+      audioFiles: audioFiles,
+      // Schnelle Argon2id-Parameter, damit Backup-Tests nicht Sekunden dauern.
+      argon2Params: Argon2Params.testing,
       ids: ids,
     );
   }
 
   final RandomIdGenerator ids = RandomIdGenerator();
   final List<String> deletedFiles = [];
+
+  /// Engine für den Abschnitt "Spracherkennung" (null: nicht eingebaut).
+  final SttEngine? sttEngine;
+
+  /// Datei-Erkennung für "Erneut transkribieren" und den Aufnahmeablauf.
+  final AudioFileTranscriberPort? fileTranscriber;
+  final InMemoryAudioFiles audioFiles = InMemoryAudioFiles();
   late final InMemoryEntryRepository entries;
   late final InMemoryRecordingRepository recordings;
   late final InMemoryTranscriptRepository transcripts;
@@ -186,6 +200,12 @@ class FakePlatformFeatures implements PlatformFeatures {
   final StorageStatus? storage;
   final List<({int hour, int minute, String title})> downloads = [];
 
+  /// Gespeicherte Containerdateien (Name, Bytes) aus Backup und Transfer.
+  final List<(String, Uint8List)> savedFiles = [];
+
+  /// Datei, die die nächste Dateiauswahl liefert (`null` = abgebrochen).
+  Uint8List? fileToPick;
+
   @override
   bool get recordsRealAudio => isWeb;
 
@@ -202,6 +222,19 @@ class FakePlatformFeatures implements PlatformFeatures {
     required String title,
     String? description,
   }) => downloads.add((hour: hour, minute: minute, title: title));
+
+  @override
+  Future<void> saveContainerFile(String fileName, Uint8List bytes) async =>
+      savedFiles.add((fileName, bytes));
+
+  @override
+  Future<Uint8List?> pickContainerFile() async => fileToPick;
+
+  @override
+  bool get canScanQr => false;
+
+  @override
+  QrScanner? createQrScanner() => null;
 }
 
 /// Baut die ganze App mit festgelegter Sprache und Vorbelegung.
@@ -244,3 +277,8 @@ Future<void> pumpTransition(WidgetTester tester) async {
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 400));
 }
+
+/// Bytefolge fester Länge mit Muster (für Audio-Fixtures).
+// ignore: non_constant_identifier_names
+Uint8List Uint8ListOf(int length, int seed) =>
+    Uint8List.fromList(List.generate(length, (i) => (i * seed + 1) & 0xff));

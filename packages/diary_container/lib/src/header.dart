@@ -41,9 +41,12 @@ enum ContainerCipher {
 /// Kopf des Containers (Klartext, aber als Zusatzdaten authentifiziert).
 ///
 /// Layout: Magic `TGBX` (4) | Version u8 | Schlüsselart u8 | Cipher u8 |
-/// Sitzungs-ID (16) | Schlüsselblock | Strom-Header-Länge u8 | Strom-Header.
+/// Sitzungs-ID (16) | Schlüsselblock | Schlüsselprüfwert (8) |
+/// Strom-Header-Länge u8 | Strom-Header.
 /// Schlüsselblock je Art: X25519 = ephemerer öffentlicher Schlüssel (32);
-/// Passphrase = Salt (16) | memoryKiB u32 | iterations u8 | parallelism u8.
+/// Passphrase = Salt-Länge u8 | Salt | memoryKiB u32 | iterations u8 |
+/// parallelism u8. Der Schlüsselprüfwert (`ContainerKeys.keyCheck`)
+/// unterscheidet "falsche Passphrase" von "Datei beschädigt" (docs/06 5.3).
 @immutable
 class ContainerHeader {
   const ContainerHeader({
@@ -51,11 +54,13 @@ class ContainerHeader {
     required this.cipher,
     required this.sessionId,
     required this.streamHeader,
+    required this.keyCheck,
     this.ephemeralPublicKey,
     this.salt,
     this.argon2Params,
     this.version = 1,
   }) : assert(sessionId.length == 16),
+       assert(keyCheck.length == keyCheckLength),
        assert(
          keyKind != ContainerKeyKind.recipientX25519 ||
              ephemeralPublicKey != null,
@@ -67,6 +72,7 @@ class ContainerHeader {
 
   static const magic = [0x54, 0x47, 0x42, 0x58]; // TGBX
   static const currentVersion = 1;
+  static const keyCheckLength = 8;
 
   final int version;
   final ContainerKeyKind keyKind;
@@ -76,7 +82,10 @@ class ContainerHeader {
   final Uint8List? salt;
   final Argon2Params? argon2Params;
 
-  /// Kopfdaten des Stromverfahrens (secretstream: 24 Byte).
+  /// Acht Prüfbytes des Containerschlüssels (siehe `ContainerKeys.keyCheck`).
+  final Uint8List keyCheck;
+
+  /// Kopfdaten des Stromverfahrens (24 Byte).
   final Uint8List streamHeader;
 
   Uint8List encode() {
@@ -110,6 +119,7 @@ class ContainerHeader {
       throw const FormatException('Strom-Header zu lang');
     }
     b
+      ..add(keyCheck)
       ..addByte(streamHeader.length)
       ..add(streamHeader);
     return b.toBytes();
@@ -148,6 +158,7 @@ class ContainerHeader {
           saltLength: saltLen,
         );
     }
+    final keyCheck = r.bytes(keyCheckLength);
     final shLen = r.u8();
     final sh = r.bytes(shLen);
     return (
@@ -159,6 +170,7 @@ class ContainerHeader {
         ephemeralPublicKey: pk,
         salt: salt,
         argon2Params: params,
+        keyCheck: keyCheck,
         streamHeader: sh,
       ),
       r.offset,

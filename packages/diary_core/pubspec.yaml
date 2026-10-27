@@ -9,6 +9,11 @@ environment:
 
 dependencies:
   meta: ^1.16.0
+  # Backup und Gerätewechsel (TransferUseCase) schreiben und lesen den Container (D6).
+  diary_container:
+    path: ../diary_container
+  diary_crypto:
+    path: ../diary_crypto
 
 dev_dependencies:
   lints: ^6.0.0

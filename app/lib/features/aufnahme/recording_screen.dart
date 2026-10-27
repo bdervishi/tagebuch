@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/formats.dart';
 import '../../data/entry_view.dart';
 import '../../data/settings_notifier.dart';
+import '../../data/transcription_jobs.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
 
@@ -69,9 +70,9 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     try {
       final services = await ref.read(appServicesProvider.future);
       final settings = await ref.read(settingsProvider.future);
-      final active = await services.recordDay().start(
-        locale: settings.language.tag,
-      );
+      final active = await services
+          .recordDay(transcribe: settings.transcriptionEnabled)
+          .start(locale: settings.language.tag);
       if (!mounted) {
         // Bildschirm schon weg (z. B. sofort abgebrochen): sauber aufräumen.
         await _discard(services, active);
@@ -129,7 +130,15 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     _ticker?.cancel();
     final services = await ref.read(appServicesProvider.future);
     final keepAudio = (await ref.read(settingsProvider.future)).keepAudio;
-    final result = await active.stop();
+    // Die Erkennung läuft im Hintergrund weiter; der Eintrag zeigt bis dahin
+    // "Transkription läuft …" (D16 Punkt 4: kein Warten auf das Modell).
+    final result = await active.stop(awaitTranscript: false);
+    final pending = result.pendingTranscript;
+    if (pending != null) {
+      ref
+          .read(transcriptionJobsProvider.notifier)
+          .track(result.recording.id, pending);
+    }
     if (!keepAudio) {
       await services.recordings.markAudioDeleted(result.recording.id);
       await services.deleteFiles([result.recording.fileName]);

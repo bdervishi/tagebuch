@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'u64.dart';
+
 /// Rahmung der Nutzdaten vor der Verschlüsselung: eine Folge von Datensätzen
 /// `nameLen u16 | name (UTF-8) | dataLen u64 | data`. Das erste Element ist
 /// immer `manifest.json`. Bewusst kein tar: kein Padding, keine Metadaten,
@@ -9,15 +11,22 @@ class FrameWriter {
   final BytesBuilder _b = BytesBuilder(copy: false);
 
   void add(String name, Uint8List data) {
+    _b
+      ..add(encodeHeader(name, data.length))
+      ..add(data);
+  }
+
+  /// Rahmenkopf `nameLen u16 | name | dataLen u64` ohne die Daten (zum
+  /// Streamen großer Dateien).
+  static Uint8List encodeHeader(String name, int dataLength) {
     final n = utf8.encode(name);
     if (n.length > 0xffff) throw ArgumentError('Name zu lang');
     final len = ByteData(2)..setUint16(0, n.length);
-    final dlen = ByteData(8)..setUint64(0, data.length);
-    _b
-      ..add(len.buffer.asUint8List())
-      ..add(n)
-      ..add(dlen.buffer.asUint8List())
-      ..add(data);
+    return Uint8List.fromList([
+      ...len.buffer.asUint8List(),
+      ...n,
+      ...U64.encode(dataLength),
+    ]);
   }
 
   Uint8List toBytes() => _b.toBytes();
@@ -50,7 +59,7 @@ class FrameReader {
       Uint8List.sublistView(_bytes, _offset, _offset + nameLen),
     );
     _offset += nameLen;
-    final dataLen = view.getUint64(_offset);
+    final dataLen = U64.read(view, _offset);
     _offset += 8;
     if (_offset + dataLen > _bytes.length) {
       throw const FormatException('Rahmen unvollständig');

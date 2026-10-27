@@ -1,14 +1,17 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:diary_core/diary_core.dart';
 import 'package:diary_stt/diary_stt.dart';
+import 'package:diary_stt_web/diary_stt_web.dart';
 import 'package:diary_web/diary_web.dart';
 
 import 'app_services.dart';
 import 'platform_features.dart';
 
-/// Text der Fake-Erkennung, bis die Browser-Erkennung aus Spike W1 eingebaut
-/// ist (W5). Er wird als Transkript gespeichert, nicht übersetzt.
+/// Text der Fake-Erkennung als Rückfall, wenn die Browser-Erkennung nicht
+/// verfügbar ist (Modell fehlt, Browser ohne WebAssembly). Er wird als
+/// Transkript gespeichert, nicht übersetzt.
 const String fakeTranscriptText = 'Transkription folgt (experimentell)';
 
 /// Web-Fassung (D16): Master-Key in WebCrypto, Datensätze und Audiodateien
@@ -23,6 +26,10 @@ Future<AppServices> createAppServices() async {
   final journal = await WebJournalRepository(records)
       .ensureDefault(defaultLocale: 'de-DE');
   unawaited(const WebStorageInfo().persist());
+  // Whisper im Browser (W5, experimentell): Worker `stt/stt_worker.js`,
+  // Modell und Laufzeit vom eigenen Origin. Geladen wird erst, wenn die
+  // Einstellungen oder die erste Erkennung es anstoßen.
+  final stt = WasmSttEngine();
   return AppServices(
     journalId: journal.id,
     entries: WebEntryRepository(records, ids),
@@ -32,6 +39,10 @@ Future<AppServices> createAppServices() async {
     search: WebSearchRepository(records),
     recorder: MediaRecorderCapture(files),
     transcriber: FakeSttEngine(text: fakeTranscriptText),
+    sttEngine: stt,
+    fileTranscriber: stt,
+    fileTranscriberCheck: () => stt.status.phase != WasmSttPhase.failed,
+    sttDeviceInfo: () => stt.status.device,
     playerFor: (recording) => WebAudioPlayer(
       files,
       fileKeyWrapped: recording.fileKeyWrapped,
@@ -44,11 +55,17 @@ Future<AppServices> createAppServices() async {
       }
     },
     features: const WebPlatformFeatures(),
+    audioFiles: WebAudioFilesPort(files),
     ids: ids,
   );
 }
 
 PlatformFeatures createPlatformFeatures() => const WebPlatformFeatures();
+
+/// Audiodateien für Export und Import über den [EncryptedFileStore].
+class WebAudioFilesPort extends WebAudioFiles implements AudioFiles {
+  WebAudioFilesPort(super.files);
+}
 
 String _mimeTypeFor(Recording recording) => switch (recording.container) {
   AudioContainer.webm => 'audio/webm',
@@ -106,4 +123,33 @@ class WebPlatformFeatures implements PlatformFeatures {
       mimeType: IcsReminder.mimeType,
     );
   }
+
+  @override
+  Future<void> saveContainerFile(String fileName, Uint8List bytes) async =>
+      downloadBytes(fileName, bytes);
+
+  @override
+  Future<Uint8List?> pickContainerFile() =>
+      pickFile(accept: '.${TransferUseCase.fileExtension}');
+
+  @override
+  bool get canScanQr => QrCameraScanner.isSupported;
+
+  @override
+  QrScanner? createQrScanner() =>
+      canScanQr ? _WebQrScanner(QrCameraScanner()) : null;
+}
+
+class _WebQrScanner implements QrScanner {
+  _WebQrScanner(this._scanner);
+  final QrCameraScanner _scanner;
+
+  @override
+  String get viewType => _scanner.viewType;
+  @override
+  Stream<String> get codes => _scanner.codes;
+  @override
+  Future<void> start() => _scanner.start();
+  @override
+  Future<void> stop() => _scanner.stop();
 }

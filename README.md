@@ -24,7 +24,7 @@ app/                    Flutter-App (Bildschirme Heute, Aufnahme, Eintrag, Kalen
 packages/diary_core     Domänenmodell, Ports, Anwendungsfall "Tag aufnehmen"
 packages/diary_crypto   AEAD, Key-Wrapping, HKDF, Argon2id-Parameter (Referenz in reinem Dart, mit IETF-/RFC-Testvektoren)
 packages/diary_chunkfile Chunk-AEAD-Dateiformat mit wahlfreiem Zugriff für verschlüsselte Audiodateien
-packages/diary_container Kopf, QR-Nutzlast, Manifest, Rahmung des Transfer- und Backup-Containers
+packages/diary_container Transfer- und Backup-Container: Kopf, QR-Nutzlast, Manifest, Rahmung, Schlüsselableitung, Stromverschlüsselung, Writer/Reader
 packages/diary_storage  drift-Schema mit FTS5, SQLCipher-Öffnung
 packages/diary_audio    Aufnahme-/Wiedergabe-Schnittstellen, Resampler, simulierter Recorder
 packages/diary_stt      Engine-Schnittstelle und Registry für lokale Spracherkennung

@@ -37,6 +37,7 @@ class AppSettings {
     this.keepAudio = true,
     this.appLockEnabled = false,
     this.onboardingDone = false,
+    this.transcriptionEnabled = true,
   });
 
   /// Schlüssel im `SettingsRepository`.
@@ -44,7 +45,20 @@ class AppSettings {
   static const keyKeepAudio = 'keepAudio';
   static const keyAppLock = 'appLock';
   static const keyOnboardingDone = 'onboardingDone';
+
+  /// "Transkription aktiv" (W5): Standard an; aus speichert nur Audio.
+  static const keyTranscription = 'transcription';
   static const keyReminderSkippedOn = 'reminderSkippedOn';
+
+  /// Zeitpunkt des letzten Backups (ISO-8601) für die Backup-Erinnerung.
+  static const keyLastBackupAt = 'lastBackupAt';
+
+  /// Tag, bis zu dem die Backup-Erinnerung zurückgestellt ist.
+  static const keyBackupRemindAfter = 'backupRemindAfter';
+
+  /// Laufende Empfangssitzung des Gerätewechsels (JSON mit privatem
+  /// Schlüssel; liegt wie alle Einstellungen verschlüsselt im Store).
+  static const keyTransferSession = 'transferSession';
 
   final bool reminderEnabled;
 
@@ -64,6 +78,9 @@ class AppSettings {
   final bool appLockEnabled;
 
   final bool onboardingDone;
+
+  /// Ob Aufnahmen nach dem Speichern erkannt werden (Fake oder Engine).
+  final bool transcriptionEnabled;
 
   /// Wahr, wenn für [day] "Heute nicht" gewählt wurde.
   bool isSkippedOn(DateTime day) =>
@@ -93,6 +110,7 @@ class AppSettings {
       keepAudio: await repo.get(keyKeepAudio) != 'false',
       appLockEnabled: await repo.get(keyAppLock) == 'true',
       onboardingDone: await repo.get(keyOnboardingDone) == 'true',
+      transcriptionEnabled: await repo.get(keyTranscription) != 'false',
     );
   }
 
@@ -105,6 +123,7 @@ class AppSettings {
     bool? keepAudio,
     bool? appLockEnabled,
     bool? onboardingDone,
+    bool? transcriptionEnabled,
   }) {
     return AppSettings(
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
@@ -119,6 +138,7 @@ class AppSettings {
       keepAudio: keepAudio ?? this.keepAudio,
       appLockEnabled: appLockEnabled ?? this.appLockEnabled,
       onboardingDone: onboardingDone ?? this.onboardingDone,
+      transcriptionEnabled: transcriptionEnabled ?? this.transcriptionEnabled,
     );
   }
 
@@ -181,6 +201,11 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
   Future<void> setAppLockEnabled(bool value) => _update(
     _current.copyWith(appLockEnabled: value),
     (repo) => repo.set(AppSettings.keyAppLock, '$value'),
+  );
+
+  Future<void> setTranscriptionEnabled(bool value) => _update(
+    _current.copyWith(transcriptionEnabled: value),
+    (repo) => repo.set(AppSettings.keyTranscription, '$value'),
   );
 
   Future<void> completeOnboarding() => _update(

@@ -24,6 +24,7 @@ class RecordedAudio {
     required this.bitrate,
     required this.waveform,
     required this.truncated,
+    this.plaintextBytes,
   });
   final String fileName;
   final Uint8List fileKeyWrapped;
@@ -35,6 +36,16 @@ class RecordedAudio {
   final int bitrate;
   final Uint8List waveform;
   final bool truncated;
+
+  /// Die komprimierte Aufnahme im Klartext, nur im Arbeitsspeicher und nur,
+  /// wenn der Aufnahmedienst sie ohnehin als Ganzes vorliegen hat (Web:
+  /// `MediaRecorderCapture` sammelt den Blob, D16 Punkt 5). Dient der
+  /// Erkennung nach der Aufnahme über den [AudioFileTranscriberPort]; wird
+  /// nie auf das Dateisystem geschrieben (Regel "Kein Klartext").
+  final Uint8List? plaintextBytes;
+
+  /// MIME-Typ der Aufnahme aus dem Container, für [AudioFileTranscriberPort].
+  String get mimeType => container.mimeType;
 }
 
 /// Aufnahmedienst (Port). Eine laufende Aufnahme liefert PCM-Blöcke für die
@@ -92,6 +103,19 @@ class TranscriptionException implements Exception {
 abstract interface class TranscriberPort {
   Future<TranscriptionResult> transcribe(
     Stream<PcmFrame> frames, {
+    required String locale,
+  });
+}
+
+/// Spracherkennung aus einer vollständigen Aufnahme (Port), ebenfalls nur auf
+/// dem Gerät. Für Engines, die nach der Aufnahme arbeiten statt mitlaufend
+/// (Web: Whisper im Browser, D16 Punkt 4). [bytes] sind die komprimierte
+/// Aufnahme im Klartext aus dem Arbeitsspeicher, [mimeType] ihr Format
+/// (z. B. `audio/webm`, `audio/mp4`), [locale] die BCP-47-Kennung der Sprache.
+abstract interface class AudioFileTranscriberPort {
+  Future<TranscriptionResult> transcribeAudio(
+    Uint8List bytes, {
+    required String mimeType,
     required String locale,
   });
 }

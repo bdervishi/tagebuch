@@ -142,6 +142,15 @@ class WebEntryRepository implements EntryRepository {
   }
 
   @override
+  Future<List<DiaryEntry>> listAll(String journalId) async {
+    final list = [
+      for (final e in await _all())
+        if (e.journalId == journalId) e,
+    ]..sort((a, b) => a.day.compareTo(b.day));
+    return list;
+  }
+
+  @override
   Future<List<String>> delete(String entryId) async {
     final fileNames = <String>[];
     final recordings = await _store.getAll(Collections.recordings);
@@ -189,6 +198,12 @@ class WebRecordingRepository implements RecordingRepository {
     ]..sort((a, b) => a.startedAt.compareTo(b.startedAt));
     return list;
   }
+
+  @override
+  Future<List<Recording>> listAll() async => [
+    for (final m in await _store.getAll(Collections.recordings))
+      Codecs.decodeRecording(m),
+  ];
 
   @override
   Future<void> markAudioDeleted(String recordingId) async {
@@ -240,6 +255,12 @@ class WebTranscriptRepository implements TranscriptRepository {
   }
 
   @override
+  Future<List<Transcript>> listForRecording(String recordingId) async => [
+    for (final m in await _store.getAll(Collections.transcripts))
+      if (m['recordingId'] == recordingId) Codecs.decodeTranscript(m),
+  ];
+
+  @override
   Future<void> updateText(
     String transcriptId,
     String text, {
@@ -285,4 +306,17 @@ class WebSettingsRepository implements SettingsRepository {
   @override
   Future<void> set(String key, String value) =>
       _store.put(Collections.settings, 'kv-$key', {'value': value});
+
+  @override
+  Future<Map<String, String>> all() async {
+    final out = <String, String>{};
+    final keys = await _store.getAllKeys(Collections.settings);
+    for (final id in keys) {
+      if (!id.startsWith('kv-')) continue;
+      final m = await _store.get(Collections.settings, id);
+      final value = m?['value'];
+      if (value is String) out[id.substring(3)] = value;
+    }
+    return out;
+  }
 }

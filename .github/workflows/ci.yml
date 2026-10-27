@@ -43,7 +43,10 @@ jobs:
             echo "== $p"; (cd packages/$p && flutter test)
           done
       - name: Tests der Web-Umsetzungen im Chromium
-        run: cd packages/diary_web && flutter test --platform chrome
+        run: |
+          for p in diary_web diary_stt_web; do
+            echo "== $p"; (cd packages/$p && flutter test --platform chrome)
+          done
       - name: Tests der App
         run: cd app && flutter test
 

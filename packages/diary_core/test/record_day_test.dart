@@ -40,6 +40,9 @@ class _Entries implements EntryRepository {
       Stream.value(byDay.values.toList());
   @override
   Future<List<String>> delete(String entryId) async => [];
+  @override
+  Future<List<DiaryEntry>> listAll(String journalId) async =>
+      byDay.values.toList();
 }
 
 class _Recordings implements RecordingRepository {
@@ -49,6 +52,8 @@ class _Recordings implements RecordingRepository {
   @override
   Future<List<Recording>> listForEntry(String entryId) async =>
       items.where((r) => r.entryId == entryId).toList();
+  @override
+  Future<List<Recording>> listAll() async => items;
   @override
   Future<void> markAudioDeleted(String recordingId) async {}
   @override
@@ -66,6 +71,9 @@ class _Transcripts implements TranscriptRepository {
   @override
   Future<Transcript?> primaryForRecording(String recordingId) async =>
       items.where((t) => t.recordingId == recordingId).firstOrNull;
+  @override
+  Future<List<Transcript>> listForRecording(String recordingId) async =>
+      items.where((t) => t.recordingId == recordingId).toList();
   @override
   Future<void> updateText(
     String transcriptId,
@@ -222,5 +230,233 @@ void main() {
     expect(r.items, hasLength(1), reason: 'Audio bleibt erhalten');
     expect(result.transcript, isNull);
     expect(t.items, isEmpty);
+  });
+
+  group('Datei-Erkennung', fileTranscriberTests);
+}
+
+class _FileTranscriber implements AudioFileTranscriberPort {
+  _FileTranscriber({this.fail = false, this.delay = Duration.zero});
+  final bool fail;
+  final Duration delay;
+  Uint8List? bytes;
+  String? mimeType;
+  String? locale;
+
+  @override
+  Future<TranscriptionResult> transcribeAudio(
+    Uint8List bytes, {
+    required String mimeType,
+    required String locale,
+  }) async {
+    this.bytes = bytes;
+    this.mimeType = mimeType;
+    this.locale = locale;
+    if (delay > Duration.zero) await Future<void>.delayed(delay);
+    if (fail) throw const TranscriptionException('Modell fehlt');
+    return TranscriptionResult(
+      engine: 'web_whisper_base',
+      modelVersion: 'onnx-community/whisper-base',
+      locale: locale,
+      text: 'Aus der Datei erkannt.',
+      segments: const [
+        TranscriptSegment(
+          index: 0,
+          start: Duration.zero,
+          end: Duration(seconds: 3),
+          text: 'Aus der Datei erkannt.',
+          boundarySource: BoundarySource.engine,
+        ),
+      ],
+    );
+  }
+}
+
+/// Aufnahmedienst, der die Bytes der Aufnahme im Speicher mitliefert
+/// (wie `MediaRecorderCapture` im Browser).
+class _BytesSession extends _Session {
+  _BytesSession({this.withBytes = true});
+  final bool withBytes;
+  @override
+  Future<RecordedAudio> stop() async {
+    final base = await super.stop();
+    return RecordedAudio(
+      fileName: base.fileName,
+      fileKeyWrapped: base.fileKeyWrapped,
+      sizeBytes: base.sizeBytes,
+      duration: base.duration,
+      codec: AudioCodec.opus,
+      container: AudioContainer.webm,
+      sampleRate: 48000,
+      bitrate: 32000,
+      waveform: base.waveform,
+      truncated: false,
+      plaintextBytes: withBytes ? Uint8List.fromList([1, 2, 3, 4]) : null,
+    );
+  }
+}
+
+class _BytesRecorder implements AudioRecorderPort {
+  _BytesRecorder({bool withBytes = true})
+    : session = _BytesSession(withBytes: withBytes);
+  final _BytesSession session;
+  @override
+  Future<RecordingSession> start({
+    required String fileName,
+    required int sampleRate,
+  }) async => session;
+}
+
+void fileTranscriberTests() {
+  final clock = FixedClock(DateTime(2026, 10, 27, 21, 5));
+
+  test(
+    'Datei-Erkennung bekommt Bytes und MIME-Typ, Stream bleibt ungenutzt',
+    () async {
+      final e = _Entries(), r = _Recordings(), t = _Transcripts();
+      final rec = _BytesRecorder();
+      final stream = _Transcriber();
+      final file = _FileTranscriber();
+      final useCase = RecordDayUseCase(
+        journalId: 'j1',
+        entries: e,
+        recordings: r,
+        transcripts: t,
+        recorder: rec,
+        transcriber: stream,
+        fileTranscriber: file,
+        clock: clock,
+        ids: _Ids(),
+      );
+      final active = await useCase.start(locale: 'de-CH');
+      rec.session.push();
+      rec.session.push();
+      final result = await active.stop();
+
+      expect(file.bytes, [1, 2, 3, 4]);
+      expect(file.mimeType, 'audio/webm');
+      expect(file.locale, 'de-CH');
+      expect(stream.framesSeen, 0, reason: 'Stream-Transkriber nicht genutzt');
+      expect(result.transcript!.engine, 'web_whisper_base');
+      expect(
+        result.transcript!.segments.single.boundarySource,
+        BoundarySource.engine,
+      );
+      expect(t.items.single.text, 'Aus der Datei erkannt.');
+      expect(result.pendingTranscript, isNull);
+    },
+  );
+
+  test(
+    'Hintergrund: stop liefert sofort, Transkript folgt über die Future',
+    () async {
+      final e = _Entries(), r = _Recordings(), t = _Transcripts();
+      final rec = _BytesRecorder();
+      final file = _FileTranscriber(delay: const Duration(milliseconds: 20));
+      final useCase = RecordDayUseCase(
+        journalId: 'j1',
+        entries: e,
+        recordings: r,
+        transcripts: t,
+        recorder: rec,
+        fileTranscriber: file,
+        clock: clock,
+        ids: _Ids(),
+      );
+      final active = await useCase.start(locale: 'de-DE');
+      final result = await active.stop(awaitTranscript: false);
+
+      expect(r.items, hasLength(1), reason: 'Aufnahme sofort gespeichert');
+      expect(result.transcript, isNull);
+      expect(t.items, isEmpty);
+      final transcript = await result.pendingTranscript!;
+      expect(transcript!.recordingId, result.recording.id);
+      expect(t.items.single.id, transcript.id);
+    },
+  );
+
+  test('Hintergrund-Fehler endet mit null, Aufnahme bleibt', () async {
+    final e = _Entries(), r = _Recordings(), t = _Transcripts();
+    final rec = _BytesRecorder();
+    final useCase = RecordDayUseCase(
+      journalId: 'j1',
+      entries: e,
+      recordings: r,
+      transcripts: t,
+      recorder: rec,
+      fileTranscriber: _FileTranscriber(fail: true),
+      clock: clock,
+      ids: _Ids(),
+    );
+    final active = await useCase.start(locale: 'de-DE');
+    final result = await active.stop(awaitTranscript: false);
+    expect(await result.pendingTranscript, isNull);
+    expect(r.items, hasLength(1));
+    expect(t.items, isEmpty);
+  });
+
+  test('Ohne Bytes und ohne Erkennung entsteht kein Transkript', () async {
+    final e = _Entries(), r = _Recordings(), t = _Transcripts();
+    final rec = _BytesRecorder(withBytes: false);
+    final file = _FileTranscriber();
+    final useCase = RecordDayUseCase(
+      journalId: 'j1',
+      entries: e,
+      recordings: r,
+      transcripts: t,
+      recorder: rec,
+      fileTranscriber: file,
+      clock: clock,
+      ids: _Ids(),
+    );
+    final active = await useCase.start(locale: 'de-DE');
+    final result = await active.stop();
+    expect(result.transcript, isNull);
+    expect(result.pendingTranscript, isNull);
+    expect(file.bytes, isNull);
+    expect(r.items, hasLength(1));
+
+    final none = RecordDayUseCase(
+      journalId: 'j1',
+      entries: e,
+      recordings: r,
+      transcripts: t,
+      recorder: _Recorder(),
+      clock: clock,
+      ids: _Ids(),
+    );
+    final active2 = await none.start(locale: 'de-DE');
+    final result2 = await active2.stop();
+    expect(result2.transcript, isNull);
+    expect(t.items, isEmpty);
+  });
+
+  test('Verworfene Aufnahme bekommt kein verwaistes Transkript', () async {
+    final e = _Entries(), r = _Recordings(), t = _Transcripts();
+    final rec = _BytesRecorder();
+    final useCase = RecordDayUseCase(
+      journalId: 'j1',
+      entries: e,
+      recordings: r,
+      transcripts: t,
+      recorder: rec,
+      fileTranscriber: _FileTranscriber(
+        delay: const Duration(milliseconds: 20),
+      ),
+      clock: clock,
+      ids: _Ids(),
+    );
+    final active = await useCase.start(locale: 'de-DE');
+    final result = await active.stop(awaitTranscript: false);
+    await r.delete(result.recording.id);
+    expect(await result.pendingTranscript, isNull);
+    expect(t.items, isEmpty);
+  });
+
+  test('MIME-Typ je Container', () {
+    expect(AudioContainer.webm.mimeType, 'audio/webm');
+    expect(AudioContainer.m4a.mimeType, 'audio/mp4');
+    expect(AudioContainer.ogg.mimeType, 'audio/ogg');
+    expect(AudioContainer.adts.mimeType, 'audio/aac');
   });
 }

@@ -1,0 +1,5 @@
+8d6716d9086f57c30a4bf367dba61b887593573c770c454465e8019b2703e743  transformers.min.js
+59cf781530e1a16df2a291d78798e3ec1152467edaec402d6f9599d85047c302  ort-wasm-simd-threaded.asyncify.mjs
+ca319e9539cd0f1e291cf56074760121eaf39650f5dbf84b6e52c07f4b2944ec  ort-wasm-simd-threaded.asyncify.wasm
+30ed0b5cd1182ede931fea448afb567d4dc705ec957af09f108a2be5f770dac3  ort-wasm-simd-threaded.mjs
+4b884c203b0fa48d057be3332c65513ff85aa3c5bddd6946acc0fab7ecda001d  ort-wasm-simd-threaded.wasm
