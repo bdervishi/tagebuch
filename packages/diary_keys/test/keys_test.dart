@@ -4,6 +4,21 @@ import 'package:diary_keys/diary_keys.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('MasterKeyDekWrapper wrappt und entpackt mit Zweckbindung', () async {
+    final store = InMemoryMasterKeyStore(SequentialRandomSource(3));
+    final wrapper = MasterKeyDekWrapper(
+      store,
+      KeyWrap(CryptographyAead.aes256Gcm(), SequentialRandomSource(9)),
+    );
+    final dek = SequentialRandomSource(77).bytes(32);
+    final blob = await wrapper.wrap(dek, purpose: 'chunkfile-v1');
+    expect(await wrapper.unwrap(blob, purpose: 'chunkfile-v1'), dek);
+    expect(
+      () => wrapper.unwrap(blob, purpose: 'records'),
+      throwsA(isA<AuthenticationException>()),
+    );
+  });
+
   test('In-Memory-Store legt Schlüssel an und vernichtet ihn', () async {
     final store = InMemoryMasterKeyStore(SequentialRandomSource(1));
     expect(await store.exists, isFalse);

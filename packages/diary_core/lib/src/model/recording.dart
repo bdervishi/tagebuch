@@ -5,8 +5,9 @@ import 'package:meta/meta.dart';
 /// Codec der gespeicherten Audiodatei (D4: AAC-LC im MVP, Opus später).
 enum AudioCodec { aacLc, opus }
 
-/// Container der Audiodatei vor der Verschlüsselung.
-enum AudioContainer { m4a, adts, ogg }
+/// Container der Audiodatei vor der Verschlüsselung (`webm`: MediaRecorder im
+/// Browser mit Opus, D16).
+enum AudioContainer { m4a, adts, ogg, webm }
 
 /// Zustand einer Aufnahme.
 enum RecordingState {

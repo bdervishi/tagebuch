@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <!--
+    Lokales Sprach-Tagebuch als installierbare Web-App (D16).
+    Die Content-Security-Policy beschränkt alle Verbindungen auf den eigenen Origin:
+    Die App lädt nach dem ersten Start nur noch eigene Dateien und spricht mit keinem Server.
+    'wasm-unsafe-eval' braucht die Flutter-Engine (CanvasKit); 'unsafe-inline' für Stile setzt der Flutter-Loader.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Sprich deinen Tag. Er bleibt auf deinem Handy. Keine Cloud, keine Konten.">
+  <meta name="theme-color" content="#784A32">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+
+  <!-- iOS: als App zum Home-Bildschirm -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Tagebuch">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>Tagebuch</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    html, body { height: 100%; margin: 0; background: #FAF3E8; }
+    @media (prefers-color-scheme: dark) { html, body { background: #1E1512; } }
+    #lade { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+            font-family: system-ui, sans-serif; color: #784A32; font-size: 1.1rem; }
+    @media (prefers-color-scheme: dark) { #lade { color: #E8A86E; } }
+    noscript { display: block; padding: 2rem; font-family: system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="lade" aria-live="polite">Tagebuch wird geladen …</div>
+  <noscript>Das Tagebuch braucht JavaScript. Es läuft vollständig auf deinem Gerät.</noscript>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

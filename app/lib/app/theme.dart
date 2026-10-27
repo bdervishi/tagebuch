@@ -15,6 +15,8 @@ ThemeData buildAppTheme(Brightness brightness) {
     brightness: brightness,
   );
   return ThemeData(
+    // Gebündelte Schrift, damit auf dem Web nichts von einem CDN nachgeladen wird (D16).
+    fontFamily: 'Inter',
     colorScheme: scheme,
     brightness: brightness,
     visualDensity: VisualDensity.standard,

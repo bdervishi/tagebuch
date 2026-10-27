@@ -1,0 +1,65 @@
+name: Web (PWA)
+
+# Baut die Web-Fassung (D16) ohne CDN-Ressourcen und veröffentlicht sie auf GitHub Pages.
+# Veröffentlichung nur vom Standardzweig; auf anderen Zweigen wird nur gebaut und als Artefakt abgelegt.
+# Hosting liefert ausschließlich statische Dateien; die CSP der App erlaubt nur den eigenen Origin.
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: "3.47.2"
+
+jobs:
+  build:
+    name: Web-Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Netz-Wächter (inkl. CSP der PWA)
+        run: tool/check_no_network.sh
+      - name: Base-Href bestimmen (Projektseite: /<repo>/)
+        id: base
+        run: echo "href=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_OUTPUT"
+      - name: Bauen
+        run: |
+          cd app
+          flutter build web --release --no-web-resources-cdn --pwa-strategy offline-first \
+            --base-href "${{ steps.base.outputs.href }}"
+      - name: Nur eigene Hosts im Build (CanvasKit lokal, keine CDN-Loader)
+        run: |
+          if grep -q "www.gstatic.com/flutter-canvaskit" app/build/web/flutter_bootstrap.js; then
+            echo "FEHLER: CanvasKit würde vom CDN geladen"; exit 1; fi
+          ls app/build/web/canvaskit/canvaskit.wasm
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: app/build/web
+
+  deploy:
+    name: Auf GitHub Pages veröffentlichen
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

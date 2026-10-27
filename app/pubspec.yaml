@@ -90,3 +90,11 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  # Gebündelte Schrift (SIL Open Font License, assets/fonts/OFL-Inter.txt), damit Flutter Web
+  # keine Schriften von einem CDN nachlädt (D14/D16: keine Verbindungen außer zum eigenen Origin).
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf
+

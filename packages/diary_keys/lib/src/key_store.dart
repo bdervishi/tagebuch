@@ -42,3 +42,36 @@ class InMemoryMasterKeyStore implements MasterKeyStore {
   @override
   Future<bool> get hardwareBacked async => false;
 }
+
+/// Wrappt Dateischlüssel (DEKs) mit dem Master-Key, ohne dass der Aufrufer den
+/// Master-Key sieht. Nativ über [KeyWrap] und den [MasterKeyStore]; auf dem Web
+/// über einen nicht exportierbaren WebCrypto-Schlüssel (D16).
+abstract interface class DekWrapper {
+  Future<Uint8List> wrap(Uint8List dek, {required String purpose});
+  Future<Uint8List> unwrap(Uint8List wrapped, {required String purpose});
+}
+
+/// Standardumsetzung mit dem Master-Key aus einem [MasterKeyStore].
+class MasterKeyDekWrapper implements DekWrapper {
+  MasterKeyDekWrapper(this._store, this._keyWrap);
+  final MasterKeyStore _store;
+  final KeyWrap _keyWrap;
+
+  @override
+  Future<Uint8List> wrap(Uint8List dek, {required String purpose}) async =>
+      _keyWrap.wrap(
+        masterKey: await _store.getOrCreate(),
+        key: dek,
+        purpose: purpose,
+      );
+
+  @override
+  Future<Uint8List> unwrap(
+    Uint8List wrapped, {
+    required String purpose,
+  }) async => _keyWrap.unwrap(
+    masterKey: await _store.getOrCreate(),
+    wrapped: wrapped,
+    purpose: purpose,
+  );
+}
