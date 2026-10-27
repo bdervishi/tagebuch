@@ -1,23 +1,46 @@
+import 'package:diary_core/diary_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/einstellungen/settings_screen.dart';
 import '../features/heute/today_screen.dart';
 import '../features/kalender/calendar_screen.dart';
 import '../l10n/app_localizations.dart';
+import '../services/app_services.dart';
+import '../services/platform_features.dart';
+import 'routes.dart';
 
 /// Hauptansicht mit unterer Leiste: Heute, Kalender (mit Suche), Einstellungen.
 /// Die Reiter behalten ihren Zustand über einen [IndexedStack]. Der Wechsel
 /// selbst ist bewusst ohne Animation: Er passiert dutzende Male am Tag.
-/// Die Leiste sitzt auf einer Haarlinie statt eines Schattens.
-class AppShell extends StatefulWidget {
+/// Die Leiste sitzt auf einer Haarlinie statt eines Schattens. Eine
+/// Schnellaktion des Starts (Manifest-Shortcut "Aufnehmen" oder "Schreiben")
+/// öffnet nach dem ersten Frame direkt die passende Route.
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends ConsumerState<AppShell> {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    final action = ref.read(platformFeaturesProvider).takeStartAction();
+    if (action == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      switch (action) {
+        case StartAction.record:
+          AppRoutes.openRecording(context);
+        case StartAction.write:
+          AppRoutes.openWrite(context, LocalDay.forMoment(DateTime.now()));
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -142,6 +142,21 @@ class WebPlatformFeatures implements PlatformFeatures {
   @override
   bool get canScanQr => QrCameraScanner.isSupported;
 
+  /// Aus `?start=aufnahme|schreiben` der Startadresse (Manifest-Shortcuts).
+  static StartAction? _startAction =
+      switch (Uri.base.queryParameters['start']) {
+        'aufnahme' => StartAction.record,
+        'schreiben' => StartAction.write,
+        _ => null,
+      };
+
+  @override
+  StartAction? takeStartAction() {
+    final action = _startAction;
+    _startAction = null;
+    return action;
+  }
+
   @override
   QrScanner? createQrScanner() =>
       canScanQr ? _WebQrScanner(QrCameraScanner()) : null;

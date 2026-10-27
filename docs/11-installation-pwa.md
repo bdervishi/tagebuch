@@ -23,6 +23,7 @@ Bekannte Grenzen auf iOS: Aufnahme nur, solange die App im Vordergrund ist (Bild
 2. Menü (drei Punkte), "App installieren" oder "Zum Startbildschirm hinzufügen".
 3. App vom Startbildschirm starten, Mikrofon freigeben.
 4. In den Einstellungen der App den Speicherstatus prüfen: "dauerhaft" sollte angezeigt werden; sonst in den Chrome-Einstellungen der Website "Speicher" erlauben.
+5. Schnellaktionen: App-Symbol lange drücken, dann "Aufnehmen" oder "Schreiben" wählen; die App startet direkt dort. Ein echtes Homescreen-Widget gibt es erst mit der Store-App (`09-roadmap.md`, Phase 8).
 
 ## Nach der Installation prüfen
 

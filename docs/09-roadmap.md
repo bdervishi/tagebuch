@@ -225,7 +225,7 @@ Aufwand: M. Empfehlung: Die Checkliste bereits in Phase 4 anlegen und füllen, w
 
 Reihenfolge aus `03-produktkonzept.md` 8.2, sortiert nach Nutzen für das tägliche Ritual und nach Abhängigkeiten:
 
-1. **Eine Geste zum Aufnehmen:** iOS Controls, Action Button, Widgets mit Live Activity (Pflicht für `AudioRecordingIntent`); Android Widget, Schnelleinstellungs-Kachel, App-Shortcut. Aufwand M.
+1. **Eine Geste zum Aufnehmen:** iOS Controls, Action Button, Widgets mit Live Activity (Pflicht für `AudioRecordingIntent`); Android Widget, Schnelleinstellungs-Kachel, App-Shortcut. Aufwand M. Inhaberwunsch (27. 10. 2026): ein großes Homescreen-Widget (WidgetKit, Android App-Widget) mit Aufnahmetaste, Zustand "heute noch nichts" oder "heute erledigt" und Erinnerungszeit; ohne Tagebuchinhalte, weil Widgets außerhalb des App-Schutzes liegen (`CLAUDE.md`, Regel "Kein Klartext"). Die PWA kann kein Widget (weder Safari noch Chrome erlauben es); sie hat seit dem 27. 10. 2026 Android-Schnellaktionen im Manifest (Symbol lange drücken: Aufnehmen, Schreiben).
 2. **Plus-Funktionen** (falls nicht schon zum Start): 30-Minuten-Aufnahmen, Zusatzpaket "Hohe Genauigkeit" (WhisperKit large-v3-v20240930, 626 MB, ab iPhone 13, Faktenprüfung Eintrag 5 [67]; Parakeet TDT 0.6B v3 int8 rund 640 MB, ab 6 GB RAM, bringt auf Android zugleich wortgenaue Zeitstempel für den mitlaufenden Text (D3); Lizenz aus Phase 1) [8]. Aufwand M.
 3. **Persönliches Wörterbuch und Korrektur per Sprache** mit vorgeschaltetem Spike, weil die Wirkung von `contextualStrings` bei `SpeechTranscriber` unklar ist. Aufwand M.
 4. **Lokale Zusammenfassungen** mit Apple Foundation Models, Opt-in, Ablehnungen abgefangen (D8); Android später. Aufwand M (iOS).

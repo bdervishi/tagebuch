@@ -25,6 +25,10 @@ class StorageStatus {
   int get freeBytes => quotaBytes > usageBytes ? quotaBytes - usageBytes : 0;
 }
 
+/// Schnellaktion beim Start (Android: Symbol lange drücken, Manifest
+/// `shortcuts`): die App öffnet direkt die Aufnahme oder das Schreiben.
+enum StartAction { record, write }
+
 /// Plattformfunktionen, die die Oberfläche nur auf dem Web braucht (D16):
 /// Installationshinweis, Speicherstatus, Kalenderdatei statt Benachrichtigung.
 abstract interface class PlatformFeatures {
@@ -74,6 +78,10 @@ abstract interface class PlatformFeatures {
   /// Ob die Kamera QR-Codes lesen kann (sonst: Code eintippen).
   bool get canScanQr;
 
+  /// Liefert die Schnellaktion des Starts genau einmal (danach `null`), damit
+  /// sie nach Onboarding oder Neuaufbau der Hauptansicht nicht erneut zündet.
+  StartAction? takeStartAction();
+
   /// Neuer Kamera-Scanner oder `null`, wenn [canScanQr] falsch ist.
   QrScanner? createQrScanner();
 }
@@ -122,6 +130,9 @@ class NativePlatformFeatures implements PlatformFeatures {
 
   @override
   bool get canScanQr => false;
+
+  @override
+  StartAction? takeStartAction() => null;
 
   @override
   QrScanner? createQrScanner() => null;

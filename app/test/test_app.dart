@@ -286,8 +286,18 @@ class FakePlatformFeatures implements PlatformFeatures {
   @override
   Future<Uint8List?> pickContainerFile() async => fileToPick;
 
+  /// Schnellaktion für den nächsten Start (einmalig abgeholt).
+  StartAction? startAction;
+
   @override
   bool get canScanQr => false;
+
+  @override
+  StartAction? takeStartAction() {
+    final action = startAction;
+    startAction = null;
+    return action;
+  }
 
   @override
   QrScanner? createQrScanner() => null;
