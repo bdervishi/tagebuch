@@ -96,6 +96,7 @@ void main() {
       schemaVersion: 1,
       entryCount: 3,
       recordingCount: 4,
+      noteCount: 5,
       firstDay: '2026-09-01',
       lastDay: '2026-09-03',
       files: const [
@@ -104,6 +105,14 @@ void main() {
     );
     final back = ContainerManifest.fromJsonString(m.toJsonString());
     expect(back.entryCount, 3);
+    expect(back.noteCount, 5);
+    // Ältere Dateien ohne Feld `notes`: gilt als 0.
+    expect(
+      ContainerManifest.fromJsonString(
+        m.toJsonString().replaceFirst('"notes":5,', ''),
+      ).noteCount,
+      0,
+    );
     expect(back.compression, ContainerManifest.compressionNone);
     expect(back.files.single.name, 'db.ndjson.gz');
     expect(

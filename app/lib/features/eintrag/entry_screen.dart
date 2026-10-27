@@ -6,19 +6,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/formats.dart';
+import '../../app/routes.dart';
 import '../../data/entry_view.dart';
 import '../../data/settings_notifier.dart';
 import '../../data/transcription_jobs.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
+import '../../widgets/mood_selector.dart';
+import '../rueckblick/prompts.dart';
 
 /// Widget-Keys für Tests.
 const Key playButtonKey = Key('player-play');
 const Key playerSliderKey = Key('player-slider');
 const Key retranscribeButtonKey = Key('entry-retranscribe');
+const Key addNoteKey = Key('entry-add-note');
 
-/// Eintrag: Datum, Dauer, Sprach-Badge, Player mit Wellenform, Transkript.
-/// Bearbeiten, Ergänzen, Löschen und Export folgen mit den Fachpaketen.
+/// Eintrag: Datum, Dauer, Sprach-Badge, Stimmung, dann Aufnahmen (Player mit
+/// Wellenform, Transkript) und geschriebene Notizen chronologisch in einer
+/// Liste (D17). Notizen sind bearbeitbar; Transkripte bleiben wie bisher.
+/// Ergänzen, Löschen und Export des Eintrags folgen mit den Fachpaketen.
 class EntryScreen extends ConsumerWidget {
   const EntryScreen({super.key, required this.entryId, this.jumpTo});
 
@@ -50,20 +56,20 @@ class EntryScreen extends ConsumerWidget {
   }
 }
 
-class _EntryBody extends StatelessWidget {
+class _EntryBody extends ConsumerWidget {
   const _EntryBody({required this.view, this.jumpTo});
 
   final EntryView view;
   final Duration? jumpTo;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final materialL10n = MaterialLocalizations.of(context);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final playable = view.playable;
-    final text = view.text;
+    final items = view.items;
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
@@ -73,7 +79,9 @@ class _EntryBody extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          l10n.recordedAt(formatTime(context, view.recordedAt)),
+          view.hasRecordings
+              ? l10n.recordedAt(formatTime(context, view.recordedAt))
+              : l10n.writtenAt(formatTime(context, view.recordedAt)),
           style: theme.textTheme.bodyMedium?.copyWith(
             color: scheme.onSurfaceVariant,
           ),
@@ -83,36 +91,118 @@ class _EntryBody extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _InfoChip(
-              icon: Icons.timer_outlined,
-              semanticsPrefix: l10n.durationLabel,
-              text: formatDuration(l10n, view.duration),
-            ),
+            if (view.hasRecordings)
+              _InfoChip(
+                icon: Icons.timer_outlined,
+                semanticsPrefix: l10n.durationLabel,
+                text: formatDuration(l10n, view.duration),
+              ),
+            _InfoChip(icon: Icons.notes, text: l10n.wordCount(view.wordCount)),
             if (view.language != null)
               _InfoChip(
                 icon: Icons.language,
                 semanticsPrefix: l10n.languageLabel,
                 text: view.language!,
               ),
-            _InfoChip(
-              icon: view.hasAudio
-                  ? Icons.graphic_eq
-                  : Icons.text_snippet_outlined,
-              text: view.hasAudio ? l10n.audioKept : l10n.audioRemoved,
-            ),
+            if (view.hasRecordings)
+              _InfoChip(
+                icon: view.hasAudio
+                    ? Icons.graphic_eq
+                    : Icons.text_snippet_outlined,
+                text: view.hasAudio ? l10n.audioKept : l10n.audioRemoved,
+              ),
             if (view.isBackdated)
               _InfoChip(icon: Icons.history, text: l10n.entryBackdated),
           ],
         ),
-        const SizedBox(height: 24),
-        if (playable != null) ...[
-          PlayerCard(recording: playable, initialPosition: jumpTo),
-          const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        MoodSelector(
+          value: view.mood,
+          onChanged: (mood) =>
+              ref.read(reviewActionsProvider).setMood(view.id, mood),
+        ),
+        const SizedBox(height: 16),
+        for (final item in items) ...[
+          switch (item) {
+            RecordingItem() => _RecordingSection(
+              item: item,
+              view: view,
+              // Das Sprungziel des Suchtreffers gilt der ersten abspielbaren
+              // Aufnahme.
+              initialPosition: item.recording.id == playable?.id
+                  ? jumpTo
+                  : null,
+            ),
+            NoteItem(:final note) => _NoteCard(note: note, view: view),
+          },
+          const SizedBox(height: 16),
+        ],
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            key: addNoteKey,
+            onPressed: () => AppRoutes.openWrite(context, view.entry.day),
+            icon: const Icon(Icons.edit_outlined),
+            label: Text(l10n.addNote),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Eine Aufnahme: Player (falls Audio vorhanden), Impulsmarken des geführten
+/// Rückblicks und der Text oder der Hinweis auf den fehlenden Text.
+class _RecordingSection extends StatelessWidget {
+  const _RecordingSection({
+    required this.item,
+    required this.view,
+    this.initialPosition,
+  });
+
+  final RecordingItem item;
+  final EntryView view;
+  final Duration? initialPosition;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final recording = item.recording;
+    final text = item.transcript?.text.trim() ?? '';
+    final marks = item.promptMarks;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (recording.state != RecordingState.audioDeleted) ...[
+          PlayerCard(recording: recording, initialPosition: initialPosition),
+          const SizedBox(height: 12),
+        ],
+        if (marks != null && marks.marks.isNotEmpty) ...[
+          Text(l10n.promptMarksHeading, style: theme.textTheme.labelMedium),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final m in marks.marks)
+                Chip(
+                  label: Text(
+                    l10n.promptMarkAt(
+                      PromptTexts.label(l10n, m.promptKey),
+                      formatCounter(m.at),
+                    ),
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
         ],
         Text(l10n.transcriptHeading, style: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
         if (text.isEmpty)
-          _MissingTranscript(view: view)
+          _MissingTranscript(recording: recording)
         else
           SelectableText(
             text,
@@ -123,13 +213,103 @@ class _EntryBody extends StatelessWidget {
   }
 }
 
+/// Eine geschriebene Notiz (D17) mit Impuls-Etikett, Uhrzeit, Text und den
+/// Aktionen Bearbeiten und Löschen.
+class _NoteCard extends ConsumerWidget {
+  const _NoteCard({required this.note, required this.view});
+
+  final EntryNote note;
+  final EntryView view;
+
+  Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.noteDeleteTitle),
+        content: Text(l10n.noteDeleteBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.keepConfirm),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.deleteConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final services = await ref.read(appServicesProvider.future);
+    await services.notes.delete(note.id);
+    ref.read(dataVersionProvider.notifier).bump();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final key = note.promptKey;
+    return Card(
+      key: Key('note-card-${note.id}'),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.edit_note, size: 20, color: scheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    key == null
+                        ? l10n.writtenAt(formatTime(context, note.createdAt))
+                        : PromptTexts.label(l10n, key),
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  key: Key('note-edit-${note.id}'),
+                  tooltip: l10n.noteEdit,
+                  icon: const Icon(Icons.edit_outlined, size: 20),
+                  onPressed: () => AppRoutes.openWrite(
+                    context,
+                    view.entry.day,
+                    noteId: note.id,
+                  ),
+                ),
+                IconButton(
+                  key: Key('note-delete-${note.id}'),
+                  tooltip: l10n.noteDelete,
+                  icon: const Icon(Icons.delete_outline, size: 20),
+                  onPressed: () => _delete(context, ref),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            SelectableText(
+              note.text,
+              style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Aufnahme ohne Text: Hinweis, dazu "Transkription läuft …" während der
 /// Hintergrund-Erkennung oder "Erneut transkribieren", wenn eine
 /// Datei-Erkennung vorhanden ist und das Audio noch da ist (W5).
 class _MissingTranscript extends ConsumerStatefulWidget {
-  const _MissingTranscript({required this.view});
+  const _MissingTranscript({required this.recording});
 
-  final EntryView view;
+  final Recording recording;
 
   @override
   ConsumerState<_MissingTranscript> createState() => _MissingTranscriptState();
@@ -138,13 +318,10 @@ class _MissingTranscript extends ConsumerStatefulWidget {
 class _MissingTranscriptState extends ConsumerState<_MissingTranscript> {
   bool _failed = false;
 
-  Recording? get _candidate => widget.view.recordings
-      .where(
-        (r) =>
-            r.state != RecordingState.audioDeleted &&
-            widget.view.transcripts[r.id] == null,
-      )
-      .firstOrNull;
+  Recording? get _candidate =>
+      widget.recording.state == RecordingState.audioDeleted
+      ? null
+      : widget.recording;
 
   Future<void> _retranscribe(Recording recording) async {
     setState(() => _failed = false);
@@ -163,7 +340,7 @@ class _MissingTranscriptState extends ConsumerState<_MissingTranscript> {
     final jobs = ref.watch(transcriptionJobsProvider);
     final services = ref.watch(appServicesProvider).value;
     final recording = _candidate;
-    final running = recording != null && jobs.contains(recording.id);
+    final running = jobs.contains(widget.recording.id);
     final canRetry =
         recording != null && !running && services?.fileTranscriber != null;
     final muted = theme.textTheme.bodyMedium?.copyWith(

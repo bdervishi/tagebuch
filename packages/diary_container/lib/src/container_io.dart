@@ -306,6 +306,7 @@ class ContainerPayloadBuilder {
     required this.schemaVersion,
     required this.entryCount,
     required this.recordingCount,
+    this.noteCount = 0,
     this.firstDay,
     this.lastDay,
   });
@@ -315,6 +316,7 @@ class ContainerPayloadBuilder {
   final int schemaVersion;
   final int entryCount;
   final int recordingCount;
+  final int noteCount;
   final String? firstDay;
   final String? lastDay;
   final List<(String, Uint8List)> _files = [];
@@ -343,6 +345,7 @@ class ContainerPayloadBuilder {
     schemaVersion: schemaVersion,
     entryCount: entryCount,
     recordingCount: recordingCount,
+    noteCount: noteCount,
     firstDay: firstDay,
     lastDay: lastDay,
     files: List.unmodifiable(_listed),

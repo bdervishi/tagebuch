@@ -16,6 +16,7 @@ const Key storageTileKey = Key('settings-storage');
 const Key backupCreateKey = Key('settings-backup-create');
 const Key backupRestoreKey = Key('settings-backup-restore');
 const Key deviceTransferKey = Key('settings-device-transfer');
+const Key guidedReviewKey = Key('settings-guided-review');
 
 /// Speicherstatus der Plattform (Web: `navigator.storage`).
 final storageStatusProvider = FutureProvider<StorageStatus?>(
@@ -145,6 +146,15 @@ class SettingsScreen extends ConsumerWidget {
             _Note(l10n.languageHint),
             const Divider(),
             const TranscriptionEngineSection(),
+            const Divider(),
+            _SectionHeader(l10n.sectionReview),
+            SwitchListTile(
+              key: guidedReviewKey,
+              title: Text(l10n.guidedReview),
+              subtitle: Text(l10n.guidedReviewSubtitle),
+              value: settings.guidedReview,
+              onChanged: notifier.setGuidedReview,
+            ),
             const Divider(),
             _SectionHeader(l10n.sectionAudio),
             SwitchListTile(

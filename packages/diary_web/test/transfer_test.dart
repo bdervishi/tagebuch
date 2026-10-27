@@ -26,6 +26,7 @@ class WebDevice {
       entries: WebEntryRepository(store, ids),
       recordings: WebRecordingRepository(store),
       transcripts: WebTranscriptRepository(store),
+      notes: WebNoteRepository(store),
       settings: WebSettingsRepository(store),
       audioSource: audio,
       audioSink: audio,
@@ -140,6 +141,60 @@ void main() {
       throwsA(isA<AuthenticationException>()),
     );
   });
+
+  test(
+    'Backup mit Notizen (D17): Notizen kommen am richtigen Tag an',
+    () async {
+      const d1 = LocalDay(2026, 10, 24);
+      const d2 = LocalDay(2026, 10, 25);
+      await a.seed(d1, 'Gesprochen', audioBytes(5));
+      final e1 = (await a.useCase.entries.findByDay(a.useCase.journalId, d1))!;
+      final e2 = await a.useCase.entries.getOrCreate(
+        a.useCase.journalId,
+        d2,
+        d2.startOfDay,
+      );
+      final at = d1.startOfDay.add(const Duration(hours: 22));
+      await a.useCase.notes!.insert(
+        EntryNote(
+          id: 'n-good',
+          entryId: e1.id,
+          createdAt: at,
+          updatedAt: at,
+          text: 'Dankbar für den Regen.',
+          promptKey: ReviewPrompts.good,
+        ),
+      );
+      await a.useCase.notes!.insert(
+        EntryNote(
+          id: 'n-free',
+          entryId: e2.id,
+          createdAt: at.add(const Duration(days: 1)),
+          updatedAt: at.add(const Duration(days: 1)),
+          text: 'Nur geschrieben.',
+        ),
+      );
+
+      final bytes = await a.useCase.exportWithPassphrase('acht zeichen min');
+      final opened = await b.useCase.openWithPassphrase(
+        bytes,
+        'acht zeichen min',
+      );
+      expect(opened.manifest.noteCount, 2);
+      final result = await b.useCase.import(opened);
+      expect(result.entriesCreated, 2);
+      expect(result.notesImported, 2);
+
+      final b1 = (await b.useCase.entries.findByDay(b.useCase.journalId, d1))!;
+      final b2 = (await b.useCase.entries.findByDay(b.useCase.journalId, d2))!;
+      final notes1 = await b.useCase.notes!.listForEntry(b1.id);
+      expect(notes1.single.text, 'Dankbar für den Regen.');
+      expect(notes1.single.promptKey, 'good');
+      final notes2 = await b.useCase.notes!.listForEntry(b2.id);
+      expect(notes2.single.text, 'Nur geschrieben.');
+      expect(await b.useCase.recordings.listForEntry(b2.id), isEmpty);
+    },
+  );
 
   test('Gerätewechsel zwischen zwei Browsern über QR-Nutzlast', () async {
     await a.seed(const LocalDay(2026, 10, 25), 'Umzug', audioBytes(7));

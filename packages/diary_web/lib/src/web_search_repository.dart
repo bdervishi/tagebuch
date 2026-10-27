@@ -9,11 +9,13 @@ import 'text_normalization.dart';
 import 'web_repositories.dart';
 
 /// Volltextsuche im Speicher (docs/10-pwa.md Abschnitt 4): Beim ersten
-/// Suchen werden alle Transkripte entschlüsselt geladen und gefaltet
-/// (`ß → ss`, Kleinschreibung, Diakritika entfernt); Suchbegriffe durchlaufen
-/// dieselbe Faltung, Teilworttreffer zählen, alle Begriffe müssen vorkommen.
-/// Jede Änderung im Store macht den Index ungültig; er wird beim nächsten
-/// Suchen neu aufgebaut.
+/// Suchen werden alle Transkripte und geschriebenen Texte (D17, ohne interne
+/// Notizen) entschlüsselt geladen und gefaltet (`ß → ss`, Kleinschreibung,
+/// Diakritika entfernt); Suchbegriffe durchlaufen dieselbe Faltung,
+/// Teilworttreffer zählen, alle Begriffe müssen vorkommen. Treffer in
+/// Transkripten tragen ein Sprungziel, Treffer in Notizen keines. Jede
+/// Änderung im Store macht den Index ungültig; er wird beim nächsten Suchen
+/// neu aufgebaut.
 class WebSearchRepository implements SearchRepository {
   WebSearchRepository(this._store) {
     _subscription = _store.changes.listen((_) => _dirty = true);
@@ -53,17 +55,33 @@ class WebSearchRepository implements SearchRepository {
       docs.add(
         _Document(
           entry: e,
-          recording: r,
-          transcript: t,
+          text: t.text,
+          at: r.startedAt,
+          recordingId: r.id,
+          segments: t.segments,
           folded: foldWithMap(t.text),
           foldedSegments: [for (final s in t.segments) foldForMatch(s.text)],
+        ),
+      );
+    }
+    for (final m in await _store.getAll(Collections.notes)) {
+      final n = Codecs.decodeNote(m);
+      if (n.isInternal || n.text.trim().isEmpty) continue;
+      final e = entries[n.entryId];
+      if (e == null) continue;
+      docs.add(
+        _Document(
+          entry: e,
+          text: n.text,
+          at: n.createdAt,
+          folded: foldWithMap(n.text),
         ),
       );
     }
     docs.sort((a, b) {
       final byDay = b.entry.day.compareTo(a.entry.day);
       if (byDay != 0) return byDay;
-      return b.recording.startedAt.compareTo(a.recording.startedAt);
+      return b.at.compareTo(a.at);
     });
     _documents = docs;
     _dirty = false;
@@ -104,7 +122,7 @@ class WebSearchRepository implements SearchRepository {
         SearchHit(
           entryId: entry.id,
           day: entry.day,
-          recordingId: doc.recording.id,
+          recordingId: doc.recordingId,
           snippet: _snippet(doc, firstMatch, terms),
           jumpTo: _jumpTo(doc, terms),
         ),
@@ -115,7 +133,7 @@ class WebSearchRepository implements SearchRepository {
 
   /// Ausschnitt des Originaltexts rund um den ersten Treffer.
   static String _snippet(_Document doc, int foldedIndex, List<String> terms) {
-    final original = doc.transcript.text;
+    final original = doc.text;
     final start = doc.folded.toOriginal(foldedIndex);
     final end = doc.folded.toOriginal(foldedIndex + terms.first.length);
     final from = math.max(0, start - snippetContext);
@@ -131,24 +149,30 @@ class WebSearchRepository implements SearchRepository {
   static Duration? _jumpTo(_Document doc, List<String> terms) {
     for (var i = 0; i < doc.foldedSegments.length; i++) {
       final seg = doc.foldedSegments[i];
-      if (terms.any(seg.contains)) return doc.transcript.segments[i].start;
+      if (terms.any(seg.contains)) return doc.segments[i].start;
     }
     return null;
   }
 }
 
+/// Ein durchsuchbarer Text: Transkript (mit Aufnahme und Segmenten) oder
+/// Notiz (ohne beides).
 final class _Document {
   const _Document({
     required this.entry,
-    required this.recording,
-    required this.transcript,
+    required this.text,
+    required this.at,
     required this.folded,
-    required this.foldedSegments,
+    this.recordingId,
+    this.segments = const [],
+    this.foldedSegments = const [],
   });
 
   final DiaryEntry entry;
-  final Recording recording;
-  final Transcript transcript;
+  final String text;
+  final DateTime at;
+  final String? recordingId;
+  final List<TranscriptSegment> segments;
   final FoldedText folded;
   final List<String> foldedSegments;
 }

@@ -21,6 +21,7 @@ export 'src/model/entry.dart';
 export 'src/model/journal.dart';
 export 'src/model/json_codecs.dart';
 export 'src/model/local_day.dart';
+export 'src/model/note.dart';
 export 'src/model/recording.dart';
 export 'src/model/reminder_settings.dart';
 export 'src/model/transcript.dart';

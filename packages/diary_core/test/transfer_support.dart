@@ -105,6 +105,25 @@ class MemoryTranscripts implements TranscriptRepository {
   }) async {}
 }
 
+class MemoryNotes implements NoteRepository {
+  final List<EntryNote> items = [];
+  @override
+  Future<void> insert(EntryNote note) async {
+    items.removeWhere((n) => n.id == note.id);
+    items.add(note);
+  }
+
+  @override
+  Future<void> update(EntryNote note) => insert(note);
+  @override
+  Future<List<EntryNote>> listForEntry(String entryId) async =>
+      items.where((n) => n.entryId == entryId).toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  @override
+  Future<void> delete(String noteId) async =>
+      items.removeWhere((n) => n.id == noteId);
+}
+
 class MemorySettings implements SettingsRepository {
   ReminderSettings reminderValue = const ReminderSettings();
   final Map<String, String> values = {};
@@ -144,7 +163,7 @@ class MemoryAudioFiles implements AudioFileSource, AudioFileSink {
 
 /// Ein vollständiges Gerät (Repositories, Audio, Anwendungsfall).
 class Device {
-  Device(String idPrefix, {DateTime? now})
+  Device(String idPrefix, {DateTime? now, bool withNotes = true})
     : ids = MemoryIds(idPrefix),
       clock = FixedClock(now ?? DateTime(2026, 10, 27, 20)) {
     entries = MemoryEntries(ids);
@@ -153,6 +172,7 @@ class Device {
       entries: entries,
       recordings: recordings,
       transcripts: transcripts,
+      notes: withNotes ? notes : null,
       settings: settings,
       audioSource: audio,
       audioSink: audio,
@@ -169,6 +189,7 @@ class Device {
   late final MemoryEntries entries;
   final recordings = MemoryRecordings();
   final transcripts = MemoryTranscripts();
+  final notes = MemoryNotes();
   final settings = MemorySettings();
   final audio = MemoryAudioFiles();
   late final TransferUseCase useCase;
@@ -225,5 +246,27 @@ class Device {
       ),
     );
     return r;
+  }
+
+  /// Legt eine Notiz (D17) am Eintrag für [day] an; der Eintrag entsteht
+  /// bei Bedarf.
+  Future<EntryNote> seedNote(
+    LocalDay day,
+    String text, {
+    String? promptKey,
+    String? noteId,
+  }) async {
+    final at = day.startOfDay.add(const Duration(hours: 21, minutes: 30));
+    final e = await entries.getOrCreate(journalId, day, at);
+    final n = EntryNote(
+      id: noteId ?? ids.next(),
+      entryId: e.id,
+      createdAt: at,
+      updatedAt: at,
+      text: text,
+      promptKey: promptKey,
+    );
+    await notes.insert(n);
+    return n;
   }
 }

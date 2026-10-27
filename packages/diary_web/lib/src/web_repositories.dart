@@ -12,6 +12,7 @@ abstract final class Collections {
   static const entries = 'entries';
   static const recordings = 'recordings';
   static const transcripts = 'transcripts';
+  static const notes = 'notes';
   static const settings = 'settings';
 }
 
@@ -166,9 +167,42 @@ class WebEntryRepository implements EntryRepository {
       await _store.delete(Collections.recordings, r.id);
       fileNames.add(r.fileName);
     }
+    for (final n in await _store.getAll(Collections.notes)) {
+      if (n['entryId'] == entryId) {
+        await _store.delete(Collections.notes, n['id'] as String);
+      }
+    }
     await _store.delete(Collections.entries, entryId);
     return fileNames;
   }
+}
+
+/// Geschriebene Texte (D17) als verschlüsselte Datensätze in der Sammlung
+/// `notes`.
+class WebNoteRepository implements NoteRepository {
+  WebNoteRepository(this._store);
+
+  final EncryptedRecordStore _store;
+
+  @override
+  Future<void> insert(EntryNote note) =>
+      _store.put(Collections.notes, note.id, Codecs.encodeNote(note));
+
+  @override
+  Future<void> update(EntryNote note) => insert(note);
+
+  @override
+  Future<List<EntryNote>> listForEntry(String entryId) async {
+    final list = [
+      for (final m in await _store.getAll(Collections.notes))
+        if (m['entryId'] == entryId) Codecs.decodeNote(m),
+    ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    return list;
+  }
+
+  @override
+  Future<void> delete(String noteId) =>
+      _store.delete(Collections.notes, noteId);
 }
 
 /// Aufnahmen. "Audio löschen" vernichtet den gewrappten Dateischlüssel im

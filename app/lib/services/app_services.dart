@@ -18,6 +18,7 @@ class AppServices {
     required this.entries,
     required this.recordings,
     required this.transcripts,
+    required this.notes,
     required this.settings,
     required this.search,
     required this.recorder,
@@ -42,6 +43,9 @@ class AppServices {
   final EntryRepository entries;
   final RecordingRepository recordings;
   final TranscriptRepository transcripts;
+
+  /// Geschriebene Texte und Rückblick-Antworten (D17).
+  final NoteRepository notes;
   final SettingsRepository settings;
   final SearchRepository search;
   final AudioRecorderPort recorder;
@@ -110,6 +114,7 @@ class AppServices {
     entries: entries,
     recordings: recordings,
     transcripts: transcripts,
+    notes: notes,
     settings: settings,
     audioSource: audioFiles,
     audioSink: audioFiles,

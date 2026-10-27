@@ -1,6 +1,7 @@
 import '../model/entry.dart';
 import '../model/journal.dart';
 import '../model/local_day.dart';
+import '../model/note.dart';
 import '../model/recording.dart';
 import '../model/reminder_settings.dart';
 import '../model/transcript.dart';
@@ -20,7 +21,8 @@ abstract interface class EntryRepository {
   /// Alle Einträge eines Tagebuchs, älteste zuerst (Export, Backup-Erinnerung).
   Future<List<DiaryEntry>> listAll(String journalId);
 
-  /// Löscht Eintrag samt Aufnahmen und Transkripten; liefert die Dateinamen,
+  /// Löscht Eintrag samt Aufnahmen, Transkripten und Notizen; liefert die
+  /// Dateinamen,
   /// deren Dateien anschließend entfernt werden (Crypto-Shredding, docs/04 5.3).
   Future<List<String>> delete(String entryId);
 }
@@ -52,18 +54,30 @@ abstract interface class TranscriptRepository {
   });
 }
 
-/// Ein Suchtreffer mit Sprungziel in die Wiedergabe.
+/// Geschriebene Texte eines Eintrags (D17). Umgesetzt in `diary_web`
+/// (verschlüsselte Datensätze, Sammlung `notes`) und als In-Memory-Fake.
+abstract interface class NoteRepository {
+  Future<void> insert(EntryNote note);
+  Future<void> update(EntryNote note);
+
+  /// Notizen eines Eintrags, älteste zuerst (nach `createdAt`).
+  Future<List<EntryNote>> listForEntry(String entryId);
+  Future<void> delete(String noteId);
+}
+
+/// Ein Suchtreffer; bei Transkripten mit Sprungziel in die Wiedergabe, bei
+/// Notizen ohne ([recordingId] und [jumpTo] sind dann `null`).
 class SearchHit {
   const SearchHit({
     required this.entryId,
     required this.day,
-    required this.recordingId,
     required this.snippet,
+    this.recordingId,
     this.jumpTo,
   });
   final String entryId;
   final LocalDay day;
-  final String recordingId;
+  final String? recordingId;
   final String snippet;
   final Duration? jumpTo;
 }

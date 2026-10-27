@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/routes.dart';
 import '../../data/day.dart';
 import '../../data/entry_view.dart';
 import '../../l10n/app_localizations.dart';
@@ -9,6 +10,9 @@ import 'month_grid.dart';
 
 /// Key des Suchfelds (für Tests).
 const Key searchFieldKey = Key('calendar-search');
+
+/// Key der Schaltfläche "Woche" (Wochenrückblick, D17).
+const Key weekButtonKey = Key('calendar-week');
 
 /// Kalender und Suche: Monatsraster mit markierten Tagen, darunter die
 /// Einträge des Monats oder des gewählten Tags; ein Suchtext fragt das
@@ -92,6 +96,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             if (searching)
               ..._buildSearchResults(context)
             else ...[
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  key: weekButtonKey,
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.week),
+                  icon: const Icon(Icons.view_week_outlined),
+                  label: Text(l10n.weekButton),
+                ),
+              ),
               Row(
                 children: [
                   IconButton(

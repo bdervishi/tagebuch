@@ -27,6 +27,9 @@ class SeedEntry {
     this.transcript = fakeTranscript,
     this.duration = const Duration(seconds: 90),
     this.segments,
+    this.withRecording = true,
+    this.notes = const {},
+    this.mood,
   });
 
   final String id;
@@ -34,6 +37,16 @@ class SeedEntry {
   final String transcript;
   final Duration duration;
   final List<String>? segments;
+
+  /// Ohne Aufnahme: ein nur geschriebener Tag (D17).
+  final bool withRecording;
+
+  /// Notizen als Impuls-Schlüssel (oder `'free'`-fremder Schlüssel `''` für
+  /// freien Text) auf Text; Reihenfolge ist Anlagereihenfolge.
+  final Map<String, String> notes;
+
+  /// Stimmung 1 bis 5.
+  final int? mood;
 }
 
 SeedEntry testEntry({
@@ -42,12 +55,18 @@ SeedEntry testEntry({
   String transcript = fakeTranscript,
   Duration duration = const Duration(seconds: 90),
   List<String>? segments,
+  bool withRecording = true,
+  Map<String, String> notes = const {},
+  int? mood,
 }) => SeedEntry(
   id: id,
   day: day,
   transcript: transcript,
   duration: duration,
   segments: segments,
+  withRecording: withRecording,
+  notes: notes,
+  mood: mood,
 );
 
 /// Dienste mit In-Memory-Fakes; die Repositories bleiben für Prüfungen
@@ -63,6 +82,7 @@ class TestServices {
     final entryItems = <DiaryEntry>[];
     final recordingItems = <Recording>[];
     final transcriptItems = <Transcript>[];
+    final noteItems = <EntryNote>[];
     for (final s in seed) {
       final startedAt = s.day.add(const Duration(hours: 21));
       entryItems.add(
@@ -72,8 +92,25 @@ class TestServices {
           day: LocalDay.forMoment(s.day),
           createdAt: startedAt,
           updatedAt: startedAt,
+          mood: s.mood == null ? null : MoodScale.encode(s.mood!),
         ),
       );
+      var noteIndex = 0;
+      for (final n in s.notes.entries) {
+        final at = startedAt.add(Duration(minutes: 10 + noteIndex));
+        noteItems.add(
+          EntryNote(
+            id: 'note-${s.id}-${n.key.isEmpty ? 'free-text' : n.key}',
+            entryId: s.id,
+            createdAt: at,
+            updatedAt: at,
+            text: n.value,
+            promptKey: n.key.isEmpty ? null : n.key,
+          ),
+        );
+        noteIndex++;
+      }
+      if (!s.withRecording) continue;
       recordingItems.add(
         Recording(
           id: 'rec-${s.id}',
@@ -122,10 +159,12 @@ class TestServices {
       initial: recordingItems,
       transcripts: transcripts,
     );
+    notes = InMemoryNoteRepository(initial: noteItems);
     entries = InMemoryEntryRepository(
       ids,
       initial: entryItems,
       recordings: recordings,
+      notes: notes,
     );
     settings = InMemorySettingsRepository(
       values: {if (onboardingDone) AppSettings.keyOnboardingDone: 'true'},
@@ -135,8 +174,14 @@ class TestServices {
       entries: entries,
       recordings: recordings,
       transcripts: transcripts,
+      notes: notes,
       settings: settings,
-      search: InMemorySearchRepository(entries, recordings, transcripts),
+      search: InMemorySearchRepository(
+        entries,
+        recordings,
+        transcripts,
+        notes: notes,
+      ),
       recorder: SimulatedRecorder(),
       transcriber: FakeSttEngine(text: fakeTranscript),
       sttEngine: sttEngine,
@@ -166,6 +211,7 @@ class TestServices {
   late final InMemoryEntryRepository entries;
   late final InMemoryRecordingRepository recordings;
   late final InMemoryTranscriptRepository transcripts;
+  late final InMemoryNoteRepository notes;
   late final InMemorySettingsRepository settings;
   late final AppServices services;
 

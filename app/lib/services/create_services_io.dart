@@ -16,14 +16,25 @@ Future<AppServices> createAppServices() async {
   final ids = RandomIdGenerator();
   final transcripts = InMemoryTranscriptRepository();
   final recordings = InMemoryRecordingRepository(transcripts: transcripts);
-  final entries = InMemoryEntryRepository(ids, recordings: recordings);
+  final notes = InMemoryNoteRepository();
+  final entries = InMemoryEntryRepository(
+    ids,
+    recordings: recordings,
+    notes: notes,
+  );
   return AppServices(
     journalId: 'journal-default',
     entries: entries,
     recordings: recordings,
     transcripts: transcripts,
+    notes: notes,
     settings: InMemorySettingsRepository(),
-    search: InMemorySearchRepository(entries, recordings, transcripts),
+    search: InMemorySearchRepository(
+      entries,
+      recordings,
+      transcripts,
+      notes: notes,
+    ),
     recorder: SimulatedRecorder(),
     transcriber: FakeSttEngine(text: fakeTranscriptText),
     // Noch keine lokale Engine (Spikes S1/S2): Status "nicht eingebaut".

@@ -38,6 +38,7 @@ class ContainerManifest {
     required this.entryCount,
     required this.recordingCount,
     required this.files,
+    this.noteCount = 0,
     this.formatVersion = 1,
     this.compression = compressionNone,
     this.firstDay,
@@ -60,6 +61,10 @@ class ContainerManifest {
   final int schemaVersion;
   final int entryCount;
   final int recordingCount;
+
+  /// Geschriebene Texte (Zeilentyp `note` in `db.ndjson`, D17); fehlt in
+  /// Dateien älterer Versionen und gilt dann als 0.
+  final int noteCount;
   final String? firstDay;
   final String? lastDay;
   final List<ManifestFile> files;
@@ -76,6 +81,7 @@ class ContainerManifest {
     'schemaVersion': schemaVersion,
     'entries': entryCount,
     'recordings': recordingCount,
+    'notes': noteCount,
     'firstDay': firstDay,
     'lastDay': lastDay,
     'files': files.map((f) => f.toJson()).toList(),
@@ -101,6 +107,7 @@ class ContainerManifest {
       schemaVersion: j['schemaVersion']! as int,
       entryCount: j['entries']! as int,
       recordingCount: j['recordings']! as int,
+      noteCount: j['notes'] as int? ?? 0,
       firstDay: j['firstDay'] as String?,
       lastDay: j['lastDay'] as String?,
       files: (j['files']! as List)

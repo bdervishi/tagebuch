@@ -38,6 +38,7 @@ class AppSettings {
     this.appLockEnabled = false,
     this.onboardingDone = false,
     this.transcriptionEnabled = true,
+    this.guidedReview = true,
   });
 
   /// Schlüssel im `SettingsRepository`.
@@ -49,6 +50,9 @@ class AppSettings {
   /// "Transkription aktiv" (W5): Standard an; aus speichert nur Audio.
   static const keyTranscription = 'transcription';
   static const keyReminderSkippedOn = 'reminderSkippedOn';
+
+  /// "Geführter Rückblick" (D17): vier Impulse beim Sprechen und Schreiben.
+  static const keyGuidedReview = 'guidedReview';
 
   /// Zeitpunkt des letzten Backups (ISO-8601) für die Backup-Erinnerung.
   static const keyLastBackupAt = 'lastBackupAt';
@@ -82,6 +86,9 @@ class AppSettings {
   /// Ob Aufnahmen nach dem Speichern erkannt werden (Fake oder Engine).
   final bool transcriptionEnabled;
 
+  /// Ob die vier Impulse des Abendrückblicks erscheinen (Standard an).
+  final bool guidedReview;
+
   /// Wahr, wenn für [day] "Heute nicht" gewählt wurde.
   bool isSkippedOn(DateTime day) =>
       reminderSkippedOn != null && isSameDay(reminderSkippedOn!, day);
@@ -111,6 +118,7 @@ class AppSettings {
       appLockEnabled: await repo.get(keyAppLock) == 'true',
       onboardingDone: await repo.get(keyOnboardingDone) == 'true',
       transcriptionEnabled: await repo.get(keyTranscription) != 'false',
+      guidedReview: await repo.get(keyGuidedReview) != 'false',
     );
   }
 
@@ -124,6 +132,7 @@ class AppSettings {
     bool? appLockEnabled,
     bool? onboardingDone,
     bool? transcriptionEnabled,
+    bool? guidedReview,
   }) {
     return AppSettings(
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
@@ -139,6 +148,7 @@ class AppSettings {
       appLockEnabled: appLockEnabled ?? this.appLockEnabled,
       onboardingDone: onboardingDone ?? this.onboardingDone,
       transcriptionEnabled: transcriptionEnabled ?? this.transcriptionEnabled,
+      guidedReview: guidedReview ?? this.guidedReview,
     );
   }
 
@@ -206,6 +216,11 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
   Future<void> setTranscriptionEnabled(bool value) => _update(
     _current.copyWith(transcriptionEnabled: value),
     (repo) => repo.set(AppSettings.keyTranscription, '$value'),
+  );
+
+  Future<void> setGuidedReview(bool value) => _update(
+    _current.copyWith(guidedReview: value),
+    (repo) => repo.set(AppSettings.keyGuidedReview, '$value'),
   );
 
   Future<void> completeOnboarding() => _update(

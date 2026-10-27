@@ -8,6 +8,7 @@ import 'package:meta/meta.dart';
 import '../model/entry.dart';
 import '../model/json_codecs.dart';
 import '../model/local_day.dart';
+import '../model/note.dart';
 import '../model/recording.dart';
 import '../model/reminder_settings.dart';
 import '../model/transcript.dart';
@@ -111,16 +112,22 @@ class TransferSnapshot {
     required this.entries,
     required this.recordings,
     required this.transcripts,
+    this.notes = const [],
     this.reminder,
     this.settings = const {},
   });
 
-  /// Schemaversion des NDJSON-Exports (Manifest `schemaVersion`).
+  /// Schemaversion des NDJSON-Exports (Manifest `schemaVersion`). Der
+  /// Zeilentyp `note` (D17) kam ohne Versionssprung hinzu: Leser überspringen
+  /// unbekannte Typen, und eine Datei ohne Notizen bleibt gültig.
   static const int schemaVersion = 1;
 
   final List<DiaryEntry> entries;
   final List<Recording> recordings;
   final List<Transcript> transcripts;
+
+  /// Geschriebene Texte (D17); fehlt in Dateien älterer Versionen.
+  final List<EntryNote> notes;
   final ReminderSettings? reminder;
   final Map<String, String> settings;
 
@@ -148,6 +155,9 @@ class TransferSnapshot {
     for (final t in transcripts) {
       line('transcript', ModelJson.encodeTranscript(t));
     }
+    for (final n in notes) {
+      line('note', ModelJson.encodeNote(n));
+    }
     if (reminder != null) {
       line('reminder', ModelJson.encodeReminderSettings(reminder!));
     }
@@ -162,6 +172,7 @@ class TransferSnapshot {
     final entries = <DiaryEntry>[];
     final recordings = <Recording>[];
     final transcripts = <Transcript>[];
+    final notes = <EntryNote>[];
     ReminderSettings? reminder;
     final settings = <String, String>{};
     for (final raw in LineSplitter.split(text)) {
@@ -178,6 +189,8 @@ class TransferSnapshot {
           recordings.add(ModelJson.decodeRecording(m));
         case 'transcript':
           transcripts.add(ModelJson.decodeTranscript(m));
+        case 'note':
+          notes.add(ModelJson.decodeNote(m));
         case 'reminder':
           reminder = ModelJson.decodeReminderSettings(m);
         case 'setting':
@@ -190,6 +203,7 @@ class TransferSnapshot {
       entries: entries,
       recordings: recordings,
       transcripts: transcripts,
+      notes: notes,
       reminder: reminder,
       settings: settings,
     );
@@ -218,6 +232,8 @@ class ImportResult {
     required this.entriesMerged,
     required this.recordingsImported,
     required this.recordingsSkipped,
+    this.notesImported = 0,
+    this.notesSkipped = 0,
   });
   final int entriesCreated;
 
@@ -227,6 +243,11 @@ class ImportResult {
 
   /// Aufnahmen, deren Kennung hier schon vorhanden war.
   final int recordingsSkipped;
+
+  /// Geschriebene Texte (D17), übernommen bzw. wegen vorhandener Kennung
+  /// übersprungen.
+  final int notesImported;
+  final int notesSkipped;
 }
 
 /// Backup und Gerätewechsel (M8, D6, D16): packt alle Einträge in den
@@ -248,6 +269,7 @@ class TransferUseCase {
     required this.audioSink,
     required this.ids,
     required this.clock,
+    this.notes,
     this.appVersion = '0.0.0',
     this.argon2Params = Argon2Params.standard,
     this.keys = const ContainerKeys(),
@@ -267,6 +289,9 @@ class TransferUseCase {
   final EntryRepository entries;
   final RecordingRepository recordings;
   final TranscriptRepository transcripts;
+
+  /// Geschriebene Texte (D17); `null`, wenn die Plattform keine hat.
+  final NoteRepository? notes;
   final SettingsRepository settings;
   final AudioFileSource audioSource;
   final AudioFileSink audioSink;
@@ -374,16 +399,20 @@ class TransferUseCase {
     final allEntries = await entries.listAll(journalId);
     final allRecordings = <Recording>[];
     final allTranscripts = <Transcript>[];
+    final allNotes = <EntryNote>[];
+    final noteRepo = notes;
     for (final e in allEntries) {
       for (final r in await recordings.listForEntry(e.id)) {
         allRecordings.add(r);
         allTranscripts.addAll(await transcripts.listForRecording(r.id));
       }
+      if (noteRepo != null) allNotes.addAll(await noteRepo.listForEntry(e.id));
     }
     return TransferSnapshot(
       entries: allEntries,
       recordings: allRecordings,
       transcripts: allTranscripts,
+      notes: allNotes,
       reminder: await settings.reminder(),
       settings: await settings.all(),
     );
@@ -400,6 +429,7 @@ class TransferUseCase {
       schemaVersion: TransferSnapshot.schemaVersion,
       entryCount: snap.entries.length,
       recordingCount: snap.recordings.length,
+      noteCount: snap.notes.length,
       firstDay: snap.firstDay,
       lastDay: snap.lastDay,
     );
@@ -576,11 +606,18 @@ class TransferUseCase {
     for (final t in snap.transcripts) {
       byRecording.putIfAbsent(t.recordingId, () => []).add(t);
     }
+    final notesByEntry = <String, List<EntryNote>>{};
+    for (final n in snap.notes) {
+      notesByEntry.putIfAbsent(n.entryId, () => []).add(n);
+    }
+    final noteRepo = notes;
 
     var created = 0;
     var merged = 0;
     var imported = 0;
     var skipped = 0;
+    var notesImported = 0;
+    var notesSkipped = 0;
     var done = 0;
     final total = snap.recordings.length;
     onProgress?.call(TransferProgress(TransferPhase.importing, total: total));
@@ -660,6 +697,21 @@ class TransferUseCase {
           TransferProgress(TransferPhase.importing, done: done, total: total),
         );
       }
+      // Notizen (D17) hängen am Zieleintrag; vorhandene Kennungen bleiben.
+      final incoming = notesByEntry[e.id] ?? const <EntryNote>[];
+      if (noteRepo != null && incoming.isNotEmpty) {
+        final present = {
+          for (final n in await noteRepo.listForEntry(targetId)) n.id,
+        };
+        for (final n in incoming) {
+          if (present.contains(n.id)) {
+            notesSkipped++;
+            continue;
+          }
+          await noteRepo.insert(n.copyWith(entryId: targetId));
+          notesImported++;
+        }
+      }
     }
 
     // Einstellungen: nur ergänzen, nie überschreiben; die Erinnerung nur auf
@@ -677,6 +729,8 @@ class TransferUseCase {
       entriesMerged: merged,
       recordingsImported: imported,
       recordingsSkipped: skipped,
+      notesImported: notesImported,
+      notesSkipped: notesSkipped,
     );
   }
 }

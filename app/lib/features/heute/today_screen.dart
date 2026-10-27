@@ -1,3 +1,4 @@
+import 'package:diary_core/diary_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,13 +8,19 @@ import '../../data/entry_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/backup_reminder_card.dart';
 import '../../widgets/entry_tile.dart';
+import '../../widgets/step_card.dart';
 
 /// Widget-Key der großen Aufnahmetaste (für Tests).
 const Key recordButtonKey = Key('record-button');
 
-/// Startbildschirm: große Aufnahmetaste, darunter der heutige Eintrag aus dem
-/// Repository und bei Bedarf die Karte "Zeit für ein Backup". Zustand statt
-/// Mahnung: kein Zähler, keine Kette (docs/03 Abschnitt 3).
+/// Widget-Key der kleineren Aktion "Schreiben" (D17).
+const Key writeButtonKey = Key('write-button');
+
+/// Startbildschirm: große Aufnahmetaste und die kleinere Aktion "Schreiben",
+/// darunter "Dein Schritt für heute", der heutige Eintrag aus dem Repository,
+/// bei Bedarf die Karte "Zeit für ein Backup" und die Rückblicke "Vor einem
+/// Jahr" und "Vor einem Monat". Zustand statt Mahnung: kein Zähler, keine
+/// Kette (docs/03 Abschnitt 3, D17).
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
 
@@ -24,6 +31,7 @@ class TodayScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final day = dayOf(DateTime.now());
     final today = ref.watch(todayViewProvider);
+    final lookbacks = ref.watch(lookbackProvider).value ?? const <Lookback>[];
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.todayTitle)),
@@ -61,7 +69,23 @@ class TodayScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
+            Center(
+              child: OutlinedButton.icon(
+                key: writeButtonKey,
+                onPressed: () => AppRoutes.openWrite(
+                  context,
+                  LocalDay.forMoment(DateTime.now()),
+                ),
+                icon: const Icon(Icons.edit_outlined),
+                label: Text(
+                  l10n.writeButtonLabel,
+                  semanticsLabel: l10n.writeButtonSemantics,
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            const StepCard(),
             const BackupReminderCard(),
             switch (today) {
               AsyncData(value: null) => Text(
@@ -94,6 +118,19 @@ class TodayScreen extends ConsumerWidget {
                 ),
               ),
             },
+            for (final lookback in lookbacks) ...[
+              const SizedBox(height: 24),
+              Text(
+                switch (lookback.kind) {
+                  LookbackKind.yearAgo => l10n.lookbackYearTitle,
+                  LookbackKind.monthAgo => l10n.lookbackMonthTitle,
+                },
+                key: Key('lookback-${lookback.kind.name}'),
+                style: theme.textTheme.titleSmall,
+              ),
+              const SizedBox(height: 8),
+              EntryTile(view: lookback.view, showDate: true),
+            ],
           ],
         ),
       ),

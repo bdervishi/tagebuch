@@ -27,11 +27,13 @@ class DiaryEntry {
   final String? mood;
   final bool pinned;
 
+  /// [clearMood] entfernt die Selbsteinschätzung wieder.
   DiaryEntry copyWith({
     String? title,
     String? mood,
     bool? pinned,
     DateTime? updatedAt,
+    bool clearMood = false,
   }) => DiaryEntry(
     id: id,
     journalId: journalId,
@@ -39,7 +41,7 @@ class DiaryEntry {
     createdAt: createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     title: title ?? this.title,
-    mood: mood ?? this.mood,
+    mood: clearMood ? null : (mood ?? this.mood),
     pinned: pinned ?? this.pinned,
   );
 }

@@ -12,6 +12,7 @@ void main() {
   late WebEntryRepository entries;
   late WebRecordingRepository recordings;
   late WebTranscriptRepository transcripts;
+  late WebNoteRepository notes;
   late WebSettingsRepository settings;
   late WebSearchRepository search;
   const journalId = WebJournalRepository.defaultId;
@@ -23,6 +24,7 @@ void main() {
     entries = WebEntryRepository(store, CountingIds());
     recordings = WebRecordingRepository(store);
     transcripts = WebTranscriptRepository(store);
+    notes = WebNoteRepository(store);
     settings = WebSettingsRepository(store);
     search = WebSearchRepository(store);
   });
@@ -126,6 +128,49 @@ void main() {
     },
   );
 
+  test('Notizen (D17): anlegen, ändern, auflisten, löschen', () async {
+    final day = LocalDay(2026, 10, 27);
+    final e = await entries.getOrCreate(journalId, day, DateTime(2026, 10, 27));
+    final n1 = EntryNote(
+      id: 'n1',
+      entryId: e.id,
+      createdAt: DateTime(2026, 10, 27, 21, 1),
+      updatedAt: DateTime(2026, 10, 27, 21, 1),
+      text: 'Dankbar für den Kaffee.',
+      promptKey: ReviewPrompts.good,
+    );
+    final n0 = EntryNote(
+      id: 'n0',
+      entryId: e.id,
+      createdAt: DateTime(2026, 10, 27, 20, 50),
+      updatedAt: DateTime(2026, 10, 27, 20, 50),
+      text: 'Frei geschrieben.',
+    );
+    await notes.insert(n1);
+    await notes.insert(n0);
+    expect(await notes.listForEntry('fremd'), isEmpty);
+    final list = await notes.listForEntry(e.id);
+    expect(list.map((n) => n.id), ['n0', 'n1']);
+    expect(list.last.promptKey, 'good');
+    expect(list.last.source, NoteSource.typed);
+
+    await notes.update(
+      n1.copyWith(text: 'Kaffee und Sonne.', updatedAt: DateTime(2026, 10, 28)),
+    );
+    final updated = (await notes.listForEntry(e.id)).last;
+    expect(updated.text, 'Kaffee und Sonne.');
+    expect(updated.updatedAt, DateTime(2026, 10, 28));
+    expect(updated.createdAt, n1.createdAt);
+
+    await notes.delete('n0');
+    expect((await notes.listForEntry(e.id)).map((n) => n.id), ['n1']);
+
+    // Eintrag löschen nimmt die Notizen mit.
+    await entries.delete(e.id);
+    expect(await notes.listForEntry(e.id), isEmpty);
+    expect(await store.getAllKeys(Collections.notes), isEmpty);
+  });
+
   test('Aufnahme löschen und Audio löschen', () async {
     final e = await seed(LocalDay(2026, 9, 6), 'x');
     final rec = (await recordings.listForEntry(e.id)).single;
@@ -203,4 +248,39 @@ void main() {
       expect(await search.search('strasse'), isEmpty);
     },
   );
+
+  test('Suche findet Notizen ohne Sprungziel, interne Notizen nicht', () async {
+    final e = await seed(LocalDay(2026, 10, 27), 'Gesprochen: Spaziergang.');
+    final at = DateTime(2026, 10, 27, 21);
+    await notes.insert(
+      EntryNote(
+        id: 'n1',
+        entryId: e.id,
+        createdAt: at,
+        updatedAt: at,
+        text: 'Geschrieben: Dankbar für die Straßenbahn.',
+        promptKey: ReviewPrompts.good,
+      ),
+    );
+    await notes.insert(
+      EntryNote(
+        id: 'n2',
+        entryId: e.id,
+        createdAt: at,
+        updatedAt: at,
+        text: '{"recordingId":"rec-x","marks":[]}',
+        promptKey: ReviewPrompts.promptsAt,
+      ),
+    );
+    final hits = await search.search('strassenbahn');
+    expect(hits, hasLength(1));
+    expect(hits.single.entryId, e.id);
+    expect(hits.single.recordingId, isNull);
+    expect(hits.single.jumpTo, isNull);
+    expect(hits.single.snippet, contains('Straßenbahn'));
+    expect(await search.search('recordingId'), isEmpty);
+    final spoken = await search.search('spaziergang');
+    expect(spoken.single.recordingId, isNotNull);
+    expect(spoken.single.jumpTo, Duration.zero);
+  });
 }

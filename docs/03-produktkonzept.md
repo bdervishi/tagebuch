@@ -227,6 +227,22 @@ Barrierefreiheit wird im Testplan (`04-technik-architektur.md`, Abschnitt 11) mi
 - **Kein Versprechen für Schweizerdeutsche Mundart** (D12), keine Transkription auf der Uhr [21], kein Wear-OS-Mikrofon über den Data Layer (Abschnitt 5), kein Betrieb, der nie eine Netzverbindung braucht: Der Modell-Download durch das Betriebssystem bzw. den Play Store ist unvermeidlich und wird erklärt; auf iOS aktualisiert das System die Modelle später selbst, "einmalig" gilt also nur für den ersten Download (D14; Faktenprüfung Eintrag 1 [70]).
 - **Kein Teilen in Netzwerke, keine Sozialfunktionen.** Export geht in Dateien, die die Nutzerin selbst weitergibt.
 
+## Umsetzungsstand: Schreiben und geführter Rückblick (D17, 27. 10. 2026)
+
+Umgesetzt in der PWA und in den Kernpaketen; Entscheidung und Abgrenzung in `entscheidungen.md`, D17. Sprechen bleibt der Kern (Abschnitt 1); Schreiben ergänzt ihn für Situationen, in denen man nicht sprechen kann oder will (Zug, Nacht, Mitbewohner), und der geführte Rückblick ersetzt die leere Seite durch vier ruhige Fragen statt durch KI.
+
+**Warum diese vier Impulse.** Die Struktur folgt drei gut belegten Linien der Forschung, ohne daraus Heilsversprechen zu machen: Dankbarkeits-Interventionen wie das Aufschreiben von drei guten Dingen am Tag verbessern in randomisierten Studien über Wochen das Wohlbefinden (Emmons und McCullough 2003; Seligman u. a. 2005). Expressives Schreiben über belastende Erlebnisse, wenige Minuten über wenige Tage, zeigt in der Linie von Pennebaker (ab 1986) kleine, aber wiederholt gefundene Effekte auf Befinden und Gesundheit. Implementierungsabsichten in Wenn-dann-Form ("Wenn Situation X eintritt, dann tue ich Y") erhöhen nach Gollwitzers Arbeiten (1999; Metaanalyse Gollwitzer und Sheeran 2006) die Wahrscheinlichkeit deutlich, dass ein Vorhaben umgesetzt wird; deshalb empfiehlt der vierte Impuls genau diese Form. Alle drei Linien sind in der Psychologie breit rezipiert; die App wiederholt sie als Struktur, bewertet aber nichts und stellt keine Diagnosen (Abschnitt 10).
+
+**Was gebaut ist.**
+- "Schreiben" neben der Aufnahmetaste; Editor mit vier Feldern (geführt) oder einem freien Feld, Autospeichern nach einer Sekunde und beim Verlassen, Wortzähler, Rechtschreibhilfe der Systemtastatur. Nichts geschrieben heißt kein Eintrag.
+- Geschriebene Texte als eigener Datensatz `EntryNote` in `diary_core`, verschlüsselt im Browser (`diary_web`, Sammlung `notes`), im Suchindex (Treffer ohne Sprungziel), im Backup und Gerätewechsel (NDJSON-Zeile `note`, Manifest `notes`), mit dem Eintrag gelöscht.
+- Eintrag als chronologische Liste von Aufnahmen und Notizen; Notizen bearbeitbar und löschbar; Transkripte unverändert; darüber der Stimmungsschieber.
+- Geführter Rückblick beim Sprechen: Impulse nacheinander während der Aufnahme, "Weiter" oder automatisch nach 45 Sekunden; die Zeitmarken landen als Notiz `prompts_at` am Eintrag und erscheinen im Eintrag als kleine Marken ("Gut gelaufen ab 0:45").
+- Karte "Dein Schritt für heute" mit Häkchen (Notiz `next_done`), "Vor einem Jahr" und "Vor einem Monat" auf "Heute", Wochenrückblick mit Liste und sieben Stimmungspunkten über "Woche" im Kalender.
+- Einstellung "Geführter Rückblick" (Standard an). Alle Texte in `app_de.arb`/`app_en.arb`.
+
+**Bewusst nicht gebaut.** Keine Auswertung der Texte, keine Erinnerung an "offene" Schritte, kein Zähler erledigter Schritte, keine Stimmungsstatistik über Wochen hinaus, keine Vorgaben zu Länge oder Häufigkeit. Die 45 Sekunden je Impuls und die Formulierungen sind eigene Festlegungen für den Beta-Test (offene Frage 8 zur Altersfreigabe gilt auch für diese Fragen).
+
 ## 11. Offene Fragen
 
 1. **Aufnahme bei gesperrter App.** Damit Controls und Widgets ohne Entsperren aufnehmen können, müssen neue Eintragsschlüssel ohne Zugriff auf den Master-Key gewrappt werden (z. B. asymmetrisch). `05-sicherheit-und-datenschutz.md`, Abschnitt 2.7 skizziert dafür den "Schreibschlüssel" (Sealed Box an einen X25519-Schlüssel des Telefons, spätere Neuverpackung mit dem Master-Key); ob D5 das hergibt oder ob der Start eine Authentifizierung verlangt, klärt ein Spike im Technikkonzept.

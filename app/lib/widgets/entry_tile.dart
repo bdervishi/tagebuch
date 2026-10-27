@@ -35,13 +35,20 @@ class EntryTile extends StatelessWidget {
     final theme = Theme.of(context);
     final headline = showDate
         ? materialL10n.formatMediumDate(view.day)
-        : l10n.recordedAt(formatTime(context, view.recordedAt));
+        : view.hasRecordings
+        ? l10n.recordedAt(formatTime(context, view.recordedAt))
+        : l10n.writtenAt(formatTime(context, view.recordedAt));
     final text = snippet ?? view.text;
+    final writtenOnly = !view.hasRecordings;
     return Card(
       child: ListTile(
         key: ValueKey('entry-tile-${view.id}'),
         leading: Icon(
-          view.hasAudio ? Icons.graphic_eq : Icons.text_snippet_outlined,
+          view.hasAudio
+              ? Icons.graphic_eq
+              : writtenOnly
+              ? Icons.edit_note
+              : Icons.text_snippet_outlined,
           semanticLabel: view.hasAudio ? l10n.audioKept : l10n.audioRemoved,
         ),
         title: Text(headline),
@@ -49,7 +56,9 @@ class EntryTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              formatDuration(l10n, view.duration),
+              writtenOnly
+                  ? l10n.wordCount(view.wordCount)
+                  : formatDuration(l10n, view.duration),
               style: theme.textTheme.labelMedium,
             ),
             const SizedBox(height: 4),

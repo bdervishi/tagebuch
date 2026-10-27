@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:diary_core/diary_core.dart';
 import 'package:flutter/material.dart';
@@ -11,11 +12,14 @@ import '../../data/settings_notifier.dart';
 import '../../data/transcription_jobs.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
+import '../rueckblick/prompts.dart';
 
 /// Widget-Keys für Tests.
 const Key stopButtonKey = Key('recording-stop');
 const Key pauseButtonKey = Key('recording-pause');
 const Key cancelButtonKey = Key('recording-cancel');
+const Key promptCardKey = Key('recording-prompt');
+const Key promptAdvanceKey = Key('recording-prompt-next');
 
 /// Obergrenze je Aufnahme im kostenlosen Kern (D9).
 const Duration maxRecordingDuration = Duration(minutes: 5);
@@ -27,6 +31,11 @@ const Duration maxRecordingDuration = Duration(minutes: 5);
 /// `SimulatedRecorder`) liefert Pegel und PCM, die Erkennung läuft parallel,
 /// "Fertig" speichert Aufnahme und Transkript. "Verwerfen" stoppt und löscht
 /// Aufnahme, Transkript und Datei wieder.
+///
+/// Geführter Rückblick (D17): Mit der Einstellung erscheinen die vier
+/// Impulse nacheinander als Leitplanke, "Weiter" oder automatisch nach
+/// [PromptTexts.autoAdvance], ohne die Aufnahme zu unterbrechen. Die
+/// Zeitmarken der Wechsel landen als Notiz `prompts_at` am Eintrag.
 class RecordingScreen extends ConsumerStatefulWidget {
   const RecordingScreen({super.key});
 
@@ -50,6 +59,12 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
   List<double> _levels = List.filled(_barCount, 0.05);
   bool _finishing = false;
   bool _reduceMotion = false;
+
+  /// Geführter Rückblick: aktiver Impuls und Zeitmarken der Wechsel.
+  bool _guided = false;
+  int _promptIndex = 0;
+  Duration _promptStartedAt = Duration.zero;
+  final List<PromptMark> _marks = [];
 
   @override
   void initState() {
@@ -79,6 +94,12 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
         return;
       }
       _active = active;
+      _guided = settings.guidedReview;
+      if (_guided) {
+        _marks.add(
+          PromptMark(promptKey: ReviewPrompts.review.first, at: Duration.zero),
+        );
+      }
       _levelSubscription = active.levels.listen(_onLevel);
       _ticker = Timer.periodic(_tickInterval, (_) => _tick());
       setState(() {});
@@ -99,9 +120,27 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     if (_paused || _finishing) return;
     final next = _elapsed + _tickInterval;
     setState(() => _elapsed = next);
+    if (_guided &&
+        _promptIndex < ReviewPrompts.review.length - 1 &&
+        next - _promptStartedAt >= PromptTexts.autoAdvance) {
+      _advancePrompt();
+    }
     if (next >= maxRecordingDuration) {
       unawaited(_finish());
     }
+  }
+
+  /// Nächster Impuls; die Aufnahme läuft weiter, nur die Zeitmarke wird
+  /// notiert.
+  void _advancePrompt() {
+    if (!_guided || _promptIndex >= ReviewPrompts.review.length - 1) return;
+    setState(() {
+      _promptIndex++;
+      _promptStartedAt = _elapsed;
+      _marks.add(
+        PromptMark(promptKey: ReviewPrompts.review[_promptIndex], at: _elapsed),
+      );
+    });
   }
 
   void _onLevel(double level) {
@@ -142,6 +181,24 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     if (!keepAudio) {
       await services.recordings.markAudioDeleted(result.recording.id);
       await services.deleteFiles([result.recording.fileName]);
+    }
+    if (_guided && _marks.isNotEmpty) {
+      final now = services.clock.now();
+      await services.notes.insert(
+        EntryNote(
+          id: services.ids.next(),
+          entryId: result.entryId,
+          createdAt: now,
+          updatedAt: now,
+          text: jsonEncode(
+            PromptMarks(
+              recordingId: result.recording.id,
+              marks: List.of(_marks),
+            ).toJson(),
+          ),
+          promptKey: ReviewPrompts.promptsAt,
+        ),
+      );
     }
     ref.read(dataVersionProvider.notifier).bump();
     unawaited(HapticFeedback.mediumImpact());
@@ -247,124 +304,232 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: _startError != null
                 ? _ErrorBody(message: l10n.recordingMicError)
-                : Column(
-                    children: [
-                      const Spacer(),
-                      Semantics(
-                        liveRegion: true,
-                        label: stateLabel,
-                        child: ExcludeSemantics(
+                : LayoutBuilder(
+                    builder: (context, constraints) => SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: IntrinsicHeight(
                           child: Column(
                             children: [
-                              Text(
-                                formatCounter(shown),
-                                style: theme.textTheme.displayLarge?.copyWith(
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures(),
-                                  ],
+                              const Spacer(),
+                              Semantics(
+                                liveRegion: true,
+                                label: stateLabel,
+                                child: ExcludeSemantics(
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        formatCounter(shown),
+                                        style: theme.textTheme.displayLarge
+                                            ?.copyWith(
+                                              fontFeatures: const [
+                                                FontFeature.tabularFigures(),
+                                              ],
+                                            ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        statusText,
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                              color: scheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              if (_guided && started) ...[
+                                const SizedBox(height: 24),
+                                _PromptCard(
+                                  index: _promptIndex,
+                                  onAdvance:
+                                      _promptIndex <
+                                              ReviewPrompts.review.length - 1 &&
+                                          !_finishing
+                                      ? _advancePrompt
+                                      : null,
+                                ),
+                              ],
+                              const SizedBox(height: 24),
+                              Semantics(
+                                label: l10n.levelMeterSemantics,
+                                child: ExcludeSemantics(
+                                  child: _LevelMeter(
+                                    levels: _levels,
+                                    active: started && !_paused && !_finishing,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
                               Text(
-                                statusText,
-                                style: theme.textTheme.titleMedium?.copyWith(
+                                features.recordsRealAudio
+                                    ? l10n.recordingWebHint
+                                    : l10n.recordingSimulatedHint,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodySmall?.copyWith(
                                   color: scheme.onSurfaceVariant,
                                 ),
                               ),
+                              const SizedBox(height: 24),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton.filledTonal(
+                                    key: pauseButtonKey,
+                                    iconSize: 32,
+                                    padding: const EdgeInsets.all(16),
+                                    tooltip: _paused
+                                        ? l10n.resumeButton
+                                        : l10n.pauseButton,
+                                    onPressed: started && !_finishing
+                                        ? _togglePause
+                                        : null,
+                                    icon: Icon(
+                                      _paused ? Icons.play_arrow : Icons.pause,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 32),
+                                  Semantics(
+                                    button: true,
+                                    enabled: started && !_finishing,
+                                    label: l10n.stopButton,
+                                    child: Material(
+                                      key: stopButtonKey,
+                                      color: started && !_finishing
+                                          ? scheme.primary
+                                          : scheme.surfaceContainerHighest,
+                                      shape: const CircleBorder(),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: InkWell(
+                                        onTap: started && !_finishing
+                                            ? _finish
+                                            : null,
+                                        child: SizedBox(
+                                          width: 96,
+                                          height: 96,
+                                          child: ExcludeSemantics(
+                                            child: _finishing
+                                                ? Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          28,
+                                                        ),
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          color: scheme.primary,
+                                                        ),
+                                                  )
+                                                : Icon(
+                                                    Icons.stop,
+                                                    size: 48,
+                                                    color: scheme.onPrimary,
+                                                  ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 32),
+                                  // Gleich breiter Platzhalter, damit die Stopptaste
+                                  // mittig bleibt.
+                                  const SizedBox(width: 64, height: 64),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              ExcludeSemantics(
+                                child: Text(
+                                  l10n.stopButton,
+                                  style: theme.textTheme.titleMedium,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
                             ],
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40),
-                      Semantics(
-                        label: l10n.levelMeterSemantics,
-                        child: ExcludeSemantics(
-                          child: _LevelMeter(
-                            levels: _levels,
-                            active: started && !_paused && !_finishing,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        features.recordsRealAudio
-                            ? l10n.recordingWebHint
-                            : l10n.recordingSimulatedHint,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton.filledTonal(
-                            key: pauseButtonKey,
-                            iconSize: 32,
-                            padding: const EdgeInsets.all(16),
-                            tooltip: _paused
-                                ? l10n.resumeButton
-                                : l10n.pauseButton,
-                            onPressed: started && !_finishing
-                                ? _togglePause
-                                : null,
-                            icon: Icon(
-                              _paused ? Icons.play_arrow : Icons.pause,
-                            ),
-                          ),
-                          const SizedBox(width: 32),
-                          Semantics(
-                            button: true,
-                            enabled: started && !_finishing,
-                            label: l10n.stopButton,
-                            child: Material(
-                              key: stopButtonKey,
-                              color: started && !_finishing
-                                  ? scheme.primary
-                                  : scheme.surfaceContainerHighest,
-                              shape: const CircleBorder(),
-                              clipBehavior: Clip.antiAlias,
-                              child: InkWell(
-                                onTap: started && !_finishing ? _finish : null,
-                                child: SizedBox(
-                                  width: 96,
-                                  height: 96,
-                                  child: ExcludeSemantics(
-                                    child: _finishing
-                                        ? Padding(
-                                            padding: const EdgeInsets.all(28),
-                                            child: CircularProgressIndicator(
-                                              color: scheme.primary,
-                                            ),
-                                          )
-                                        : Icon(
-                                            Icons.stop,
-                                            size: 48,
-                                            color: scheme.onPrimary,
-                                          ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 32),
-                          // Gleich breiter Platzhalter, damit die Stopptaste
-                          // mittig bleibt.
-                          const SizedBox(width: 64, height: 64),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      ExcludeSemantics(
-                        child: Text(
-                          l10n.stopButton,
-                          style: theme.textTheme.titleMedium,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+                    ),
                   ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Der aktuelle Impuls des geführten Rückblicks während der Aufnahme.
+class _PromptCard extends StatelessWidget {
+  const _PromptCard({required this.index, required this.onAdvance});
+
+  final int index;
+  final VoidCallback? onAdvance;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final key = ReviewPrompts.review[index];
+    final hint = PromptTexts.hint(l10n, key);
+    return Card(
+      key: promptCardKey,
+      color: scheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.promptProgress(index + 1, ReviewPrompts.review.length),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: scheme.onSecondaryContainer,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              PromptTexts.title(l10n, key),
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: scheme.onSecondaryContainer,
+              ),
+            ),
+            if (hint != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                hint,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSecondaryContainer,
+                ),
+              ),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    onAdvance == null
+                        ? ''
+                        : l10n.promptAutoAdvanceNote(
+                            PromptTexts.autoAdvance.inSeconds,
+                          ),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSecondaryContainer,
+                    ),
+                  ),
+                ),
+                if (onAdvance != null)
+                  TextButton.icon(
+                    key: promptAdvanceKey,
+                    onPressed: onAdvance,
+                    icon: const Icon(Icons.arrow_forward),
+                    label: Text(
+                      l10n.promptAdvance,
+                      semanticsLabel: l10n.promptAdvanceSemantics,
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );

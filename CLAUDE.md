@@ -10,7 +10,7 @@ Lokales Sprach-Tagebuch für iOS und Android: täglich zu einer selbst gewählte
 - `docs/ressourcen.md`: kostenlose Dienste aus free-for.dev und wo wir sie einsetzen (CI, iOS-Builds ohne Mac, Übersetzung, Website, Support-Mail) und wo bewusst nicht (Crash-Reporter, Analytics). Vor dem Anbinden eines Dienstes dort nachsehen und eintragen.
 - `app/`: Flutter-App (Paket `tagebuch_app`, Anwendungs-ID `dev.tagebuch.app` als Platzhalter bis zur Namenswahl). Erste Zielplattform ist das Web als installierbare PWA (D16, `docs/10-pwa.md`); `app/web/` enthält Manifest, `index.html` mit Content-Security-Policy und Icons.
 - `packages/`: Kernpakete, jedes einzeln testbar:
-  - `diary_core` Domänenmodell, Ports, Anwendungsfälle `RecordDayUseCase` und `TransferUseCase` (Backup, Gerätewechsel; reines Dart)
+  - `diary_core` Domänenmodell (auch `EntryNote` für geschriebene Texte und Rückblick-Antworten, D17), Ports, Anwendungsfälle `RecordDayUseCase` und `TransferUseCase` (Backup, Gerätewechsel; reines Dart)
   - `diary_crypto` AEAD-Schnittstelle, Key-Wrapping, HKDF, Argon2id-Parameter (reines Dart, Referenz mit `package:cryptography`)
   - `diary_chunkfile` Chunk-AEAD-Dateiformat mit wahlfreiem Zugriff (Format in dessen README, Testvektoren für Swift/Kotlin)
   - `diary_container` Transfer-/Backup-Container: Kopf, QR-Nutzlast, Manifest, Rahmung, Schlüsselableitung (Argon2id, X25519/HKDF), Stromverschlüsselung (Referenz Kennung 2) und Writer/Reader (Format in dessen README)

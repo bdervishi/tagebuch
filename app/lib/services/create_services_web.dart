@@ -35,6 +35,7 @@ Future<AppServices> createAppServices() async {
     entries: WebEntryRepository(records, ids),
     recordings: WebRecordingRepository(records),
     transcripts: WebTranscriptRepository(records),
+    notes: WebNoteRepository(records),
     settings: WebSettingsRepository(records),
     search: WebSearchRepository(records),
     recorder: MediaRecorderCapture(files),

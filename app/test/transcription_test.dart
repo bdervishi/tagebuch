@@ -132,6 +132,8 @@ void main() {
     expect(find.textContaining('Kein Text zu dieser Aufnahme'), findsOneWidget);
     expect(find.byKey(retranscribeButtonKey), findsOneWidget);
 
+    await tester.ensureVisible(find.byKey(retranscribeButtonKey));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(retranscribeButtonKey));
     await tester.pumpAndSettle();
 

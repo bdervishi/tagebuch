@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import '../model/entry.dart';
 import '../model/journal.dart';
 import '../model/local_day.dart';
+import '../model/note.dart';
 import '../model/recording.dart';
 import '../model/reminder_settings.dart';
 import '../model/transcript.dart';
@@ -155,6 +156,28 @@ abstract final class ModelJson {
     end: Duration(microseconds: m['endUs'] as int),
     text: m['text'] as String,
     confidence: (m['confidence'] as num?)?.toDouble(),
+  );
+
+  static Map<String, Object?> encodeNote(EntryNote n) => {
+    'id': n.id,
+    'entryId': n.entryId,
+    'createdAt': _time(n.createdAt),
+    'updatedAt': _time(n.updatedAt),
+    'text': n.text,
+    'promptKey': n.promptKey,
+    'source': n.source.name,
+  };
+
+  static EntryNote decodeNote(Map<String, Object?> m) => EntryNote(
+    id: m['id'] as String,
+    entryId: m['entryId'] as String,
+    createdAt: _parseTime(m['createdAt'] as String),
+    updatedAt: _parseTime(m['updatedAt'] as String),
+    text: m['text'] as String,
+    promptKey: m['promptKey'] as String?,
+    source: NoteSource.values.byName(
+      m['source'] as String? ?? NoteSource.typed.name,
+    ),
   );
 
   static Map<String, Object?> encodeReminderSettings(ReminderSettings s) => {

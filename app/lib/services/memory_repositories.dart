@@ -13,12 +13,16 @@ class InMemoryEntryRepository implements EntryRepository {
     this._ids, {
     List<DiaryEntry> initial = const [],
     this.recordings,
+    this.notes,
   }) : items = [...initial];
 
   final IdGenerator _ids;
 
   /// Aufnahmen, die beim Löschen eines Eintrags mitgehen.
   final InMemoryRecordingRepository? recordings;
+
+  /// Notizen (D17), die beim Löschen eines Eintrags mitgehen.
+  final InMemoryNoteRepository? notes;
   final List<DiaryEntry> items;
   final _changes = StreamController<void>.broadcast();
 
@@ -97,6 +101,7 @@ class InMemoryEntryRepository implements EntryRepository {
         if (name != null) files.add(name);
       }
     }
+    notes?.items.removeWhere((n) => n.entryId == entryId);
     items.removeWhere((e) => e.id == entryId);
     _changes.add(null);
     return files;
@@ -179,6 +184,32 @@ class InMemoryTranscriptRepository implements TranscriptRepository {
   }
 }
 
+/// Geschriebene Texte (D17) im Speicher.
+class InMemoryNoteRepository implements NoteRepository {
+  InMemoryNoteRepository({List<EntryNote> initial = const []})
+    : items = [...initial];
+
+  final List<EntryNote> items;
+
+  @override
+  Future<void> insert(EntryNote note) async {
+    items.removeWhere((n) => n.id == note.id);
+    items.add(note);
+  }
+
+  @override
+  Future<void> update(EntryNote note) => insert(note);
+
+  @override
+  Future<List<EntryNote>> listForEntry(String entryId) async =>
+      items.where((n) => n.entryId == entryId).toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  @override
+  Future<void> delete(String noteId) async =>
+      items.removeWhere((n) => n.id == noteId);
+}
+
 class InMemorySettingsRepository implements SettingsRepository {
   InMemorySettingsRepository({
     this.reminderValue = const ReminderSettings(),
@@ -231,14 +262,21 @@ class InMemoryAudioFiles implements AudioFiles {
   }
 }
 
-/// Suche über die In-Memory-Transkripte: Kleinschreibung, `ß → ss`,
-/// Teilworttreffer; Sprungziel ist der Start des ersten passenden Segments.
+/// Suche über die In-Memory-Transkripte und Notizen (D17): Kleinschreibung,
+/// `ß → ss`, Teilworttreffer; Sprungziel ist bei Transkripten der Start des
+/// ersten passenden Segments, bei Notizen keines.
 class InMemorySearchRepository implements SearchRepository {
-  InMemorySearchRepository(this._entries, this._recordings, this._transcripts);
+  InMemorySearchRepository(
+    this._entries,
+    this._recordings,
+    this._transcripts, {
+    InMemoryNoteRepository? notes,
+  }) : _notes = notes; // ignore: prefer_initializing_formals
 
   final InMemoryEntryRepository _entries;
   final InMemoryRecordingRepository _recordings;
   final InMemoryTranscriptRepository _transcripts;
+  final InMemoryNoteRepository? _notes;
 
   static String fold(String s) => s.toLowerCase().replaceAll('ß', 'ss');
 
@@ -280,6 +318,16 @@ class InMemorySearchRepository implements SearchRepository {
           jumpTo: jumpTo,
         ),
       );
+    }
+    for (final n in _notes?.items ?? const <EntryNote>[]) {
+      if (n.isInternal) continue;
+      if (!terms.every(fold(n.text).contains)) continue;
+      final e = await _entries.byId(n.entryId);
+      if (e == null) continue;
+      if (journalId != null && e.journalId != journalId) continue;
+      if (from != null && e.day.isBefore(from)) continue;
+      if (to != null && e.day.isAfter(to)) continue;
+      hits.add(SearchHit(entryId: e.id, day: e.day, snippet: n.text));
     }
     hits.sort((a, b) => b.day.compareTo(a.day));
     return hits;

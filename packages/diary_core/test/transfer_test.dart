@@ -234,6 +234,68 @@ void main() {
     },
   );
 
+  test(
+    'Notizen (D17): Export zählt sie, Import hängt sie an den Tag',
+    () async {
+      final old = Device('alt-');
+      await old.seed(d1, 'Gesprochen am 25.');
+      await old.seedNote(d1, 'Dankbar für den Kaffee.', promptKey: 'good');
+      await old.seedNote(d2, 'Nur geschrieben, keine Aufnahme.');
+      await old.seedNote(d2, '1', promptKey: 'next_done');
+      final bytes = await old.useCase.exportWithPassphrase('korrektes pferd');
+
+      final fresh = Device('neu-');
+      final opened = await fresh.useCase.openWithPassphrase(
+        bytes,
+        'korrektes pferd',
+      );
+      expect(opened.manifest.entryCount, 2);
+      expect(opened.manifest.recordingCount, 1);
+      expect(opened.manifest.noteCount, 3);
+      expect(opened.snapshot.notes, hasLength(3));
+      final result = await fresh.useCase.import(opened);
+      expect(result.entriesCreated, 2);
+      expect(result.notesImported, 3);
+      expect(result.notesSkipped, 0);
+
+      // Der zweite Tag existiert nur durch Notizen.
+      final e2 = (await fresh.entries.findByDay(Device.journalId, d2))!;
+      expect(await fresh.recordings.listForEntry(e2.id), isEmpty);
+      final n2 = await fresh.notes.listForEntry(e2.id);
+      expect(n2.map((n) => n.text), ['Nur geschrieben, keine Aufnahme.', '1']);
+      expect(n2.last.promptKey, 'next_done');
+      expect(n2.first.source, NoteSource.typed);
+      // Notizen hängen am Eintrag des Zielgeräts, nicht an der alten Kennung.
+      final e1 = (await fresh.entries.findByDay(Device.journalId, d1))!;
+      final n1 = (await fresh.notes.listForEntry(e1.id)).single;
+      expect(n1.entryId, e1.id);
+      expect(n1.promptKey, 'good');
+
+      // Nochmal: Kennungen bleiben einmalig.
+      final again = await fresh.useCase.import(opened);
+      expect(again.notesImported, 0);
+      expect(again.notesSkipped, 3);
+
+      // Ein Gerät ohne Notiz-Speicher importiert den Rest trotzdem.
+      final plain = Device('ohne-', withNotes: false);
+      final r = await plain.useCase.import(
+        await plain.useCase.openWithPassphrase(bytes, 'korrektes pferd'),
+      );
+      expect(r.entriesCreated, 2);
+      expect(r.notesImported, 0);
+    },
+  );
+
+  test('NDJSON ohne Notizen (ältere Datei) bleibt lesbar', () {
+    final snap = TransferSnapshot.decodeNdjson(
+      '{"type":"entry","id":"e1","journalId":"j","day":"2026-10-25",'
+      '"createdAt":"2026-10-25T19:00:00.000Z",'
+      '"updatedAt":"2026-10-25T19:00:00.000Z"}\n',
+    );
+    expect(snap.entries.single.id, 'e1');
+    expect(snap.notes, isEmpty);
+  });
+
   test('NDJSON: unbekannte Typen werden übersprungen, Reihenfolge stabil', () {
     final snap = TransferSnapshot.decodeNdjson(
       '{"type":"future-thing","x":1}\n'

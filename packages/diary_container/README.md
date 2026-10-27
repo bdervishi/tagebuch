@@ -46,8 +46,8 @@ Klartext je Nachricht 64 KiB (die letzte kürzer, auch leer). Erkannt werden: Ve
 
 Der entschlüsselte Strom ist eine Folge von Rahmen `nameLen u16 · name (UTF-8) · dataLen u64 · data`:
 
-1. `manifest.json`: `format` 1, `compression` (`none`), `createdAt`, `appVersion`, `schemaVersion` (NDJSON-Schema, derzeit 1), `entries`, `recordings`, `firstDay`, `lastDay`, `files` (Name, Größe, SHA-256 hex jeder folgenden Datei).
-2. `db.ndjson`: eine JSON-Zeile je Datensatz mit Feld `type` (`entry`, `recording`, `transcript`, `reminder`, `setting`); Serialisierung `ModelJson` in `diary_core`. `fileKeyWrapped` wird nicht exportiert.
+1. `manifest.json`: `format` 1, `compression` (`none`), `createdAt`, `appVersion`, `schemaVersion` (NDJSON-Schema, derzeit 1), `entries`, `recordings`, `notes` (geschriebene Texte, D17; fehlt in älteren Dateien und gilt dann als 0), `firstDay`, `lastDay`, `files` (Name, Größe, SHA-256 hex jeder folgenden Datei).
+2. `db.ndjson`: eine JSON-Zeile je Datensatz mit Feld `type` (`entry`, `recording`, `transcript`, `note`, `reminder`, `setting`; unbekannte Typen werden übersprungen, `note` kam ohne Versionssprung hinzu); Serialisierung `ModelJson` in `diary_core`. `fileKeyWrapped` wird nicht exportiert.
 3. `audio/<Dateiname>`: Audio als entschlüsselte Rohbytes (M4A/WebM); das Zielgerät verschlüsselt neu unter seinem Master-Key.
 
 `ContainerPayload.parse` prüft jede Datei gegen Größe und SHA-256 im Manifest und lehnt fehlende, zusätzliche oder veränderte Dateien ab (`manifestMismatch`); unbekannte Manifest-Formate und Kompressionen sind `unsupported`.
