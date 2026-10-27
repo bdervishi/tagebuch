@@ -249,6 +249,9 @@ void main() {
       expect(find.byKey(backupReminderCardKey), findsOneWidget);
       expect(find.textContaining('Du hast schon 3 Einträge.'), findsOneWidget);
 
+      // Die Karte steht unter "Deine Wege" (D19); erst sichtbar machen.
+      await tester.ensureVisible(find.byKey(backupReminderLaterKey));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(backupReminderLaterKey));
       await tester.pumpAndSettle();
       expect(find.byKey(backupReminderCardKey), findsNothing);

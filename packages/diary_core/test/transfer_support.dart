@@ -124,6 +124,63 @@ class MemoryNotes implements NoteRepository {
       items.removeWhere((n) => n.id == noteId);
 }
 
+/// Ziele und Etappen (D19) im Speicher.
+class MemoryGoals implements GoalRepository {
+  final List<Goal> goals = [];
+  final List<Milestone> milestones = [];
+
+  @override
+  Future<void> insertGoal(Goal goal) async {
+    goals.removeWhere((g) => g.id == goal.id);
+    goals.add(goal);
+  }
+
+  @override
+  Future<void> updateGoal(Goal goal) => insertGoal(goal);
+  @override
+  Future<Goal?> goalById(String goalId) async =>
+      goals.where((g) => g.id == goalId).firstOrNull;
+  @override
+  Future<List<Goal>> listActive(String journalId) async =>
+      goals.where((g) => g.journalId == journalId && g.isActive).toList()
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+  @override
+  Future<List<Goal>> listArchived(String journalId) async =>
+      goals.where((g) => g.journalId == journalId && !g.isActive).toList()
+        ..sort((a, b) => b.closedAt!.compareTo(a.closedAt!));
+  @override
+  Future<List<Goal>> listAllGoals(String journalId) async =>
+      goals.where((g) => g.journalId == journalId).toList()
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+  @override
+  Future<void> deleteGoal(String goalId) async {
+    milestones.removeWhere((m) => m.goalId == goalId);
+    goals.removeWhere((g) => g.id == goalId);
+  }
+
+  @override
+  Future<void> insertMilestone(Milestone milestone) async {
+    milestones.removeWhere((m) => m.id == milestone.id);
+    milestones.add(milestone);
+  }
+
+  @override
+  Future<void> updateMilestone(Milestone milestone) =>
+      insertMilestone(milestone);
+  @override
+  Future<Milestone?> milestoneById(String milestoneId) async =>
+      milestones.where((m) => m.id == milestoneId).firstOrNull;
+  @override
+  Future<List<Milestone>> listMilestones(String goalId) async =>
+      milestones.where((m) => m.goalId == goalId).toList()
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+  @override
+  Future<List<Milestone>> listAllMilestones() async => List.of(milestones);
+  @override
+  Future<void> deleteMilestone(String milestoneId) async =>
+      milestones.removeWhere((m) => m.id == milestoneId);
+}
+
 class MemorySettings implements SettingsRepository {
   ReminderSettings reminderValue = const ReminderSettings();
   final Map<String, String> values = {};
@@ -163,9 +220,13 @@ class MemoryAudioFiles implements AudioFileSource, AudioFileSink {
 
 /// Ein vollständiges Gerät (Repositories, Audio, Anwendungsfall).
 class Device {
-  Device(String idPrefix, {DateTime? now, bool withNotes = true})
-    : ids = MemoryIds(idPrefix),
-      clock = FixedClock(now ?? DateTime(2026, 10, 27, 20)) {
+  Device(
+    String idPrefix, {
+    DateTime? now,
+    bool withNotes = true,
+    bool withGoals = true,
+  }) : ids = MemoryIds(idPrefix),
+       clock = FixedClock(now ?? DateTime(2026, 10, 27, 20)) {
     entries = MemoryEntries(ids);
     useCase = TransferUseCase(
       journalId: journalId,
@@ -173,6 +234,7 @@ class Device {
       recordings: recordings,
       transcripts: transcripts,
       notes: withNotes ? notes : null,
+      goals: withGoals ? goals : null,
       settings: settings,
       audioSource: audio,
       audioSink: audio,
@@ -190,6 +252,7 @@ class Device {
   final recordings = MemoryRecordings();
   final transcripts = MemoryTranscripts();
   final notes = MemoryNotes();
+  final goals = MemoryGoals();
   final settings = MemorySettings();
   final audio = MemoryAudioFiles();
   late final TransferUseCase useCase;
@@ -255,6 +318,7 @@ class Device {
     String text, {
     String? promptKey,
     String? noteId,
+    String? goalId,
   }) async {
     final at = day.startOfDay.add(const Duration(hours: 21, minutes: 30));
     final e = await entries.getOrCreate(journalId, day, at);
@@ -265,6 +329,7 @@ class Device {
       updatedAt: at,
       text: text,
       promptKey: promptKey,
+      goalId: goalId,
     );
     await notes.insert(n);
     return n;

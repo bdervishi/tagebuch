@@ -11,6 +11,7 @@ import '../../widgets/entry_tile.dart';
 import '../../widgets/record_button.dart';
 import '../../widgets/reveal.dart';
 import '../../widgets/step_card.dart';
+import '../wege/today_goals_section.dart';
 
 export '../../widgets/record_button.dart' show recordButtonKey;
 
@@ -18,7 +19,8 @@ export '../../widgets/record_button.dart' show recordButtonKey;
 const Key writeButtonKey = Key('write-button');
 
 /// Startbildschirm: große Aufnahmetaste und die kleinere Aktion "Schreiben",
-/// darunter "Dein Schritt für heute", der heutige Eintrag aus dem Repository,
+/// darunter "Dein Schritt für heute", der Abschnitt "Deine Wege" (D19), der
+/// heutige Eintrag aus dem Repository,
 /// bei Bedarf die Karte "Zeit für ein Backup" und die Rückblicke "Vor einem
 /// Jahr" und "Vor einem Monat". Zustand statt Mahnung: kein Zähler, keine
 /// Kette (docs/03 Abschnitt 3, D17). Die Abschnitte erscheinen beim Öffnen
@@ -97,9 +99,10 @@ class TodayScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 32),
             const Reveal(index: 2, child: StepCard()),
-            const Reveal(index: 3, child: BackupReminderCard()),
+            const Reveal(index: 3, child: TodayGoalsSection()),
+            const Reveal(index: 4, child: BackupReminderCard()),
             Reveal(
-              index: 4,
+              index: 5,
               child: switch (today) {
                 AsyncData(value: null) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -134,7 +137,7 @@ class TodayScreen extends ConsumerWidget {
             ),
             for (final (i, lookback) in lookbacks.indexed)
               Reveal(
-                index: 5 + i,
+                index: 6 + i,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 24),
                   child: Column(

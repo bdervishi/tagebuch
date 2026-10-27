@@ -39,6 +39,8 @@ class ContainerManifest {
     required this.recordingCount,
     required this.files,
     this.noteCount = 0,
+    this.goalCount = 0,
+    this.milestoneCount = 0,
     this.formatVersion = 1,
     this.compression = compressionNone,
     this.firstDay,
@@ -65,6 +67,11 @@ class ContainerManifest {
   /// Geschriebene Texte (Zeilentyp `note` in `db.ndjson`, D17); fehlt in
   /// Dateien älterer Versionen und gilt dann als 0.
   final int noteCount;
+
+  /// Ziele und Etappen (Zeilentypen `goal` und `milestone`, D19); fehlen in
+  /// Dateien älterer Versionen und gelten dann als 0.
+  final int goalCount;
+  final int milestoneCount;
   final String? firstDay;
   final String? lastDay;
   final List<ManifestFile> files;
@@ -82,6 +89,8 @@ class ContainerManifest {
     'entries': entryCount,
     'recordings': recordingCount,
     'notes': noteCount,
+    'goals': goalCount,
+    'milestones': milestoneCount,
     'firstDay': firstDay,
     'lastDay': lastDay,
     'files': files.map((f) => f.toJson()).toList(),
@@ -108,6 +117,8 @@ class ContainerManifest {
       entryCount: j['entries']! as int,
       recordingCount: j['recordings']! as int,
       noteCount: j['notes'] as int? ?? 0,
+      goalCount: j['goals'] as int? ?? 0,
+      milestoneCount: j['milestones'] as int? ?? 0,
       firstDay: j['firstDay'] as String?,
       lastDay: j['lastDay'] as String?,
       files: (j['files']! as List)

@@ -91,11 +91,12 @@ class EntryView {
     return null;
   }
 
+  /// Die Notiz zu "Der eine Schritt für morgen" (letzte, falls mehrere).
+  EntryNote? get nextStepNote =>
+      visibleNotes.where((n) => n.promptKey == ReviewPrompts.next).lastOrNull;
+
   /// Die Antwort auf "Der eine Schritt für morgen" (letzte, falls mehrere).
-  String? get nextStep => visibleNotes
-      .where((n) => n.promptKey == ReviewPrompts.next)
-      .map((n) => n.text.trim())
-      .lastOrNull;
+  String? get nextStep => nextStepNote?.text.trim();
 
   /// Wahr, wenn der gestrige Schritt an diesem Tag als erledigt markiert ist.
   bool get stepDone => notes.any((n) => n.promptKey == ReviewPrompts.nextDone);
@@ -252,12 +253,15 @@ class SearchResult {
 
 // ----- Rückblick (D17) -----------------------------------------------------
 
-/// Karte "Dein Schritt für heute": der gestrige Schritt und ob er heute als
-/// erledigt markiert ist.
+/// Karte "Dein Schritt für heute": der gestrige Schritt, ob er heute als
+/// erledigt markiert ist und der Titel des Wegs, dem er zugeordnet ist (D19).
 class StepCardState {
-  const StepCardState({required this.text, required this.done});
+  const StepCardState({required this.text, required this.done, this.goalTitle});
   final String text;
   final bool done;
+
+  /// Titel des zugeordneten Wegs oder `null`.
+  final String? goalTitle;
 }
 
 /// Der gestrige Schritt für heute oder `null`, wenn gestern keiner notiert
@@ -270,7 +274,13 @@ final stepCardProvider = FutureProvider<StepCardState?>((ref) async {
   final step = yesterday?.nextStep;
   if (step == null || step.isEmpty) return null;
   final todayView = await EntryView.forDay(s, today);
-  return StepCardState(text: step, done: todayView?.stepDone ?? false);
+  final goalId = yesterday?.nextStepNote?.goalId;
+  final goal = goalId == null ? null : await s.goals.goalById(goalId);
+  return StepCardState(
+    text: step,
+    done: todayView?.stepDone ?? false,
+    goalTitle: goal?.title,
+  );
 });
 
 /// Rückblick-Karte auf "Heute": der Eintrag desselben Tages vor einem Jahr
@@ -394,7 +404,10 @@ class ReviewActions {
   }
 
   /// Markiert den gestrigen Schritt am heutigen Eintrag als erledigt (Notiz
-  /// `next_done` mit Text `1`) oder nimmt die Markierung zurück.
+  /// `next_done`) oder nimmt die Markierung zurück. Ist der Schritt einem
+  /// aktiven Weg zugeordnet, wird er zu einer erledigten Etappe dieses Wegs;
+  /// die Notiz merkt sich deren Kennung ([StepDoneMark]), damit das
+  /// Zurücknehmen die Etappe wieder entfernt (D19).
   Future<void> setStepDone(bool done) async {
     final s = await ref.read(appServicesProvider.future);
     final now = s.clock.now();
@@ -403,13 +416,20 @@ class ReviewActions {
       final entry = await s.entries.getOrCreate(s.journalId, today, now);
       final existing = await s.notes.listForEntry(entry.id);
       if (!existing.any((n) => n.promptKey == ReviewPrompts.nextDone)) {
+        final step = (await EntryView.forDay(s, today.previous))?.nextStepNote;
+        String? milestoneId;
+        final goalId = step?.goalId;
+        if (step != null && goalId != null) {
+          final m = await s.goalsUseCase().addDoneMilestone(goalId, step.text);
+          milestoneId = m?.id;
+        }
         await s.notes.insert(
           EntryNote(
             id: s.ids.next(),
             entryId: entry.id,
             createdAt: now,
             updatedAt: now,
-            text: '1',
+            text: StepDoneMark(milestoneId: milestoneId).encode(),
             promptKey: ReviewPrompts.nextDone,
           ),
         );
@@ -418,7 +438,10 @@ class ReviewActions {
       final entry = await s.entries.findByDay(s.journalId, today);
       if (entry != null) {
         for (final n in await s.notes.listForEntry(entry.id)) {
-          if (n.promptKey == ReviewPrompts.nextDone) await s.notes.delete(n.id);
+          if (n.promptKey != ReviewPrompts.nextDone) continue;
+          final milestoneId = StepDoneMark.parse(n.text).milestoneId;
+          if (milestoneId != null) await s.goals.deleteMilestone(milestoneId);
+          await s.notes.delete(n.id);
         }
       }
     }

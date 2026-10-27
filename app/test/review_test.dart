@@ -441,6 +441,14 @@ void main() {
       );
       await tester.pumpWidget(buildTestApp(services: services));
       await tester.pumpAndSettle();
+      // Der Rückblick steht unter "Deine Wege" (D19) und damit im
+      // Testfenster unterhalb des sichtbaren Bereichs.
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('lookback-yearAgo')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       expect(find.byKey(const Key('lookback-yearAgo')), findsOneWidget);
       expect(find.text('Vor einem Jahr'), findsOneWidget);
       expect(find.text('Damals im Park.'), findsOneWidget);

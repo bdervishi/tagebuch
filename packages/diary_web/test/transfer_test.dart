@@ -27,6 +27,7 @@ class WebDevice {
       recordings: WebRecordingRepository(store),
       transcripts: WebTranscriptRepository(store),
       notes: WebNoteRepository(store),
+      goals: WebGoalRepository(store),
       settings: WebSettingsRepository(store),
       audioSource: audio,
       audioSink: audio,
@@ -175,15 +176,57 @@ void main() {
         ),
       );
 
+      // Ein Ziel mit zwei Etappen (D19) wandert mit.
+      await a.useCase.goals!.insertGoal(
+        Goal(
+          id: 'g-lesen',
+          journalId: a.useCase.journalId,
+          title: 'Lesen',
+          why: 'Ruhe.',
+          createdAt: at,
+          updatedAt: at,
+          sortIndex: 0,
+        ),
+      );
+      await a.useCase.goals!.insertMilestone(
+        Milestone(
+          id: 'm-1',
+          goalId: 'g-lesen',
+          title: 'Buch',
+          sortIndex: 0,
+          createdAt: at,
+          doneAt: at,
+        ),
+      );
+      await a.useCase.goals!.insertMilestone(
+        Milestone(
+          id: 'm-2',
+          goalId: 'g-lesen',
+          title: 'Kapitel 1',
+          sortIndex: 1,
+          createdAt: at,
+        ),
+      );
+
       final bytes = await a.useCase.exportWithPassphrase('acht zeichen min');
       final opened = await b.useCase.openWithPassphrase(
         bytes,
         'acht zeichen min',
       );
       expect(opened.manifest.noteCount, 2);
+      expect(opened.manifest.goalCount, 1);
+      expect(opened.manifest.milestoneCount, 2);
       final result = await b.useCase.import(opened);
       expect(result.entriesCreated, 2);
       expect(result.notesImported, 2);
+      expect(result.goalsImported, 1);
+      expect(result.milestonesImported, 2);
+      final goal = (await b.useCase.goals!.goalById('g-lesen'))!;
+      expect(goal.journalId, b.useCase.journalId);
+      expect(goal.why, 'Ruhe.');
+      final ms = await b.useCase.goals!.listMilestones('g-lesen');
+      expect(ms.map((m) => m.title), ['Buch', 'Kapitel 1']);
+      expect(ms.first.isDone, isTrue);
 
       final b1 = (await b.useCase.entries.findByDay(b.useCase.journalId, d1))!;
       final b2 = (await b.useCase.entries.findByDay(b.useCase.journalId, d2))!;

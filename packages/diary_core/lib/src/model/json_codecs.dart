@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import '../model/entry.dart';
+import '../model/goal.dart';
 import '../model/journal.dart';
 import '../model/local_day.dart';
 import '../model/note.dart';
@@ -166,6 +167,7 @@ abstract final class ModelJson {
     'text': n.text,
     'promptKey': n.promptKey,
     'source': n.source.name,
+    'goalId': n.goalId,
   };
 
   static EntryNote decodeNote(Map<String, Object?> m) => EntryNote(
@@ -178,6 +180,53 @@ abstract final class ModelJson {
     source: NoteSource.values.byName(
       m['source'] as String? ?? NoteSource.typed.name,
     ),
+    goalId: m['goalId'] as String?,
+  );
+
+  static Map<String, Object?> encodeGoal(Goal g) => {
+    'id': g.id,
+    'journalId': g.journalId,
+    'title': g.title,
+    'why': g.why,
+    'createdAt': _time(g.createdAt),
+    'updatedAt': _time(g.updatedAt),
+    'completedAt': g.completedAt == null ? null : _time(g.completedAt!),
+    'archivedAt': g.archivedAt == null ? null : _time(g.archivedAt!),
+    'sortIndex': g.sortIndex,
+  };
+
+  static Goal decodeGoal(Map<String, Object?> m) => Goal(
+    id: m['id'] as String,
+    journalId: m['journalId'] as String,
+    title: m['title'] as String,
+    why: m['why'] as String?,
+    createdAt: _parseTime(m['createdAt'] as String),
+    updatedAt: _parseTime(m['updatedAt'] as String),
+    completedAt: m['completedAt'] == null
+        ? null
+        : _parseTime(m['completedAt'] as String),
+    archivedAt: m['archivedAt'] == null
+        ? null
+        : _parseTime(m['archivedAt'] as String),
+    sortIndex: m['sortIndex'] as int? ?? 0,
+  );
+
+  static Map<String, Object?> encodeMilestone(Milestone ms) => {
+    'id': ms.id,
+    'goalId': ms.goalId,
+    'title': ms.title,
+    'sortIndex': ms.sortIndex,
+    'createdAt': _time(ms.createdAt),
+    'doneAt': ms.doneAt == null ? null : _time(ms.doneAt!),
+  };
+
+  static Milestone decodeMilestone(Map<String, Object?> m) => Milestone(
+    id: m['id'] as String,
+    goalId: m['goalId'] as String,
+    title: m['title'] as String,
+    sortIndex: m['sortIndex'] as int? ?? 0,
+    createdAt: _parseTime(m['createdAt'] as String),
+    doneAt: m['doneAt'] == null ? null : _parseTime(m['doneAt'] as String),
   );
 
   static Map<String, Object?> encodeReminderSettings(ReminderSettings s) => {

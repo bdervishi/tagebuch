@@ -38,7 +38,7 @@ packages/diary_stt_web/       WasmSttEngine (SttEngine + AudioFileTranscriberPor
 packages/diary_web/       Web-spezifische Umsetzungen der Ports aus diary_core (nur dart:js_interop und package:web)
  ├─ IndexedDbStore        Promise-/Event-Brücke zu IndexedDB: Datenbank `tagebuch`, Stores keys, records, files, meta
  ├─ WebMasterKeyStore     WebCrypto AES-256-GCM, extractable=false, als CryptoKey in IndexedDB; wrappt alle Schlüssel (DekWrapper)
- ├─ EncryptedRecordStore  verschlüsselte JSON-Datensätze (Einträge, Aufnahmen, Transkripte, Notizen, Einstellungen), AAD = <Sammlung>/<ID>
+ ├─ EncryptedRecordStore  verschlüsselte JSON-Datensätze (Sammlungen entries, recordings, transcripts, notes, goals, milestones, settings), AAD = <Sammlung>/<ID>
  ├─ EncryptedFileStore    Audio als Chunk-AEAD-Datei (diary_chunkfile) im Store `files`; OPFS als spätere Ausbaustufe
  ├─ Web…Repository        Repositories aus diary_core auf dem EncryptedRecordStore, WebSearchRepository mit Index im Speicher
  ├─ MediaRecorderCapture  Aufnahme, Pegel, Wellenform; PCM-Abgriff über AnalyserNode (AudioWorklet folgt mit der Erkennung, W5)
@@ -63,7 +63,7 @@ Abweichung vom ursprünglichen Bild (Stand W2/W3): Audiodateien liegen als Ganze
 
 Suche: Beim ersten Suchen werden alle Transkripte entschlüsselt in den Speicher geladen (ein Jahr Text liegt bei rund 1 MB) und gefaltet; Umlaute und ß werden wie in `diary_storage` normalisiert (Kopie der Regeln in `diary_web/src/text_normalization.dart`, gemeinsam zu pflegen). Jede Änderung macht den Index ungültig. Ab mehreren Jahren Daten wäre sqlite3 im Browser (drift mit WASM und OPFS) die Ausbaustufe; der Index läge dann unverschlüsselt im OPFS, deshalb erst nach Bewertung.
 
-Backup und Gerätewechsel (W4): `TransferUseCase` in `diary_core` packt Einträge, Aufnahmen, Transkripte, Notizen (D17) und Einstellungen als `db.ndjson` plus Audio-Rohbytes in den Container aus `diary_container` (Cipher-Kennung 2, XChaCha20-Poly1305 je 64-KiB-Nachricht, Argon2id oder X25519/HKDF); die App bietet dafür Einstellungen → Daten und die Karte "Zeit für ein Backup" auf "Heute". Der QR-Code wird mit `package:qr` (reines Dart) gezeichnet; die Datei wandert über den Download-Ordner bzw. das Teilen-Blatt des Browsers. Format und Abweichungen vom Konzept: `06-geraetewechsel-qr-transfer.md` Abschnitt 13.
+Backup und Gerätewechsel (W4): `TransferUseCase` in `diary_core` packt Einträge, Aufnahmen, Transkripte, Notizen (D17), Ziele und Etappen (D19) und Einstellungen als `db.ndjson` plus Audio-Rohbytes in den Container aus `diary_container` (Cipher-Kennung 2, XChaCha20-Poly1305 je 64-KiB-Nachricht, Argon2id oder X25519/HKDF); die App bietet dafür Einstellungen → Daten und die Karte "Zeit für ein Backup" auf "Heute". Der QR-Code wird mit `package:qr` (reines Dart) gezeichnet; die Datei wandert über den Download-Ordner bzw. das Teilen-Blatt des Browsers. Format und Abweichungen vom Konzept: `06-geraetewechsel-qr-transfer.md` Abschnitt 13.
 
 Tests: `packages/diary_web/test` läuft mit `flutter test --platform chrome` im Chromium (Master-Key, Datensätze überleben Schließen und Öffnen, Dateien mit der Dart-Referenz lesbar, Repositories, Suche, ICS, Backup- und Transfer-Round-Trip zwischen zwei IndexedDB-Datenbanken). MediaRecorder und Player sind headless nur bis zur Konstruktion prüfbar (kein Mikrofon, keine echte Aufnahme); der Weg Mikrofon → Datei → Wiedergabe wird auf dem Telefon geprüft (Prüfkriterium W3).
 

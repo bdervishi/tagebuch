@@ -210,6 +210,78 @@ class InMemoryNoteRepository implements NoteRepository {
       items.removeWhere((n) => n.id == noteId);
 }
 
+/// Ziele und Etappen (D19) im Speicher.
+class InMemoryGoalRepository implements GoalRepository {
+  InMemoryGoalRepository({
+    List<Goal> initialGoals = const [],
+    List<Milestone> initialMilestones = const [],
+  }) : goals = [...initialGoals],
+       milestones = [...initialMilestones];
+
+  final List<Goal> goals;
+  final List<Milestone> milestones;
+
+  @override
+  Future<void> insertGoal(Goal goal) async {
+    goals.removeWhere((g) => g.id == goal.id);
+    goals.add(goal);
+  }
+
+  @override
+  Future<void> updateGoal(Goal goal) => insertGoal(goal);
+
+  @override
+  Future<Goal?> goalById(String goalId) async =>
+      goals.where((g) => g.id == goalId).firstOrNull;
+
+  @override
+  Future<List<Goal>> listActive(String journalId) async =>
+      goals.where((g) => g.journalId == journalId && g.isActive).toList()
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+  @override
+  Future<List<Goal>> listArchived(String journalId) async =>
+      goals.where((g) => g.journalId == journalId && !g.isActive).toList()
+        ..sort((a, b) => b.closedAt!.compareTo(a.closedAt!));
+
+  @override
+  Future<List<Goal>> listAllGoals(String journalId) async =>
+      goals.where((g) => g.journalId == journalId).toList()
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+  @override
+  Future<void> deleteGoal(String goalId) async {
+    milestones.removeWhere((m) => m.goalId == goalId);
+    goals.removeWhere((g) => g.id == goalId);
+  }
+
+  @override
+  Future<void> insertMilestone(Milestone milestone) async {
+    milestones.removeWhere((m) => m.id == milestone.id);
+    milestones.add(milestone);
+  }
+
+  @override
+  Future<void> updateMilestone(Milestone milestone) =>
+      insertMilestone(milestone);
+
+  @override
+  Future<Milestone?> milestoneById(String milestoneId) async =>
+      milestones.where((m) => m.id == milestoneId).firstOrNull;
+
+  @override
+  Future<List<Milestone>> listMilestones(String goalId) async =>
+      milestones.where((m) => m.goalId == goalId).toList()
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+  @override
+  Future<List<Milestone>> listAllMilestones() async => List.of(milestones);
+
+  @override
+  Future<void> deleteMilestone(String milestoneId) async =>
+      milestones.removeWhere((m) => m.id == milestoneId);
+}
+
 class InMemorySettingsRepository implements SettingsRepository {
   InMemorySettingsRepository({
     this.reminderValue = const ReminderSettings(),

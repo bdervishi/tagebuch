@@ -97,6 +97,8 @@ void main() {
       entryCount: 3,
       recordingCount: 4,
       noteCount: 5,
+      goalCount: 2,
+      milestoneCount: 6,
       firstDay: '2026-09-01',
       lastDay: '2026-09-03',
       files: const [
@@ -106,6 +108,8 @@ void main() {
     final back = ContainerManifest.fromJsonString(m.toJsonString());
     expect(back.entryCount, 3);
     expect(back.noteCount, 5);
+    expect(back.goalCount, 2);
+    expect(back.milestoneCount, 6);
     // Ältere Dateien ohne Feld `notes`: gilt als 0.
     expect(
       ContainerManifest.fromJsonString(
@@ -113,6 +117,13 @@ void main() {
       ).noteCount,
       0,
     );
+    // Ebenso ohne `goals` und `milestones` (vor D19).
+    final withoutGoals = ContainerManifest.fromJsonString(
+      m.toJsonString().replaceFirst('"goals":2,"milestones":6,', ''),
+    );
+    expect(withoutGoals.goalCount, 0);
+    expect(withoutGoals.milestoneCount, 0);
+    expect(withoutGoals.noteCount, 5);
     expect(back.compression, ContainerManifest.compressionNone);
     expect(back.files.single.name, 'db.ndjson.gz');
     expect(

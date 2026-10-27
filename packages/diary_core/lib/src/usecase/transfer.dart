@@ -6,6 +6,7 @@ import 'package:diary_crypto/diary_crypto.dart';
 import 'package:meta/meta.dart';
 
 import '../model/entry.dart';
+import '../model/goal.dart';
 import '../model/json_codecs.dart';
 import '../model/local_day.dart';
 import '../model/note.dart';
@@ -113,13 +114,16 @@ class TransferSnapshot {
     required this.recordings,
     required this.transcripts,
     this.notes = const [],
+    this.goals = const [],
+    this.milestones = const [],
     this.reminder,
     this.settings = const {},
   });
 
-  /// Schemaversion des NDJSON-Exports (Manifest `schemaVersion`). Der
-  /// Zeilentyp `note` (D17) kam ohne Versionssprung hinzu: Leser überspringen
-  /// unbekannte Typen, und eine Datei ohne Notizen bleibt gültig.
+  /// Schemaversion des NDJSON-Exports (Manifest `schemaVersion`). Die
+  /// Zeilentypen `note` (D17) sowie `goal` und `milestone` (D19) kamen ohne
+  /// Versionssprung hinzu: Leser überspringen unbekannte Typen, und eine
+  /// Datei ohne Notizen oder Ziele bleibt gültig.
   static const int schemaVersion = 1;
 
   final List<DiaryEntry> entries;
@@ -128,6 +132,10 @@ class TransferSnapshot {
 
   /// Geschriebene Texte (D17); fehlt in Dateien älterer Versionen.
   final List<EntryNote> notes;
+
+  /// Ziele und Etappen (D19); fehlen in Dateien älterer Versionen.
+  final List<Goal> goals;
+  final List<Milestone> milestones;
   final ReminderSettings? reminder;
   final Map<String, String> settings;
 
@@ -158,6 +166,12 @@ class TransferSnapshot {
     for (final n in notes) {
       line('note', ModelJson.encodeNote(n));
     }
+    for (final g in goals) {
+      line('goal', ModelJson.encodeGoal(g));
+    }
+    for (final m in milestones) {
+      line('milestone', ModelJson.encodeMilestone(m));
+    }
     if (reminder != null) {
       line('reminder', ModelJson.encodeReminderSettings(reminder!));
     }
@@ -173,6 +187,8 @@ class TransferSnapshot {
     final recordings = <Recording>[];
     final transcripts = <Transcript>[];
     final notes = <EntryNote>[];
+    final goals = <Goal>[];
+    final milestones = <Milestone>[];
     ReminderSettings? reminder;
     final settings = <String, String>{};
     for (final raw in LineSplitter.split(text)) {
@@ -191,6 +207,10 @@ class TransferSnapshot {
           transcripts.add(ModelJson.decodeTranscript(m));
         case 'note':
           notes.add(ModelJson.decodeNote(m));
+        case 'goal':
+          goals.add(ModelJson.decodeGoal(m));
+        case 'milestone':
+          milestones.add(ModelJson.decodeMilestone(m));
         case 'reminder':
           reminder = ModelJson.decodeReminderSettings(m);
         case 'setting':
@@ -204,6 +224,8 @@ class TransferSnapshot {
       recordings: recordings,
       transcripts: transcripts,
       notes: notes,
+      goals: goals,
+      milestones: milestones,
       reminder: reminder,
       settings: settings,
     );
@@ -234,6 +256,10 @@ class ImportResult {
     required this.recordingsSkipped,
     this.notesImported = 0,
     this.notesSkipped = 0,
+    this.goalsImported = 0,
+    this.goalsSkipped = 0,
+    this.milestonesImported = 0,
+    this.milestonesSkipped = 0,
   });
   final int entriesCreated;
 
@@ -248,6 +274,13 @@ class ImportResult {
   /// übersprungen.
   final int notesImported;
   final int notesSkipped;
+
+  /// Ziele und Etappen (D19), übernommen bzw. übersprungen (Kennung schon
+  /// vorhanden oder Ziel der Etappe unbekannt).
+  final int goalsImported;
+  final int goalsSkipped;
+  final int milestonesImported;
+  final int milestonesSkipped;
 }
 
 /// Backup und Gerätewechsel (M8, D6, D16): packt alle Einträge in den
@@ -270,6 +303,7 @@ class TransferUseCase {
     required this.ids,
     required this.clock,
     this.notes,
+    this.goals,
     this.appVersion = '0.0.0',
     this.argon2Params = Argon2Params.standard,
     this.keys = const ContainerKeys(),
@@ -292,6 +326,9 @@ class TransferUseCase {
 
   /// Geschriebene Texte (D17); `null`, wenn die Plattform keine hat.
   final NoteRepository? notes;
+
+  /// Ziele und Etappen (D19); `null`, wenn die Plattform keine hat.
+  final GoalRepository? goals;
   final SettingsRepository settings;
   final AudioFileSource audioSource;
   final AudioFileSink audioSink;
@@ -408,11 +445,23 @@ class TransferUseCase {
       }
       if (noteRepo != null) allNotes.addAll(await noteRepo.listForEntry(e.id));
     }
+    final goalRepo = goals;
+    final allGoals = goalRepo == null
+        ? const <Goal>[]
+        : await goalRepo.listAllGoals(journalId);
+    final allMilestones = <Milestone>[];
+    if (goalRepo != null) {
+      for (final g in allGoals) {
+        allMilestones.addAll(await goalRepo.listMilestones(g.id));
+      }
+    }
     return TransferSnapshot(
       entries: allEntries,
       recordings: allRecordings,
       transcripts: allTranscripts,
       notes: allNotes,
+      goals: allGoals,
+      milestones: allMilestones,
       reminder: await settings.reminder(),
       settings: await settings.all(),
     );
@@ -430,6 +479,8 @@ class TransferUseCase {
       entryCount: snap.entries.length,
       recordingCount: snap.recordings.length,
       noteCount: snap.notes.length,
+      goalCount: snap.goals.length,
+      milestoneCount: snap.milestones.length,
       firstDay: snap.firstDay,
       lastDay: snap.lastDay,
     );
@@ -714,6 +765,48 @@ class TransferUseCase {
       }
     }
 
+    // Ziele und Etappen (D19): Kennungen bleiben, vorhandene werden
+    // übersprungen; die Drei-Grenze gilt nur beim Anlegen, nicht hier.
+    var goalsImported = 0;
+    var goalsSkipped = 0;
+    var milestonesImported = 0;
+    var milestonesSkipped = 0;
+    final goalRepo = goals;
+    if (goalRepo != null && snap.goals.isNotEmpty) {
+      final knownGoals = <String>{};
+      for (final g in snap.goals) {
+        if (await goalRepo.goalById(g.id) != null) {
+          knownGoals.add(g.id);
+          goalsSkipped++;
+          continue;
+        }
+        await goalRepo.insertGoal(
+          Goal(
+            id: g.id,
+            journalId: journalId,
+            title: g.title,
+            why: g.why,
+            createdAt: g.createdAt,
+            updatedAt: g.updatedAt,
+            completedAt: g.completedAt,
+            archivedAt: g.archivedAt,
+            sortIndex: g.sortIndex,
+          ),
+        );
+        knownGoals.add(g.id);
+        goalsImported++;
+      }
+      for (final m in snap.milestones) {
+        if (!knownGoals.contains(m.goalId) ||
+            await goalRepo.milestoneById(m.id) != null) {
+          milestonesSkipped++;
+          continue;
+        }
+        await goalRepo.insertMilestone(m);
+        milestonesImported++;
+      }
+    }
+
     // Einstellungen: nur ergänzen, nie überschreiben; die Erinnerung nur auf
     // einem Gerät ohne eigene Einträge.
     for (final s in snap.settings.entries) {
@@ -731,6 +824,10 @@ class TransferUseCase {
       recordingsSkipped: skipped,
       notesImported: notesImported,
       notesSkipped: notesSkipped,
+      goalsImported: goalsImported,
+      goalsSkipped: goalsSkipped,
+      milestonesImported: milestonesImported,
+      milestonesSkipped: milestonesSkipped,
     );
   }
 }

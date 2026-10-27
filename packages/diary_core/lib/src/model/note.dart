@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:meta/meta.dart';
 
 /// Woher ein geschriebener Text stammt.
@@ -34,7 +36,8 @@ abstract final class ReviewPrompts {
   static const String promptsAt = 'prompts_at';
 
   /// Interne Notiz am heutigen Eintrag: der gestrige Schritt wurde als
-  /// erledigt markiert (Text `1`). Kein Streak, kein Zähler.
+  /// erledigt markiert. Text `1` oder, wenn daraus eine Etappe eines Ziels
+  /// wurde, das JSON von [StepDoneMark] (D19). Kein Streak, kein Zähler.
   static const String nextDone = 'next_done';
 
   /// Wahr für Notizen, die der Ablauf anlegt und die nicht als Text in der
@@ -55,6 +58,7 @@ class EntryNote {
     required this.text,
     this.promptKey,
     this.source = NoteSource.typed,
+    this.goalId,
   });
 
   final String id;
@@ -67,21 +71,64 @@ class EntryNote {
   final String? promptKey;
   final NoteSource source;
 
+  /// Ziel (D19), dem der Schritt für morgen zugeordnet ist; nur beim Impuls
+  /// [ReviewPrompts.next] belegt, sonst `null`. Fehlt in älteren Datensätzen.
+  final String? goalId;
+
   bool get isInternal => ReviewPrompts.isInternal(promptKey);
 
   int get wordCount =>
       text.trim().isEmpty ? 0 : text.trim().split(RegExp(r'\s+')).length;
 
-  EntryNote copyWith({String? text, DateTime? updatedAt, String? entryId}) =>
-      EntryNote(
-        id: id,
-        entryId: entryId ?? this.entryId,
-        createdAt: createdAt,
-        updatedAt: updatedAt ?? this.updatedAt,
-        text: text ?? this.text,
-        promptKey: promptKey,
-        source: source,
-      );
+  /// [clearGoalId] löst die Zuordnung zu einem Ziel.
+  EntryNote copyWith({
+    String? text,
+    DateTime? updatedAt,
+    String? entryId,
+    String? goalId,
+    bool clearGoalId = false,
+  }) => EntryNote(
+    id: id,
+    entryId: entryId ?? this.entryId,
+    createdAt: createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    text: text ?? this.text,
+    promptKey: promptKey,
+    source: source,
+    goalId: clearGoalId ? null : (goalId ?? this.goalId),
+  );
+}
+
+/// Inhalt der Notiz [ReviewPrompts.nextDone] (D19): ob aus dem erledigten
+/// Schritt eine Etappe eines Ziels wurde. Ohne Etappe steht in der Notiz
+/// weiterhin `1`; mit Etappe das JSON `{"milestoneId":"…"}`, damit das
+/// Zurücknehmen des Häkchens die Etappe wieder entfernen kann. Unlesbarer
+/// Text gilt als "erledigt, ohne Etappe".
+@immutable
+class StepDoneMark {
+  const StepDoneMark({this.milestoneId});
+
+  /// Text der Notiz ohne Etappe (D17).
+  static const String plain = '1';
+
+  final String? milestoneId;
+
+  String encode() =>
+      milestoneId == null ? plain : jsonEncode({'milestoneId': milestoneId});
+
+  static StepDoneMark parse(String text) {
+    final t = text.trim();
+    if (!t.startsWith('{')) return const StepDoneMark();
+    try {
+      final m = jsonDecode(t);
+      if (m is Map && m['milestoneId'] is String) {
+        return StepDoneMark(milestoneId: m['milestoneId'] as String);
+      }
+    } on FormatException {
+      // Älterer oder fremder Text: erledigt ohne Etappe.
+    }
+    return const StepDoneMark();
+  }
 }
 
 /// Zeitmarke eines Impulswechsels während einer Aufnahme.

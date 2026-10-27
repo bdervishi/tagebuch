@@ -3,15 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/entry_view.dart';
+import '../../data/goals_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/mood_dots.dart';
 import '../../widgets/reveal.dart';
 import '../../widgets/surface_card.dart';
 
-/// Wochenrückblick (D17, D8): die letzten sieben Tage als schlichte Liste
-/// der Antworten auf "gut gelaufen" und "gelernt", die erledigten Schritte
-/// und der Stimmungsverlauf als sieben Punkte. Keine Zähler, keine Wertung,
-/// keine KI.
+/// Wochenrückblick (D17, D8, D19): die letzten sieben Tage als schlichte
+/// Liste der Antworten auf "gut gelaufen" und "gelernt", die erledigten
+/// Schritte, der Stimmungsverlauf als sieben Punkte und "Wege diese Woche"
+/// (je Weg die erledigten Etappen). Keine Zähler, keine Wertung, keine KI.
 class WeekReviewScreen extends ConsumerWidget {
   const WeekReviewScreen({super.key});
 
@@ -20,11 +21,15 @@ class WeekReviewScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final week = ref.watch(weekReviewProvider);
+    final weekGoals = ref.watch(weekGoalsProvider).value ?? const [];
     return Scaffold(
       appBar: AppBar(title: Text(l10n.weekTitle)),
       body: SafeArea(
         child: switch (week) {
-          AsyncData(value: final days) => _WeekBody(days: days),
+          AsyncData(value: final days) => _WeekBody(
+            days: days,
+            goals: weekGoals,
+          ),
           AsyncError() => Center(child: Text(l10n.startError)),
           _ => Center(
             child: Semantics(
@@ -40,9 +45,12 @@ class WeekReviewScreen extends ConsumerWidget {
 }
 
 class _WeekBody extends StatelessWidget {
-  const _WeekBody({required this.days});
+  const _WeekBody({required this.days, required this.goals});
 
   final List<WeekDay> days;
+
+  /// Je Weg die in dieser Woche erledigten Etappen (D19).
+  final List<(Goal, List<Milestone>)> goals;
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +126,91 @@ class _WeekBody extends StatelessWidget {
             format: materialL10n.formatMediumDate,
           ),
         ),
+        Reveal(
+          index: 5,
+          child: _GoalsSection(
+            goals: goals,
+            format: materialL10n.formatMediumDate,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// "Wege diese Woche": je Weg die erledigten Etappen mit Datum, ohne Zähler.
+class _GoalsSection extends StatelessWidget {
+  const _GoalsSection({required this.goals, required this.format});
+
+  final List<(Goal, List<Milestone>)> goals;
+  final String Function(DateTime) format;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Column(
+      key: const Key('week-goals'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.route_outlined, size: 20, color: scheme.primary),
+            const SizedBox(width: 8),
+            Text(l10n.weekGoalsHeading, style: theme.textTheme.titleSmall),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (goals.isEmpty)
+          Text(
+            l10n.weekSectionEmpty,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          )
+        else
+          for (final (goal, milestones) in goals)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(goal.title, style: theme.textTheme.titleSmall),
+                  for (final m in milestones)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.check,
+                            size: 18,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              m.title,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            format(m.doneAt!),
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        const SizedBox(height: 24),
       ],
     );
   }

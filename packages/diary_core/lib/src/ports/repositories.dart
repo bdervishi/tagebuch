@@ -1,4 +1,5 @@
 import '../model/entry.dart';
+import '../model/goal.dart';
 import '../model/journal.dart';
 import '../model/local_day.dart';
 import '../model/note.dart';
@@ -63,6 +64,36 @@ abstract interface class NoteRepository {
   /// Notizen eines Eintrags, älteste zuerst (nach `createdAt`).
   Future<List<EntryNote>> listForEntry(String entryId);
   Future<void> delete(String noteId);
+}
+
+/// Ziele und Etappen (D19). Umgesetzt in `diary_web` (Sammlungen `goals`
+/// und `milestones`) und als In-Memory-Fake. Löschen eines Ziels löscht
+/// seine Etappen.
+abstract interface class GoalRepository {
+  Future<void> insertGoal(Goal goal);
+  Future<void> updateGoal(Goal goal);
+  Future<Goal?> goalById(String goalId);
+
+  /// Aktive Ziele (weder abgeschlossen noch archiviert), nach `sortIndex`.
+  Future<List<Goal>> listActive(String journalId);
+
+  /// Abgeschlossene und archivierte Ziele, zuletzt beendete zuerst.
+  Future<List<Goal>> listArchived(String journalId);
+
+  /// Alle Ziele eines Tagebuchs (Export), nach `sortIndex`.
+  Future<List<Goal>> listAllGoals(String journalId);
+  Future<void> deleteGoal(String goalId);
+
+  Future<void> insertMilestone(Milestone milestone);
+  Future<void> updateMilestone(Milestone milestone);
+  Future<Milestone?> milestoneById(String milestoneId);
+
+  /// Etappen eines Ziels nach `sortIndex`.
+  Future<List<Milestone>> listMilestones(String goalId);
+
+  /// Alle Etappen aller Ziele (Export, Wochenrückblick).
+  Future<List<Milestone>> listAllMilestones();
+  Future<void> deleteMilestone(String milestoneId);
 }
 
 /// Ein Suchtreffer; bei Transkripten mit Sprungziel in die Wiedergabe, bei

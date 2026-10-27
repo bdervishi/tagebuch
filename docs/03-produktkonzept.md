@@ -243,6 +243,18 @@ Umgesetzt in der PWA und in den Kernpaketen; Entscheidung und Abgrenzung in `ent
 
 **Bewusst nicht gebaut.** Keine Auswertung der Texte, keine Erinnerung an "offene" Schritte, kein Zähler erledigter Schritte, keine Stimmungsstatistik über Wochen hinaus, keine Vorgaben zu Länge oder Häufigkeit. Die 45 Sekunden je Impuls und die Formulierungen sind eigene Festlegungen für den Beta-Test (offene Frage 8 zur Altersfreigabe gilt auch für diese Fragen).
 
+## Umsetzungsstand: Wege (Ziele mit Etappen, D19, 27. 10. 2026)
+
+Umgesetzt in der PWA und in den Kernpaketen; Entscheidung und Begründung in `entscheidungen.md`, D19. "Wege" gibt dem Schritt für morgen einen Zusammenhang: Die Nutzerin setzt sich bis zu drei Vorhaben und zerlegt sie in kleine Etappen; der vierte Impuls des Rückblicks kann einem Weg zugeordnet werden, und das Häkchen "erledigt" macht aus dem Schritt eine Etappe. Die Begründung folgt der Linie aus dem Abschnitt oben (Implementierungsabsichten nach Gollwitzer, kleine Schritte statt großer Vorsätze) und der Haltung aus docs/12: Fortschritt ist "3 von 7 Etappen", nicht Prozent, Punkte oder Ketten.
+
+**Was gebaut ist.**
+- Modell `Goal` und `Milestone` in `diary_core` mit JSON-Codecs, Port `GoalRepository`, Anwendungsfall `GoalsUseCase` (höchstens drei aktive Ziele, sonst `GoalLimitReachedException`; Etappe aus dem Schritt für heute über `addDoneMilestone`). `EntryNote.goalId` verknüpft den Schritt mit dem Weg; die Notiz `next_done` trägt die Etappen-Kennung als `StepDoneMark`, damit das Zurücknehmen des Häkchens die Etappe wieder entfernt.
+- Speicherung verschlüsselt im Browser (`diary_web`, Sammlungen `goals` und `milestones`; Löschen eines Ziels löscht die Etappen), In-Memory-Fake für die native App bis Spike S4; Backup und Gerätewechsel mit den NDJSON-Zeilen `goal` und `milestone` und den Manifest-Zählern `goals` und `milestones` (Schemaversion bleibt 1).
+- Bildschirm "Wege" (Route `/goals`, von "Heute" aus): aktive Wege als Karten mit Titel, Warum, "3 von 7 Etappen" und nächster offener Etappe; Details mit abhakbarer Etappenliste, Etappe hinzufügen (Enter), abschließen (Vorschlag, wenn alle Etappen erledigt sind; sonst jederzeit im Menü), zur Seite legen, bearbeiten, löschen mit Rückfrage; Abschnitt "Abgeschlossen" mit Datum, ruhig. Blatt "Neuer Weg" mit Titel, Warum und ersten Etappen; beim vierten Weg ein freundlicher Hinweis statt eines Fehlers.
+- "Heute": Abschnitt "Deine Wege" unter dem Schritt für heute (eine Zeile je Weg, "3 von 7"), ohne Wege der leise Hinweis "Setze dir einen Weg"; die Karte "Dein Schritt für heute" nennt den zugeordneten Weg. Schreib-Assistent und Notiz-Bearbeitung: Chips "Kein Weg" plus aktive Wege am Impuls `next`. Wochenrückblick: "Wege diese Woche" mit den in den letzten sieben Tagen erledigten Etappen je Weg. Texte in `app_de.arb`/`app_en.arb`.
+
+**Bewusst nicht gebaut.** Keine Fristen, keine Erinnerung an offene Etappen, kein Prozentbalken, keine Punkte, keine Wochen- oder Monatsziele, keine Vorschläge für Ziele oder Etappen (D8), kein Konfetti beim Abschluss. Die Zahl drei und die Formulierungen sind eigene Festlegungen für den Beta-Test.
+
 ## 11. Offene Fragen
 
 1. **Aufnahme bei gesperrter App.** Damit Controls und Widgets ohne Entsperren aufnehmen können, müssen neue Eintragsschlüssel ohne Zugriff auf den Master-Key gewrappt werden (z. B. asymmetrisch). `05-sicherheit-und-datenschutz.md`, Abschnitt 2.7 skizziert dafür den "Schreibschlüssel" (Sealed Box an einen X25519-Schlüssel des Telefons, spätere Neuverpackung mit dem Master-Key); ob D5 das hergibt oder ob der Start eine Authentifizierung verlangt, klärt ein Spike im Technikkonzept.

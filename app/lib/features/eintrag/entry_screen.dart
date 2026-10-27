@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/formats.dart';
 import '../../app/routes.dart';
 import '../../data/entry_view.dart';
+import '../../data/goals_view.dart';
 import '../../data/settings_notifier.dart';
 import '../../data/transcription_jobs.dart';
 import '../../l10n/app_localizations.dart';
@@ -253,6 +254,10 @@ class _NoteCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final key = note.promptKey;
+    final goalId = note.goalId;
+    final goal = goalId == null
+        ? null
+        : ref.watch(goalViewProvider(goalId)).value?.goal;
     return SurfaceCard(
       key: Key('note-card-${note.id}'),
       padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
@@ -296,6 +301,24 @@ class _NoteCard extends ConsumerWidget {
             note.text,
             style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
           ),
+          if (goal != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.route_outlined, size: 16, color: scheme.primary),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    l10n.stepCardGoal(goal.title),
+                    key: Key('note-goal-${note.id}'),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

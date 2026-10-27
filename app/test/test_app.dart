@@ -160,6 +160,7 @@ class TestServices {
       transcripts: transcripts,
     );
     notes = InMemoryNoteRepository(initial: noteItems);
+    goals = InMemoryGoalRepository();
     entries = InMemoryEntryRepository(
       ids,
       initial: entryItems,
@@ -175,6 +176,7 @@ class TestServices {
       recordings: recordings,
       transcripts: transcripts,
       notes: notes,
+      goals: goals,
       settings: settings,
       search: InMemorySearchRepository(
         entries,
@@ -212,6 +214,7 @@ class TestServices {
   late final InMemoryRecordingRepository recordings;
   late final InMemoryTranscriptRepository transcripts;
   late final InMemoryNoteRepository notes;
+  late final InMemoryGoalRepository goals;
   late final InMemorySettingsRepository settings;
   late final AppServices services;
 

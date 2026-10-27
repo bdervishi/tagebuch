@@ -18,6 +18,10 @@ import '../rueckblick/prompts.dart';
 Key writeFieldKey(String? promptKey) =>
     Key('write-field-${promptKey ?? 'free-text'}');
 
+/// Key des Chips, der den Schritt für morgen einem Weg zuordnet (D19);
+/// `null` ist "Kein Weg".
+Key writeGoalChipKey(String? goalId) => Key('write-goal-${goalId ?? 'none'}');
+
 /// Keys für Tests: Schließen, "Zurück" und "Weiter"/"Fertig" des Assistenten.
 const Key writeCloseKey = Key('write-close');
 const Key writeBackKey = Key('write-back');
@@ -34,7 +38,8 @@ const Duration writeAutosaveDelay = Duration(seconds: 1);
 /// (aus [ReviewPrompts.review]), zum Schluss die Stimmung; jedes Feld ist
 /// eine eigene [EntryNote] mit `promptKey`. Leere Felder werden nicht gespeichert, ein
 /// geleertes Feld löscht seine Notiz. Ohne die Einstellung gibt es ein
-/// freies Feld. Mit [noteId] wird genau diese Notiz bearbeitet.
+/// freies Feld. Mit [noteId] wird genau diese Notiz bearbeitet. Beim Impuls
+/// `next` lässt sich der Schritt per Chip einem aktiven Weg zuordnen (D19).
 class WriteScreen extends ConsumerStatefulWidget {
   const WriteScreen({super.key, required this.day, this.noteId});
 
@@ -50,6 +55,9 @@ class WriteScreen extends ConsumerStatefulWidget {
 class _WriteScreenState extends ConsumerState<WriteScreen> {
   final List<_NoteField> _fields = [];
   AppServices? _services;
+
+  /// Aktive Wege für die Chips am Impuls `next` (D19).
+  List<Goal> _goals = const [];
 
   /// Der Zähler für die lesenden Provider; als Objekt gehalten, weil das
   /// Speichern beim Verlassen nach dem Dispose des Widgets endet und `ref`
@@ -81,6 +89,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       final notes = entry == null
           ? const <EntryNote>[]
           : await services.notes.listForEntry(entry.id);
+      final goals = await services.goals.listActive(services.journalId);
       final fields = <_NoteField>[];
       final noteId = widget.noteId;
       if (noteId != null) {
@@ -120,6 +129,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         _dataVersion = ref.read(dataVersionProvider.notifier);
         _entry = entry;
         _guided = widget.noteId == null && settings.guidedReview;
+        _goals = goals;
         _fields.addAll(fields);
         _ready = true;
       });
@@ -151,6 +161,16 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     setState(() {});
   }
 
+  /// Ordnet den Schritt für morgen einem Weg zu (oder keinem) und speichert
+  /// sofort, sofern Text da ist.
+  void _onGoalChanged(_NoteField field, String? goalId) {
+    if (field.goalId == goalId) return;
+    field.goalId = goalId;
+    field.dirty = true;
+    unawaited(_save(field));
+    setState(() {});
+  }
+
   /// Speichert ein Feld; Aufrufe desselben Felds laufen nacheinander.
   Future<void> _save(_NoteField field) {
     field.timer?.cancel();
@@ -175,9 +195,15 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       }
       return;
     }
+    final goalId = field.promptKey == ReviewPrompts.next ? field.goalId : null;
     if (existing != null) {
-      if (existing.text == text) return;
-      final updated = existing.copyWith(text: text, updatedAt: now);
+      if (existing.text == text && existing.goalId == goalId) return;
+      final updated = existing.copyWith(
+        text: text,
+        updatedAt: now,
+        goalId: goalId,
+        clearGoalId: goalId == null,
+      );
       await services.notes.update(updated);
       field.existing = updated;
     } else {
@@ -189,6 +215,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         updatedAt: now,
         text: text,
         promptKey: field.promptKey,
+        goalId: goalId,
       );
       await services.notes.insert(note);
       field.existing = note;
@@ -309,6 +336,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                       child: _PromptField(
                         field: f,
                         onChanged: () => _onChanged(f),
+                        goals: _goals,
+                        onGoalChanged: (id) => _onGoalChanged(f, id),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -362,6 +391,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                       onChanged: () => _onChanged(f),
                       autofocus: index == 0,
                       minLines: 5,
+                      goals: _goals,
+                      onGoalChanged: (id) => _onGoalChanged(f, id),
                     ),
                   ],
                 );
@@ -499,9 +530,13 @@ class _NoteField {
   _NoteField(this.promptKey, {EntryNote? existing})
     : existing = existing,
       text = existing?.text ?? '',
+      goalId = existing?.goalId,
       controller = TextEditingController(text: existing?.text ?? '');
 
   final String? promptKey;
+
+  /// Zugeordneter Weg (nur beim Impuls `next`, D19).
+  String? goalId;
   final TextEditingController controller;
   final FocusNode focus = FocusNode();
 
@@ -524,11 +559,17 @@ class _PromptField extends StatelessWidget {
     required this.onChanged,
     this.autofocus = false,
     this.minLines,
+    this.goals = const [],
+    this.onGoalChanged,
   });
 
   final _NoteField field;
   final VoidCallback onChanged;
   final bool autofocus;
+
+  /// Aktive Wege für die Chips unter dem Impuls `next` (D19); leer: keine.
+  final List<Goal> goals;
+  final ValueChanged<String?>? onGoalChanged;
 
   /// Mindesthöhe in Zeilen; ohne Angabe 6 (frei) bzw. 2 (Impuls).
   final int? minLines;
@@ -576,6 +617,35 @@ class _PromptField extends StatelessWidget {
           ),
           style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
         ),
+        if (key == ReviewPrompts.next && goals.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            l10n.writeGoalLabel,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ChoiceChip(
+                key: writeGoalChipKey(null),
+                label: Text(l10n.writeGoalNone),
+                selected: field.goalId == null,
+                onSelected: (_) => onGoalChanged?.call(null),
+              ),
+              for (final g in goals)
+                ChoiceChip(
+                  key: writeGoalChipKey(g.id),
+                  label: Text(g.title),
+                  selected: field.goalId == g.id,
+                  onSelected: (_) => onGoalChanged?.call(g.id),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }

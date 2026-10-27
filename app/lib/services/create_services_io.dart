@@ -28,6 +28,7 @@ Future<AppServices> createAppServices() async {
     recordings: recordings,
     transcripts: transcripts,
     notes: notes,
+    goals: InMemoryGoalRepository(),
     settings: InMemorySettingsRepository(),
     search: InMemorySearchRepository(
       entries,

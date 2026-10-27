@@ -307,6 +307,8 @@ class ContainerPayloadBuilder {
     required this.entryCount,
     required this.recordingCount,
     this.noteCount = 0,
+    this.goalCount = 0,
+    this.milestoneCount = 0,
     this.firstDay,
     this.lastDay,
   });
@@ -317,6 +319,8 @@ class ContainerPayloadBuilder {
   final int entryCount;
   final int recordingCount;
   final int noteCount;
+  final int goalCount;
+  final int milestoneCount;
   final String? firstDay;
   final String? lastDay;
   final List<(String, Uint8List)> _files = [];
@@ -346,6 +350,8 @@ class ContainerPayloadBuilder {
     entryCount: entryCount,
     recordingCount: recordingCount,
     noteCount: noteCount,
+    goalCount: goalCount,
+    milestoneCount: milestoneCount,
     firstDay: firstDay,
     lastDay: lastDay,
     files: List.unmodifiable(_listed),

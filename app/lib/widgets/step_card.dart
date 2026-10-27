@@ -9,6 +9,7 @@ import 'surface_card.dart';
 /// Widget-Keys für Tests.
 const Key stepCardKey = Key('step-card');
 const Key stepDoneKey = Key('step-done');
+const Key stepGoalKey = Key('step-goal');
 
 /// Karte "Dein Schritt für heute" auf "Heute" (D17): die gestrige Antwort auf
 /// "Der eine Schritt für morgen" mit einem Häkchen. Kein Streak, kein
@@ -63,6 +64,24 @@ class StepCard extends ConsumerWidget {
               ),
               child: Text(state.text),
             ),
+            if (state.goalTitle != null) ...[
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Icon(Icons.route_outlined, size: 16, color: onColor),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      l10n.stepCardGoal(state.goalTitle!),
+                      key: stepGoalKey,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: onColor.withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 4),
             Semantics(
               label: l10n.stepCardDoneSemantics,

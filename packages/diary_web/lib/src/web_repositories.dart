@@ -13,6 +13,8 @@ abstract final class Collections {
   static const recordings = 'recordings';
   static const transcripts = 'transcripts';
   static const notes = 'notes';
+  static const goals = 'goals';
+  static const milestones = 'milestones';
   static const settings = 'settings';
 }
 
@@ -203,6 +205,90 @@ class WebNoteRepository implements NoteRepository {
   @override
   Future<void> delete(String noteId) =>
       _store.delete(Collections.notes, noteId);
+}
+
+/// Ziele und Etappen (D19) als verschlüsselte Datensätze in den Sammlungen
+/// `goals` und `milestones`. Löschen eines Ziels löscht seine Etappen.
+class WebGoalRepository implements GoalRepository {
+  WebGoalRepository(this._store);
+
+  final EncryptedRecordStore _store;
+
+  Future<List<Goal>> _goals(String journalId) async => [
+    for (final m in await _store.getAll(Collections.goals))
+      if (m['journalId'] == journalId) Codecs.decodeGoal(m),
+  ];
+
+  @override
+  Future<void> insertGoal(Goal goal) =>
+      _store.put(Collections.goals, goal.id, Codecs.encodeGoal(goal));
+
+  @override
+  Future<void> updateGoal(Goal goal) => insertGoal(goal);
+
+  @override
+  Future<Goal?> goalById(String goalId) async {
+    final m = await _store.get(Collections.goals, goalId);
+    return m == null ? null : Codecs.decodeGoal(m);
+  }
+
+  @override
+  Future<List<Goal>> listActive(String journalId) async =>
+      (await _goals(journalId)).where((g) => g.isActive).toList()
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+  @override
+  Future<List<Goal>> listArchived(String journalId) async =>
+      (await _goals(journalId)).where((g) => !g.isActive).toList()
+        ..sort((a, b) => b.closedAt!.compareTo(a.closedAt!));
+
+  @override
+  Future<List<Goal>> listAllGoals(String journalId) async =>
+      (await _goals(journalId))
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+  @override
+  Future<void> deleteGoal(String goalId) async {
+    for (final m in await _store.getAll(Collections.milestones)) {
+      if (m['goalId'] == goalId) {
+        await _store.delete(Collections.milestones, m['id'] as String);
+      }
+    }
+    await _store.delete(Collections.goals, goalId);
+  }
+
+  @override
+  Future<void> insertMilestone(Milestone milestone) => _store.put(
+    Collections.milestones,
+    milestone.id,
+    Codecs.encodeMilestone(milestone),
+  );
+
+  @override
+  Future<void> updateMilestone(Milestone milestone) =>
+      insertMilestone(milestone);
+
+  @override
+  Future<Milestone?> milestoneById(String milestoneId) async {
+    final m = await _store.get(Collections.milestones, milestoneId);
+    return m == null ? null : Codecs.decodeMilestone(m);
+  }
+
+  @override
+  Future<List<Milestone>> listMilestones(String goalId) async => [
+    for (final m in await _store.getAll(Collections.milestones))
+      if (m['goalId'] == goalId) Codecs.decodeMilestone(m),
+  ]..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+  @override
+  Future<List<Milestone>> listAllMilestones() async => [
+    for (final m in await _store.getAll(Collections.milestones))
+      Codecs.decodeMilestone(m),
+  ];
+
+  @override
+  Future<void> deleteMilestone(String milestoneId) =>
+      _store.delete(Collections.milestones, milestoneId);
 }
 
 /// Aufnahmen. "Audio löschen" vernichtet den gewrappten Dateischlüssel im

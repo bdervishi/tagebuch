@@ -19,6 +19,7 @@ class AppServices {
     required this.recordings,
     required this.transcripts,
     required this.notes,
+    required this.goals,
     required this.settings,
     required this.search,
     required this.recorder,
@@ -46,6 +47,9 @@ class AppServices {
 
   /// Geschriebene Texte und Rückblick-Antworten (D17).
   final NoteRepository notes;
+
+  /// Ziele mit Etappen, "Wege" (D19).
+  final GoalRepository goals;
   final SettingsRepository settings;
   final SearchRepository search;
   final AudioRecorderPort recorder;
@@ -108,6 +112,10 @@ class AppServices {
     );
   }
 
+  /// Ziele und Etappen (D19) mit diesen Ports.
+  GoalsUseCase goalsUseCase() =>
+      GoalsUseCase(journalId: journalId, goals: goals, ids: ids, clock: clock);
+
   /// Backup und Gerätewechsel mit diesen Ports.
   TransferUseCase transfer() => TransferUseCase(
     journalId: journalId,
@@ -115,6 +123,7 @@ class AppServices {
     recordings: recordings,
     transcripts: transcripts,
     notes: notes,
+    goals: goals,
     settings: settings,
     audioSource: audioFiles,
     audioSink: audioFiles,

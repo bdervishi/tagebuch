@@ -13,6 +13,7 @@ void main() {
   late WebRecordingRepository recordings;
   late WebTranscriptRepository transcripts;
   late WebNoteRepository notes;
+  late WebGoalRepository goals;
   late WebSettingsRepository settings;
   late WebSearchRepository search;
   const journalId = WebJournalRepository.defaultId;
@@ -25,6 +26,7 @@ void main() {
     recordings = WebRecordingRepository(store);
     transcripts = WebTranscriptRepository(store);
     notes = WebNoteRepository(store);
+    goals = WebGoalRepository(store);
     settings = WebSettingsRepository(store);
     search = WebSearchRepository(store);
   });
@@ -170,6 +172,98 @@ void main() {
     expect(await notes.listForEntry(e.id), isEmpty);
     expect(await store.getAllKeys(Collections.notes), isEmpty);
   });
+
+  test(
+    'Ziele und Etappen (D19): anlegen, abhaken, sortieren, löschen',
+    () async {
+      final t0 = DateTime(2026, 10, 27, 21);
+      Goal goal(String id, int sort, {DateTime? completedAt}) => Goal(
+        id: id,
+        journalId: journalId,
+        title: 'Ziel $id',
+        why: id == 'g1' ? 'Darum.' : null,
+        createdAt: t0,
+        updatedAt: t0,
+        sortIndex: sort,
+        completedAt: completedAt,
+      );
+      await goals.insertGoal(goal('g2', 1));
+      await goals.insertGoal(goal('g1', 0));
+      await goals.insertGoal(
+        goal('g3', 2, completedAt: t0.add(const Duration(days: 1))),
+      );
+      await goals.insertGoal(
+        Goal(
+          id: 'fremd',
+          journalId: 'anderes',
+          title: 'x',
+          createdAt: t0,
+          updatedAt: t0,
+          sortIndex: 0,
+        ),
+      );
+      expect((await goals.listActive(journalId)).map((g) => g.id), [
+        'g1',
+        'g2',
+      ]);
+      expect((await goals.listArchived(journalId)).map((g) => g.id), ['g3']);
+      expect((await goals.listAllGoals(journalId)).map((g) => g.id), [
+        'g1',
+        'g2',
+        'g3',
+      ]);
+      expect((await goals.goalById('g1'))!.why, 'Darum.');
+      expect(await goals.goalById('nein'), isNull);
+
+      await goals.insertMilestone(
+        Milestone(
+          id: 'm2',
+          goalId: 'g1',
+          title: 'b',
+          sortIndex: 1,
+          createdAt: t0,
+        ),
+      );
+      await goals.insertMilestone(
+        Milestone(
+          id: 'm1',
+          goalId: 'g1',
+          title: 'a',
+          sortIndex: 0,
+          createdAt: t0,
+        ),
+      );
+      await goals.insertMilestone(
+        Milestone(
+          id: 'm3',
+          goalId: 'g2',
+          title: 'c',
+          sortIndex: 0,
+          createdAt: t0,
+        ),
+      );
+      expect((await goals.listMilestones('g1')).map((m) => m.id), ['m1', 'm2']);
+      expect(await goals.listAllMilestones(), hasLength(3));
+
+      await goals.updateMilestone(
+        (await goals.milestoneById('m1'))!.copyWith(doneAt: t0),
+      );
+      expect((await goals.milestoneById('m1'))!.isDone, isTrue);
+      await goals.updateGoal(
+        (await goals.goalById('g2'))!.copyWith(archivedAt: t0),
+      );
+      expect((await goals.listActive(journalId)).map((g) => g.id), ['g1']);
+
+      await goals.deleteMilestone('m2');
+      expect((await goals.listMilestones('g1')).map((m) => m.id), ['m1']);
+      // Ziel löschen nimmt die Etappen mit, andere bleiben.
+      await goals.deleteGoal('g1');
+      expect(await goals.goalById('g1'), isNull);
+      expect(await goals.listMilestones('g1'), isEmpty);
+      expect((await goals.listAllMilestones()).map((m) => m.id), ['m3']);
+      expect(await store.getAllKeys(Collections.milestones), ['m3']);
+    },
+  );
 
   test('Aufnahme löschen und Audio löschen', () async {
     final e = await seed(LocalDay(2026, 9, 6), 'x');

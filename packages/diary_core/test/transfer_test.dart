@@ -286,6 +286,127 @@ void main() {
     },
   );
 
+  test(
+    'Ziele und Etappen (D19): Export zählt sie, Import übernimmt sie',
+    () async {
+      final old = Device('alt-');
+      await old.seed(d1, 'Gesprochen am 25.');
+      final useCase = GoalsUseCase(
+        journalId: Device.journalId,
+        goals: old.goals,
+        ids: old.ids,
+        clock: old.clock,
+      );
+      final g = await useCase.createGoal(
+        title: 'Lesen',
+        why: 'Ruhe am Abend.',
+        milestoneTitles: ['Buch aussuchen', 'Kapitel 1'],
+      );
+      final done = await useCase.createGoal(title: 'Fertig');
+      await useCase.completeGoal(done.id);
+      final ms = await old.goals.listMilestones(g.id);
+      await useCase.setMilestoneDone(ms.first.id, true);
+      // Der Schritt für morgen hängt am Ziel; das Häkchen trägt die Etappe.
+      await old.seedNote(
+        d1,
+        'Wenn ich heimkomme, dann lesen.',
+        promptKey: 'next',
+        goalId: g.id,
+      );
+      final step = await useCase.addDoneMilestone(g.id, 'Gelesen.');
+      await old.seedNote(
+        d2,
+        StepDoneMark(milestoneId: step!.id).encode(),
+        promptKey: 'next_done',
+      );
+      final bytes = await old.useCase.exportWithPassphrase('korrektes pferd');
+
+      final fresh = Device('neu-');
+      final opened = await fresh.useCase.openWithPassphrase(
+        bytes,
+        'korrektes pferd',
+      );
+      expect(opened.manifest.goalCount, 2);
+      expect(opened.manifest.milestoneCount, 3);
+      expect(opened.snapshot.goals, hasLength(2));
+      expect(opened.snapshot.milestones, hasLength(3));
+      final result = await fresh.useCase.import(opened);
+      expect(result.goalsImported, 2);
+      expect(result.milestonesImported, 3);
+      expect(result.goalsSkipped, 0);
+      expect(result.milestonesSkipped, 0);
+
+      final imported = (await fresh.goals.goalById(g.id))!;
+      expect(imported.title, 'Lesen');
+      expect(imported.why, 'Ruhe am Abend.');
+      expect(imported.isActive, isTrue);
+      expect((await fresh.goals.goalById(done.id))!.isActive, isFalse);
+      final importedMs = await fresh.goals.listMilestones(g.id);
+      expect(importedMs.map((m) => m.title), [
+        'Buch aussuchen',
+        'Kapitel 1',
+        'Gelesen.',
+      ]);
+      expect(importedMs.first.isDone, isTrue);
+      expect(importedMs[1].isDone, isFalse);
+      // Die Zuordnung der Notiz und die Etappen-Kennung im Häkchen bleiben.
+      final e1 = (await fresh.entries.findByDay(Device.journalId, d1))!;
+      final next = (await fresh.notes.listForEntry(e1.id)).single;
+      expect(next.goalId, g.id);
+      final e2 = (await fresh.entries.findByDay(Device.journalId, d2))!;
+      final mark = (await fresh.notes.listForEntry(e2.id)).single;
+      expect(StepDoneMark.parse(mark.text).milestoneId, step.id);
+
+      // Nochmal: Kennungen bleiben einmalig.
+      final again = await fresh.useCase.import(opened);
+      expect(again.goalsImported, 0);
+      expect(again.goalsSkipped, 2);
+      expect(again.milestonesImported, 0);
+      expect(again.milestonesSkipped, 3);
+
+      // Ein Gerät ohne Ziel-Speicher importiert den Rest trotzdem.
+      final plain = Device('ohne-', withGoals: false);
+      final r = await plain.useCase.import(
+        await plain.useCase.openWithPassphrase(bytes, 'korrektes pferd'),
+      );
+      expect(r.entriesCreated, 2);
+      expect(r.goalsImported, 0);
+    },
+  );
+
+  test('Import: Etappe ohne ihr Ziel wird übersprungen', () async {
+    final snap = TransferSnapshot.decodeNdjson(
+      '{"type":"goal","id":"g1","journalId":"j","title":"A",'
+      '"createdAt":"2026-10-25T19:00:00.000Z",'
+      '"updatedAt":"2026-10-25T19:00:00.000Z","sortIndex":0}\n'
+      '{"type":"milestone","id":"m1","goalId":"g1","title":"a",'
+      '"sortIndex":0,"createdAt":"2026-10-25T19:00:00.000Z"}\n'
+      '{"type":"milestone","id":"m2","goalId":"fehlt","title":"b",'
+      '"sortIndex":0,"createdAt":"2026-10-25T19:00:00.000Z"}\n',
+    );
+    expect(snap.goals.single.id, 'g1');
+    expect(snap.milestones, hasLength(2));
+    // Kopf und Nutzlast eines leeren Exports, der Inhalt aus den Zeilen oben.
+    final device = Device('x-');
+    final empty = await device.useCase.openWithPassphrase(
+      await device.useCase.exportWithPassphrase('korrektes pferd'),
+      'korrektes pferd',
+    );
+    final result = await device.useCase.import(
+      OpenedContainer(
+        header: empty.header,
+        payload: empty.payload,
+        snapshot: snap,
+      ),
+    );
+    expect(result.goalsImported, 1);
+    expect(result.milestonesImported, 1);
+    expect(result.milestonesSkipped, 1);
+    expect((await device.goals.listMilestones('g1')).single.id, 'm1');
+    // Das Ziel gehört jetzt zum Tagebuch des Zielgeräts.
+    expect((await device.goals.goalById('g1'))!.journalId, Device.journalId);
+  });
+
   test('NDJSON ohne Notizen (ältere Datei) bleibt lesbar', () {
     final snap = TransferSnapshot.decodeNdjson(
       '{"type":"entry","id":"e1","journalId":"j","day":"2026-10-25",'
@@ -294,6 +415,8 @@ void main() {
     );
     expect(snap.entries.single.id, 'e1');
     expect(snap.notes, isEmpty);
+    expect(snap.goals, isEmpty);
+    expect(snap.milestones, isEmpty);
   });
 
   test('NDJSON: unbekannte Typen werden übersprungen, Reihenfolge stabil', () {

@@ -9,6 +9,8 @@ import '../features/eintrag/entry_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/rueckblick/week_review_screen.dart';
 import '../features/schreiben/write_screen.dart';
+import '../features/wege/goal_detail_screen.dart';
+import '../features/wege/goals_screen.dart';
 import 'motion.dart';
 
 /// Argumente der Eintrags-Route: Eintrags-ID und optional eine Position, zu
@@ -41,6 +43,10 @@ abstract final class AppRoutes {
 
   /// Wochenrückblick aus dem Kalender (D17).
   static const String week = '/week';
+
+  /// Wege: Ziele mit Etappen (D19); Details mit Ziel-ID als [String].
+  static const String goals = '/goals';
+  static const String goal = '/goal';
 
   /// Onboarding zum erneuten Ansehen aus den Einstellungen.
   static const String onboarding = '/onboarding';
@@ -81,6 +87,18 @@ abstract final class AppRoutes {
           settings: settings,
           builder: (_) => const WeekReviewScreen(),
         );
+      case goals:
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const GoalsScreen(),
+        );
+      case goal:
+        final id = settings.arguments;
+        if (id is! String) return null;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => GoalDetailScreen(goalId: id),
+        );
       case onboarding:
         return SheetPageRoute<void>(
           settings: settings,
@@ -120,6 +138,14 @@ abstract final class AppRoutes {
   static Future<void> openRecording(BuildContext context) {
     return Navigator.of(context).pushNamed(record);
   }
+
+  /// Öffnet den Bildschirm "Wege".
+  static Future<void> openGoals(BuildContext context) =>
+      Navigator.of(context).pushNamed(goals);
+
+  /// Öffnet die Details eines Wegs.
+  static Future<void> openGoal(BuildContext context, String goalId) =>
+      Navigator.of(context).pushNamed(goal, arguments: goalId);
 
   /// Öffnet den Schreiben-Bildschirm für [day], optional für eine Notiz.
   static Future<void> openWrite(
