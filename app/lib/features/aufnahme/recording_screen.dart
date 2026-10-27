@@ -7,11 +7,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/formats.dart';
+import '../../app/motion.dart';
 import '../../data/entry_view.dart';
 import '../../data/settings_notifier.dart';
 import '../../data/transcription_jobs.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
+import '../../widgets/level_meter.dart';
+import '../../widgets/pressable.dart';
+import '../../widgets/reveal.dart';
+import '../../widgets/surface_card.dart';
 import '../rueckblick/prompts.dart';
 
 /// Widget-Keys für Tests.
@@ -330,12 +335,26 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                                             ),
                                       ),
                                       const SizedBox(height: 8),
-                                      Text(
-                                        statusText,
-                                        style: theme.textTheme.titleMedium
-                                            ?.copyWith(
-                                              color: scheme.onSurfaceVariant,
-                                            ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          RecordingDot(
+                                            active:
+                                                started &&
+                                                !_paused &&
+                                                !_finishing,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            statusText,
+                                            style: theme.textTheme.titleMedium
+                                                ?.copyWith(
+                                                  color:
+                                                      scheme.onSurfaceVariant,
+                                                ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -357,7 +376,7 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                               Semantics(
                                 label: l10n.levelMeterSemantics,
                                 child: ExcludeSemantics(
-                                  child: _LevelMeter(
+                                  child: LevelMeter(
                                     levels: _levels,
                                     active: started && !_paused && !_finishing,
                                   ),
@@ -396,37 +415,57 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
                                     button: true,
                                     enabled: started && !_finishing,
                                     label: l10n.stopButton,
-                                    child: Material(
-                                      key: stopButtonKey,
-                                      color: started && !_finishing
-                                          ? scheme.primary
-                                          : scheme.surfaceContainerHighest,
-                                      shape: const CircleBorder(),
-                                      clipBehavior: Clip.antiAlias,
-                                      child: InkWell(
-                                        onTap: started && !_finishing
-                                            ? _finish
-                                            : null,
-                                        child: SizedBox(
-                                          width: 96,
-                                          height: 96,
-                                          child: ExcludeSemantics(
-                                            child: _finishing
-                                                ? Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          28,
-                                                        ),
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          color: scheme.primary,
-                                                        ),
-                                                  )
-                                                : Icon(
-                                                    Icons.stop,
-                                                    size: 48,
-                                                    color: scheme.onPrimary,
+                                    child: Pressable(
+                                      enabled: started && !_finishing,
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          boxShadow: started && !_finishing
+                                              ? [
+                                                  BoxShadow(
+                                                    color: scheme.primary
+                                                        .withValues(alpha: 0.3),
+                                                    blurRadius: 24,
+                                                    offset: const Offset(0, 8),
                                                   ),
+                                                ]
+                                              : null,
+                                        ),
+                                        child: Material(
+                                          key: stopButtonKey,
+                                          color: started && !_finishing
+                                              ? scheme.primary
+                                              : scheme.surfaceContainerHighest,
+                                          shape: const CircleBorder(),
+                                          clipBehavior: Clip.antiAlias,
+                                          animationDuration: Motion.quick,
+                                          child: InkWell(
+                                            onTap: started && !_finishing
+                                                ? _finish
+                                                : null,
+                                            child: SizedBox(
+                                              width: 96,
+                                              height: 96,
+                                              child: ExcludeSemantics(
+                                                child: _finishing
+                                                    ? Padding(
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              28,
+                                                            ),
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                              color: scheme
+                                                                  .primary,
+                                                            ),
+                                                      )
+                                                    : Icon(
+                                                        Icons.stop,
+                                                        size: 48,
+                                                        color: scheme.onPrimary,
+                                                      ),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -473,11 +512,13 @@ class _PromptCard extends StatelessWidget {
     final scheme = theme.colorScheme;
     final key = ReviewPrompts.review[index];
     final hint = PromptTexts.hint(l10n, key);
-    return Card(
+    return SurfaceCard(
       key: promptCardKey,
       color: scheme.secondaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+      // Neuer Impuls blendet ein statt zu springen (Schlüssel je Impuls).
+      child: Reveal(
+        key: ValueKey(index),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -556,41 +597,6 @@ class _ErrorBody extends StatelessWidget {
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Pegelanzeige: Balken aus den letzten Spitzenwerten des Aufnahmediensts.
-class _LevelMeter extends StatelessWidget {
-  const _LevelMeter({required this.levels, required this.active});
-
-  final List<double> levels;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final color = active ? scheme.primary : scheme.outline;
-    return SizedBox(
-      height: 96,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          for (final level in levels)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 3),
-              child: Container(
-                width: 6,
-                height: 12 + 84 * level,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
         ],
       ),
     );

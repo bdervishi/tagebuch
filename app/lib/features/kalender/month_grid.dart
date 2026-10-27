@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../app/motion.dart';
 import '../../data/day.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -147,6 +148,7 @@ class _DayCell extends StatelessWidget {
           padding: const EdgeInsets.all(2),
           child: Material(
             color: background,
+            animationDuration: Motion.quick,
             shape: CircleBorder(
               side: isToday
                   ? BorderSide(color: scheme.primary, width: 1.5)

@@ -9,6 +9,7 @@ import '../../data/settings_notifier.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
 import '../../widgets/mood_selector.dart';
+import '../../widgets/reveal.dart';
 import '../rueckblick/prompts.dart';
 
 /// Key des Textfelds eines Impulses (`write-field-<promptKey>`, freier Text:
@@ -294,8 +295,14 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  for (final f in _fields) ...[
-                    _PromptField(field: f, onChanged: () => _onChanged(f)),
+                  for (final (i, f) in _fields.indexed) ...[
+                    Reveal(
+                      index: i,
+                      child: _PromptField(
+                        field: f,
+                        onChanged: () => _onChanged(f),
+                      ),
+                    ),
                     const SizedBox(height: 20),
                   ],
                   if (_guided) ...[

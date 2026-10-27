@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/motion.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
+import '../../widgets/reveal.dart';
 
 /// Keys für Tests.
 const Key onboardingSkipKey = Key('onboarding-skip');
@@ -41,10 +43,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     if (reduceMotion) {
       _controller.jumpToPage(_page + 1);
     } else {
-      _controller.nextPage(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
+      _controller.nextPage(duration: Motion.page, curve: Motion.easeOut);
     }
   }
 
@@ -113,26 +112,49 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 onPageChanged: (i) => setState(() => _page = i),
                 itemBuilder: (context, index) {
                   final step = steps[index];
+                  // Erstes Mal gesehen: Symbol, Titel und Text erscheinen
+                  // gestaffelt (docs/12 Abschnitt 2, "selten").
                   return ListView(
                     padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
                     children: [
-                      Icon(
-                        step.icon,
-                        size: 48,
-                        color: theme.colorScheme.primary,
+                      Reveal(
+                        index: 0,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer,
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              step.icon,
+                              size: 34,
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 24),
-                      Semantics(
-                        header: true,
-                        child: Text(
-                          step.title,
-                          style: theme.textTheme.headlineSmall,
+                      Reveal(
+                        index: 1,
+                        child: Semantics(
+                          header: true,
+                          child: Text(
+                            step.title,
+                            style: theme.textTheme.headlineSmall,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Text(
-                        step.body,
-                        style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
+                      Reveal(
+                        index: 2,
+                        child: Text(
+                          step.body,
+                          style: theme.textTheme.bodyLarge,
+                        ),
                       ),
                     ],
                   );
@@ -144,10 +166,34 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Fortschritt als Punkte (aktiver Punkt wird zum Strich);
+                  // der Text darunter bleibt für Screenreader und Tests.
+                  ExcludeSemantics(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (var i = 0; i < stepCount; i++)
+                          AnimatedContainer(
+                            duration: Motion.quick,
+                            curve: Motion.easeOut,
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            width: i == _page ? 22 : 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              color: i == _page
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.outlineVariant,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     l10n.onboardingStepOf(_page + 1, stepCount),
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.labelLarge?.copyWith(
+                    style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),

@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/entry_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/mood_dots.dart';
+import '../../widgets/reveal.dart';
+import '../../widgets/surface_card.dart';
 
 /// Wochenrückblick (D17, D8): die letzten sieben Tage als schlichte Liste
 /// der Antworten auf "gut gelaufen" und "gelernt", die erledigten Schritte
@@ -66,35 +68,55 @@ class _WeekBody extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
-        Text(l10n.weekIntro, style: muted),
+        Reveal(index: 0, child: Text(l10n.weekIntro, style: muted)),
         const SizedBox(height: 24),
-        Text(l10n.weekMoodHeading, style: theme.textTheme.titleSmall),
-        const SizedBox(height: 8),
-        if (anyMood)
-          MoodDots(
-            days: [for (final d in days) d.day],
-            moods: [for (final d in days) d.mood],
-          )
-        else
-          Text(l10n.weekMoodEmpty, style: muted),
+        Reveal(
+          index: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.weekMoodHeading, style: theme.textTheme.titleSmall),
+              const SizedBox(height: 10),
+              if (anyMood)
+                SurfaceCard(
+                  padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
+                  child: MoodDots(
+                    days: [for (final d in days) d.day],
+                    moods: [for (final d in days) d.mood],
+                  ),
+                )
+              else
+                Text(l10n.weekMoodEmpty, style: muted),
+            ],
+          ),
+        ),
         const SizedBox(height: 24),
-        _Section(
-          title: l10n.weekGoodHeading,
-          icon: Icons.wb_sunny_outlined,
-          items: good,
-          format: materialL10n.formatMediumDate,
+        Reveal(
+          index: 2,
+          child: _Section(
+            title: l10n.weekGoodHeading,
+            icon: Icons.wb_sunny_outlined,
+            items: good,
+            format: materialL10n.formatMediumDate,
+          ),
         ),
-        _Section(
-          title: l10n.weekLessonHeading,
-          icon: Icons.lightbulb_outline,
-          items: lesson,
-          format: materialL10n.formatMediumDate,
+        Reveal(
+          index: 3,
+          child: _Section(
+            title: l10n.weekLessonHeading,
+            icon: Icons.lightbulb_outline,
+            items: lesson,
+            format: materialL10n.formatMediumDate,
+          ),
         ),
-        _Section(
-          title: l10n.weekStepsHeading,
-          icon: Icons.check_circle_outline,
-          items: steps,
-          format: materialL10n.formatMediumDate,
+        Reveal(
+          index: 4,
+          child: _Section(
+            title: l10n.weekStepsHeading,
+            icon: Icons.check_circle_outline,
+            items: steps,
+            format: materialL10n.formatMediumDate,
+          ),
         ),
       ],
     );

@@ -12,6 +12,7 @@ import '../../data/settings_notifier.dart';
 import '../../data/transcription_jobs.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
+import '../../widgets/surface_card.dart';
 import '../../widgets/mood_selector.dart';
 import '../rueckblick/prompts.dart';
 
@@ -252,52 +253,50 @@ class _NoteCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final key = note.promptKey;
-    return Card(
+    return SurfaceCard(
       key: Key('note-card-${note.id}'),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.edit_note, size: 20, color: scheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    key == null
-                        ? l10n.writtenAt(formatTime(context, note.createdAt))
-                        : PromptTexts.label(l10n, key),
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.edit_note, size: 20, color: scheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  key == null
+                      ? l10n.writtenAt(formatTime(context, note.createdAt))
+                      : PromptTexts.label(l10n, key),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
-                IconButton(
-                  key: Key('note-edit-${note.id}'),
-                  tooltip: l10n.noteEdit,
-                  icon: const Icon(Icons.edit_outlined, size: 20),
-                  onPressed: () => AppRoutes.openWrite(
-                    context,
-                    view.entry.day,
-                    noteId: note.id,
-                  ),
+              ),
+              IconButton(
+                key: Key('note-edit-${note.id}'),
+                tooltip: l10n.noteEdit,
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                onPressed: () => AppRoutes.openWrite(
+                  context,
+                  view.entry.day,
+                  noteId: note.id,
                 ),
-                IconButton(
-                  key: Key('note-delete-${note.id}'),
-                  tooltip: l10n.noteDelete,
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  onPressed: () => _delete(context, ref),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            SelectableText(
-              note.text,
-              style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
-            ),
-          ],
-        ),
+              ),
+              IconButton(
+                key: Key('note-delete-${note.id}'),
+                tooltip: l10n.noteDelete,
+                icon: const Icon(Icons.delete_outline, size: 20),
+                onPressed: () => _delete(context, ref),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          SelectableText(
+            note.text,
+            style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
+          ),
+        ],
       ),
     );
   }
@@ -509,104 +508,101 @@ class _PlayerCardState extends ConsumerState<PlayerCard> {
     final progress = duration.inMilliseconds == 0
         ? 0.0
         : (_position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                IconButton.filledTonal(
-                  key: playButtonKey,
-                  onPressed: _ready ? _togglePlay : null,
-                  tooltip: _playing ? l10n.pauseButton : l10n.playButton,
-                  iconSize: 28,
-                  icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Semantics(
-                    label: l10n.waveformSemantics,
-                    child: ExcludeSemantics(
-                      child: SizedBox(
-                        height: 48,
-                        child: CustomPaint(
-                          painter: _WaveformPainter(
-                            waveform: widget.recording.waveform,
-                            progress: progress,
-                            played: scheme.primary,
-                            remaining: scheme.outlineVariant,
-                          ),
+    return SurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconButton.filledTonal(
+                key: playButtonKey,
+                onPressed: _ready ? _togglePlay : null,
+                tooltip: _playing ? l10n.pauseButton : l10n.playButton,
+                iconSize: 28,
+                icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Semantics(
+                  label: l10n.waveformSemantics,
+                  child: ExcludeSemantics(
+                    child: SizedBox(
+                      height: 48,
+                      child: CustomPaint(
+                        painter: _WaveformPainter(
+                          waveform: widget.recording.waveform,
+                          progress: progress,
+                          played: scheme.primary,
+                          remaining: scheme.outlineVariant,
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Semantics(
-              label: l10n.playerPositionSemantics(
-                formatCounter(_position),
-                formatCounter(duration),
               ),
-              child: Slider(
-                key: playerSliderKey,
-                value: progress,
-                onChanged: _ready
-                    ? (v) => _seek(
-                        Duration(
-                          milliseconds: (duration.inMilliseconds * v).round(),
-                        ),
-                      )
-                    : null,
-              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Semantics(
+            label: l10n.playerPositionSemantics(
+              formatCounter(_position),
+              formatCounter(duration),
             ),
-            Row(
-              children: [
-                ExcludeSemantics(
-                  child: Text(
-                    '${formatCounter(_position)} / ${formatCounter(duration)}',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+            child: Slider(
+              key: playerSliderKey,
+              value: progress,
+              onChanged: _ready
+                  ? (v) => _seek(
+                      Duration(
+                        milliseconds: (duration.inMilliseconds * v).round(),
+                      ),
+                    )
+                  : null,
+            ),
+          ),
+          Row(
+            children: [
+              ExcludeSemantics(
+                child: Text(
+                  '${formatCounter(_position)} / ${formatCounter(duration)}',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
-                const Spacer(),
-                if (_failed)
-                  Text(
-                    l10n.playerError,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: scheme.error,
-                    ),
-                  )
-                else if (!_ready)
-                  Text(
-                    l10n.playerLoading,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+              ),
+              const Spacer(),
+              if (_failed)
+                Text(
+                  l10n.playerError,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.error,
+                  ),
+                )
+              else if (!_ready)
+                Text(
+                  l10n.playerLoading,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Semantics(
+            label: l10n.playbackSpeed,
+            child: Wrap(
+              spacing: 8,
+              children: [
+                for (final speed in PlaybackSpeeds.values)
+                  ChoiceChip(
+                    label: Text(l10n.playbackSpeedValue(_speedLabel(speed))),
+                    selected: _speed == speed,
+                    onSelected: _ready ? (_) => _setSpeed(speed) : null,
                   ),
               ],
             ),
-            const SizedBox(height: 8),
-            Semantics(
-              label: l10n.playbackSpeed,
-              child: Wrap(
-                spacing: 8,
-                children: [
-                  for (final speed in PlaybackSpeeds.values)
-                    ChoiceChip(
-                      label: Text(l10n.playbackSpeedValue(_speedLabel(speed))),
-                      selected: _speed == speed,
-                      onSelected: _ready ? (_) => _setSpeed(speed) : null,
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

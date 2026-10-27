@@ -6,7 +6,9 @@ import '../features/kalender/calendar_screen.dart';
 import '../l10n/app_localizations.dart';
 
 /// Hauptansicht mit unterer Leiste: Heute, Kalender (mit Suche), Einstellungen.
-/// Die Reiter behalten ihren Zustand über einen [IndexedStack].
+/// Die Reiter behalten ihren Zustand über einen [IndexedStack]. Der Wechsel
+/// selbst ist bewusst ohne Animation: Er passiert dutzende Male am Tag.
+/// Die Leiste sitzt auf einer Haarlinie statt eines Schattens.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -20,31 +22,42 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: IndexedStack(
         index: _index,
         children: const [TodayScreen(), CalendarScreen(), SettingsScreen()],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.wb_twilight_outlined),
-            selectedIcon: const Icon(Icons.wb_twilight),
-            label: l10n.navToday,
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: scheme.outlineVariant.withValues(alpha: 0.5),
+              width: 1,
+            ),
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.calendar_month_outlined),
-            selectedIcon: const Icon(Icons.calendar_month),
-            label: l10n.navCalendar,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.settings_outlined),
-            selectedIcon: const Icon(Icons.settings),
-            label: l10n.navSettings,
-          ),
-        ],
+        ),
+        child: NavigationBar(
+          selectedIndex: _index,
+          onDestinationSelected: (i) => setState(() => _index = i),
+          destinations: [
+            NavigationDestination(
+              icon: const Icon(Icons.wb_twilight_outlined),
+              selectedIcon: const Icon(Icons.wb_twilight),
+              label: l10n.navToday,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.calendar_month_outlined),
+              selectedIcon: const Icon(Icons.calendar_month),
+              label: l10n.navCalendar,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.settings_outlined),
+              selectedIcon: const Icon(Icons.settings),
+              label: l10n.navSettings,
+            ),
+          ],
+        ),
       ),
     );
   }

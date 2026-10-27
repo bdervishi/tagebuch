@@ -5,6 +5,7 @@ import '../app/routes.dart';
 import '../features/daten/transfer_support.dart';
 import '../l10n/app_localizations.dart';
 import '../services/app_services.dart';
+import 'surface_card.dart';
 
 /// Widget-Keys für Tests.
 const Key backupReminderCardKey = Key('backup-reminder');
@@ -23,16 +24,18 @@ class BackupReminderCard extends ConsumerWidget {
     if (reminder == null) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final isWeb = ref.watch(platformFeaturesProvider).isWeb;
     final body = reminder.hadBackup
         ? l10n.backupReminderOverdue
         : isWeb
         ? l10n.backupReminderBodyWeb(reminder.entryCount)
         : l10n.backupReminderBodyNative(reminder.entryCount);
-    return Card(
-      key: backupReminderCardKey,
-      color: theme.colorScheme.secondaryContainer,
-      child: Padding(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: SurfaceCard(
+        key: backupReminderCardKey,
+        color: scheme.secondaryContainer,
         padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,18 +44,26 @@ class BackupReminderCard extends ConsumerWidget {
               children: [
                 Icon(
                   Icons.save_alt,
-                  color: theme.colorScheme.onSecondaryContainer,
+                  size: 20,
+                  color: scheme.onSecondaryContainer,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   l10n.backupReminderTitle,
-                  style: theme.textTheme.titleMedium,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: scheme.onSecondaryContainer,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(body, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 4),
+            Text(
+              body,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSecondaryContainer,
+              ),
+            ),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -61,6 +72,7 @@ class BackupReminderCard extends ConsumerWidget {
                   onPressed: () => ref.read(backupBookkeepingProvider).snooze(),
                   child: Text(l10n.backupReminderLater),
                 ),
+                const SizedBox(width: 4),
                 FilledButton.tonal(
                   key: backupReminderNowKey,
                   onPressed: () =>

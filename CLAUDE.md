@@ -6,6 +6,7 @@ Lokales Sprach-Tagebuch für iOS und Android: täglich zu einer selbst gewählte
 
 - `docs/00-anforderungen.md` bis `docs/09-roadmap.md`: Konzept (Anforderungen, Markt, Produkt, Technik, Sicherheit, Transfer, Geschäftsmodell, Name, Roadmap). Sprache Deutsch.
 - `docs/entscheidungen.md`: verbindliche Entscheidungen D1 bis D15. Erst lesen, dann bauen. Abweichungen dort begründen, nicht still im Code.
+- `docs/12-gestaltung.md`: Gestaltung und Bewegung (Tokens in `app/lib/app/motion.dart`, Bausteine `Pressable`, `Reveal`, `SurfaceCard` in `app/lib/widgets/`). Vor jeder neuen Animation oder Karte die Prüfliste dort durchgehen; keine eigenen Dauern oder Kurven im Code.
 - `docs/recherche/`: Rechercheberichte und Faktenprüfung (`verifikation.json`).
 - `docs/ressourcen.md`: kostenlose Dienste aus free-for.dev und wo wir sie einsetzen (CI, iOS-Builds ohne Mac, Übersetzung, Website, Support-Mail) und wo bewusst nicht (Crash-Reporter, Analytics). Vor dem Anbinden eines Dienstes dort nachsehen und eintragen.
 - `app/`: Flutter-App (Paket `tagebuch_app`, Anwendungs-ID `dev.tagebuch.app` als Platzhalter bis zur Namenswahl). Erste Zielplattform ist das Web als installierbare PWA (D16, `docs/10-pwa.md`); `app/web/` enthält Manifest, `index.html` mit Content-Security-Policy und Icons.
