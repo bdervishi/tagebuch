@@ -101,6 +101,7 @@ void main() {
       milestoneCount: 6,
       bookCount: 1,
       passageCount: 4,
+      bookFileCount: 1,
       firstDay: '2026-09-01',
       lastDay: '2026-09-03',
       files: const [
@@ -114,6 +115,14 @@ void main() {
     expect(back.milestoneCount, 6);
     expect(back.bookCount, 1);
     expect(back.passageCount, 4);
+    expect(back.bookFileCount, 1);
+    // Ältere Dateien ohne Feld `bookFiles` (vor D25): gilt als 0.
+    expect(
+      ContainerManifest.fromJsonString(
+        m.toJsonString().replaceFirst('"bookFiles":1,', ''),
+      ).bookFileCount,
+      0,
+    );
     // Ältere Dateien ohne Feld `notes`: gilt als 0.
     expect(
       ContainerManifest.fromJsonString(

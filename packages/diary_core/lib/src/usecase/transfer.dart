@@ -181,7 +181,12 @@ class TransferSnapshot {
       line('milestone', ModelJson.encodeMilestone(m));
     }
     for (final b in books) {
-      line('book', ModelJson.encodeBook(b));
+      // Der Dateischlüssel bleibt wie bei Aufnahmen auf dem Gerät; das
+      // Zielgerät wrappt beim Import neu.
+      line(
+        'book',
+        ModelJson.encodeBook(b.copyWith(fileKeyWrapped: Uint8List(0))),
+      );
     }
     for (final p in passages) {
       line('passage', ModelJson.encodePassage(p));
@@ -352,6 +357,7 @@ class TransferUseCase {
     this.notes,
     this.goals,
     this.books,
+    this.bookFiles,
     this.appVersion = '0.0.0',
     this.argon2Params = Argon2Params.standard,
     this.keys = const ContainerKeys(),
@@ -380,6 +386,10 @@ class TransferUseCase {
 
   /// Bücher und Passagen (D21); `null`, wenn die Plattform keine hat.
   final BookRepository? books;
+
+  /// Buchdateien (EPUB, D25); `null`, wenn die Plattform keine hat. Ohne
+  /// Dateispeicher werden Bücher ohne Datei exportiert und importiert.
+  final BookFileStore? bookFiles;
   final SettingsRepository settings;
   final AudioFileSource audioSource;
   final AudioFileSink audioSink;
@@ -535,6 +545,24 @@ class TransferUseCase {
   ) async {
     onProgress?.call(const TransferProgress(TransferPhase.collecting));
     final snap = await snapshot();
+    // Buchdateien (D25) zuerst lesen, damit das Manifest sie zählen kann;
+    // eine fehlende oder unlesbare Datei lässt das Buch ohne Datei wandern.
+    final bookFileBytes = <String, Uint8List>{};
+    final fileStore = bookFiles;
+    if (fileStore != null) {
+      for (final b in snap.books) {
+        final name = b.fileName;
+        final key = b.fileKeyWrapped;
+        if (!b.hasFile || name == null || key == null) continue;
+        Uint8List? bytes;
+        try {
+          bytes = await fileStore.read(name, key);
+        } on Object {
+          bytes = null;
+        }
+        if (bytes != null) bookFileBytes[name] = bytes;
+      }
+    }
     final builder = ContainerPayloadBuilder(
       createdAt: clock.now(),
       appVersion: appVersion,
@@ -546,6 +574,7 @@ class TransferUseCase {
       milestoneCount: snap.milestones.length,
       bookCount: snap.books.length,
       passageCount: snap.passages.length,
+      bookFileCount: bookFileBytes.length,
       firstDay: snap.firstDay,
       lastDay: snap.lastDay,
     );
@@ -553,6 +582,9 @@ class TransferUseCase {
       ContainerPayload.databaseName,
       Uint8List.fromList(utf8.encode(snap.encodeNdjson())),
     );
+    for (final e in bookFileBytes.entries) {
+      await builder.add('${ContainerPayload.bookPrefix}${e.key}', e.value);
+    }
     var done = 0;
     for (final r in snap.recordings) {
       done++;
@@ -891,6 +923,18 @@ class TransferUseCase {
           booksSkipped++;
           continue;
         }
+        // Buchdatei (D25): liegt sie im Container und gibt es hier einen
+        // Dateispeicher, wird sie neu verschlüsselt; sonst kommt das Buch
+        // ohne Datei an (Leseposition entfällt dann).
+        final name = b.fileName;
+        final bytes = name == null
+            ? null
+            : opened.payload.file('${ContainerPayload.bookPrefix}$name');
+        final fileStore = bookFiles;
+        StoredBookFile? stored;
+        if (bytes != null && fileStore != null && b.format != null) {
+          stored = await fileStore.write(name!, bytes);
+        }
         await bookRepo.insertBook(
           Book(
             id: b.id,
@@ -901,6 +945,11 @@ class TransferUseCase {
             createdAt: b.createdAt,
             updatedAt: b.updatedAt,
             finishedAt: b.finishedAt,
+            format: stored == null ? null : b.format,
+            fileName: stored == null ? null : name,
+            fileKeyWrapped: stored?.fileKeyWrapped,
+            fileSizeBytes: stored?.sizeBytes,
+            readingPosition: stored == null ? null : b.readingPosition,
           ),
         );
         knownBooks.add(b.id);

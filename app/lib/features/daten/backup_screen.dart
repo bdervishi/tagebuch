@@ -4,6 +4,8 @@ import 'package:diary_core/diary_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/books_view.dart';
+import '../../data/size_format.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
 import 'transfer_support.dart';
@@ -12,6 +14,7 @@ import 'transfer_support.dart';
 const Key backupPassphraseKey = Key('backup-passphrase');
 const Key backupPassphraseRepeatKey = Key('backup-passphrase-repeat');
 const Key backupStartKey = Key('backup-start');
+const Key backupBookFilesKey = Key('backup-book-files');
 
 /// "Backup erstellen" (docs/06 Abschnitt 6.1): Passphrase zweimal eingeben,
 /// Datei erzeugen, herunterladen. Der Zeitpunkt des Backups landet im
@@ -105,6 +108,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final busy = _progress != null;
+    // Buchdateien (D25) machen das Backup groß; die Zeile nennt Zahl und
+    // Summe, nur wenn es welche gibt.
+    final books = ref.watch(booksProvider).value ?? const [];
+    final bookFileCount = books.where((v) => v.book.hasFile).length;
+    final bookFileBytes = ref.watch(bookFilesSizeProvider).value ?? 0;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.backupTitle)),
       body: SafeArea(
@@ -112,6 +120,16 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             ExplainerText(l10n.backupIntro),
+            if (bookFileCount > 0) ...[
+              const SizedBox(height: 8),
+              ExplainerText(
+                l10n.backupBookFiles(
+                  bookFileCount,
+                  formatBytes(l10n, bookFileBytes),
+                ),
+                key: backupBookFilesKey,
+              ),
+            ],
             const SizedBox(height: 20),
             PassphraseField(
               fieldKey: backupPassphraseKey,

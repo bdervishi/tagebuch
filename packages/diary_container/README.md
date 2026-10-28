@@ -46,9 +46,10 @@ Klartext je Nachricht 64 KiB (die letzte kürzer, auch leer). Erkannt werden: Ve
 
 Der entschlüsselte Strom ist eine Folge von Rahmen `nameLen u16 · name (UTF-8) · dataLen u64 · data`:
 
-1. `manifest.json`: `format` 1, `compression` (`none`), `createdAt`, `appVersion`, `schemaVersion` (NDJSON-Schema, derzeit 1), `entries`, `recordings`, `notes` (geschriebene Texte, D17), `goals` und `milestones` (Ziele und Etappen, D19), `books` und `passages` (Bücher und Passagen, D21; alle fünf fehlen in älteren Dateien und gelten dann als 0), `firstDay`, `lastDay`, `files` (Name, Größe, SHA-256 hex jeder folgenden Datei).
+1. `manifest.json`: `format` 1, `compression` (`none`), `createdAt`, `appVersion`, `schemaVersion` (NDJSON-Schema, derzeit 1), `entries`, `recordings`, `notes` (geschriebene Texte, D17), `goals` und `milestones` (Ziele und Etappen, D19), `books` und `passages` (Bücher und Passagen, D21), `bookFiles` (Buchdateien, D25; alle sechs fehlen in älteren Dateien und gelten dann als 0), `firstDay`, `lastDay`, `files` (Name, Größe, SHA-256 hex jeder folgenden Datei).
 2. `db.ndjson`: eine JSON-Zeile je Datensatz mit Feld `type` (`entry`, `recording`, `transcript`, `note`, `goal`, `milestone`, `book`, `passage`, `reminder`, `setting`; unbekannte Typen werden übersprungen, `note` (D17), `goal` und `milestone` (D19) sowie `book` und `passage` (D21) kamen ohne Versionssprung hinzu); Serialisierung `ModelJson` in `diary_core`. `fileKeyWrapped` wird nicht exportiert.
 3. `audio/<Dateiname>`: Audio als entschlüsselte Rohbytes (M4A/WebM); das Zielgerät verschlüsselt neu unter seinem Master-Key.
+4. `books/<Dateiname>`: Buchdateien (EPUB, D25) als entschlüsselte Rohbytes, derselbe Weg wie Audio; der Buch-Datensatz nennt `fileName` und `format`, `fileKeyWrapped` wird wie bei Aufnahmen nicht exportiert. Fehlt die Datei im Container, übernimmt der Import das Buch ohne Datei.
 
 `ContainerPayload.parse` prüft jede Datei gegen Größe und SHA-256 im Manifest und lehnt fehlende, zusätzliche oder veränderte Dateien ab (`manifestMismatch`); unbekannte Manifest-Formate und Kompressionen sind `unsupported`.
 

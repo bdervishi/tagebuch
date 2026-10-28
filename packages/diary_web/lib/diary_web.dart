@@ -8,7 +8,7 @@
 /// Wiedergabe über ein `HTMLAudioElement`, Speicherstatus und die
 /// ICS-Kalenderdatei als Ersatz für die Benachrichtigung, Backup und
 /// Gerätewechsel ([WebAudioFiles], [downloadBytes], [pickFile],
-/// [QrCameraScanner]).
+/// [QrCameraScanner]) und Buchdateien des E-Readers ([WebBookFiles], D25).
 ///
 /// Nur `dart:js_interop` und `package:web`, kein `dart:html`. Alle Klassen
 /// hier laufen ausschließlich im Browser; die App bindet sie über einen
@@ -26,6 +26,7 @@ export 'src/qr_camera_scanner.dart';
 export 'src/text_normalization.dart';
 export 'src/web_audio_files.dart';
 export 'src/web_audio_player.dart';
+export 'src/web_book_files.dart';
 export 'src/web_files.dart';
 export 'src/web_master_key_store.dart';
 export 'src/web_repositories.dart';

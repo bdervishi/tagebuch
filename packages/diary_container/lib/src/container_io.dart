@@ -236,6 +236,9 @@ class ContainerPayload {
   static const String databaseName = 'db.ndjson';
   static const String audioPrefix = 'audio/';
 
+  /// Buchdateien (EPUB, D25) als entschlüsselte Rohbytes.
+  static const String bookPrefix = 'books/';
+
   final ContainerManifest manifest;
   final Map<String, Uint8List> _files;
 
@@ -311,6 +314,7 @@ class ContainerPayloadBuilder {
     this.milestoneCount = 0,
     this.bookCount = 0,
     this.passageCount = 0,
+    this.bookFileCount = 0,
     this.firstDay,
     this.lastDay,
   });
@@ -325,6 +329,7 @@ class ContainerPayloadBuilder {
   final int milestoneCount;
   final int bookCount;
   final int passageCount;
+  final int bookFileCount;
   final String? firstDay;
   final String? lastDay;
   final List<(String, Uint8List)> _files = [];
@@ -358,6 +363,7 @@ class ContainerPayloadBuilder {
     milestoneCount: milestoneCount,
     bookCount: bookCount,
     passageCount: passageCount,
+    bookFileCount: bookFileCount,
     firstDay: firstDay,
     lastDay: lastDay,
     files: List.unmodifiable(_listed),

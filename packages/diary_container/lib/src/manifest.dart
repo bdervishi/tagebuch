@@ -43,6 +43,7 @@ class ContainerManifest {
     this.milestoneCount = 0,
     this.bookCount = 0,
     this.passageCount = 0,
+    this.bookFileCount = 0,
     this.formatVersion = 1,
     this.compression = compressionNone,
     this.firstDay,
@@ -79,6 +80,10 @@ class ContainerManifest {
   /// Dateien älterer Versionen und gelten dann als 0.
   final int bookCount;
   final int passageCount;
+
+  /// Buchdateien (`books/<Dateiname>`, D25); fehlt in Dateien älterer
+  /// Versionen und gilt dann als 0.
+  final int bookFileCount;
   final String? firstDay;
   final String? lastDay;
   final List<ManifestFile> files;
@@ -100,6 +105,7 @@ class ContainerManifest {
     'milestones': milestoneCount,
     'books': bookCount,
     'passages': passageCount,
+    'bookFiles': bookFileCount,
     'firstDay': firstDay,
     'lastDay': lastDay,
     'files': files.map((f) => f.toJson()).toList(),
@@ -130,6 +136,7 @@ class ContainerManifest {
       milestoneCount: j['milestones'] as int? ?? 0,
       bookCount: j['books'] as int? ?? 0,
       passageCount: j['passages'] as int? ?? 0,
+      bookFileCount: j['bookFiles'] as int? ?? 0,
       firstDay: j['firstDay'] as String?,
       lastDay: j['lastDay'] as String?,
       files: (j['files']! as List)

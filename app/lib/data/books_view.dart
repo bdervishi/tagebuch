@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:diary_core/diary_core.dart';
+import 'package:diary_epub/diary_epub.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/app_services.dart';
@@ -46,6 +49,47 @@ final readingBookProvider = FutureProvider<BookView?>((ref) async {
   final books = await ref.watch(booksProvider.future);
   return books.where((v) => v.book.status == BookStatus.reading).firstOrNull;
 });
+
+/// Summe der Buchdateien in Byte (Hinweis im Backup-Bildschirm, D25).
+final bookFilesSizeProvider = FutureProvider<int>((ref) async {
+  final books = await ref.watch(booksProvider.future);
+  return books.fold<int>(0, (n, v) => n + (v.book.fileSizeBytes ?? 0));
+});
+
+/// Das geöffnete EPUB eines Buchs (D25): Datei entschlüsselt lesen und
+/// einmal je Sitzung parsen; Kapitel werden erst beim Anzeigen zerlegt.
+/// `null`, wenn das Buch keine lesbare Datei hat. Wirft [EpubException] bei
+/// einer unlesbaren Datei. Nicht an `dataVersionProvider` gebunden: Lesen
+/// und Markieren sollen das Buch nicht neu parsen; `BookActions.attachEpub`
+/// macht den Eintrag gezielt ungültig.
+final readerDocumentProvider = FutureProvider.family<EpubDocument?, String>((
+  ref,
+  bookId,
+) async {
+  final s = await ref.watch(appServicesProvider.future);
+  final book = await s.books.bookById(bookId);
+  if (book == null || !book.hasFile) return null;
+  final bytes = await s.booksUseCase().readFile(book);
+  if (bytes == null) return null;
+  return EpubDocument.open(bytes);
+});
+
+/// Ergebnis der EPUB-Prüfung vor dem Laden (D25): Titel und Autor aus dem
+/// Buch und Bücher ohne Datei, deren Titel ähnlich ist (die Nutzerin wählt
+/// dann Anhängen oder Neuanlegen).
+class EpubImportPlan {
+  const EpubImportPlan({
+    required this.bytes,
+    required this.title,
+    required this.author,
+    required this.candidates,
+  });
+
+  final Uint8List bytes;
+  final String title;
+  final String? author;
+  final List<Book> candidates;
+}
 
 /// Eine Passage mit ihrem Buch (Abschnitt "Heute gelesen" im Eintrag).
 class DayPassage {
@@ -113,7 +157,79 @@ class BookActions {
 
   Future<void> delete(String bookId) async {
     await (await _useCase()).deleteBook(bookId);
+    ref.invalidate(readerDocumentProvider(bookId));
     _bump();
+  }
+
+  // ----- E-Reader (D25) --------------------------------------------------
+
+  /// Prüft ein gewähltes EPUB: Größe, ZIP, Kopierschutz; liest Titel und
+  /// Autor und sucht Bücher ohne Datei mit ähnlichem Titel. Wirft
+  /// [EpubException].
+  Future<EpubImportPlan> inspectEpub(Uint8List bytes) async {
+    final doc = EpubDocument.open(bytes);
+    final s = await ref.read(appServicesProvider.future);
+    final key = _titleKey(doc.book.title);
+    final candidates = [
+      for (final b in await s.books.listBooks(s.journalId))
+        if (!b.hasFile && _similar(_titleKey(b.title), key)) b,
+    ];
+    return EpubImportPlan(
+      bytes: bytes,
+      title: doc.book.title,
+      author: doc.book.author,
+      candidates: candidates,
+    );
+  }
+
+  /// Legt ein neues Buch mit Status "Lese ich" an und hängt die Datei an.
+  Future<Book> importEpubAsNewBook(EpubImportPlan plan) async {
+    final useCase = await _useCase();
+    final book = await useCase.addBook(title: plan.title, author: plan.author);
+    final attached = await useCase.attachFile(book.id, bytes: plan.bytes);
+    _bump();
+    return attached ?? book;
+  }
+
+  /// Hängt die Datei an ein vorhandenes Buch (ersetzt eine alte Datei).
+  Future<Book?> attachEpub(String bookId, Uint8List bytes) async {
+    final book = await (await _useCase()).attachFile(bookId, bytes: bytes);
+    ref.invalidate(readerDocumentProvider(bookId));
+    _bump();
+    return book;
+  }
+
+  /// Merkt die Leseposition; ohne Datenzähler, damit der Reader beim Lesen
+  /// nichts neu lädt. Beim Verlassen ruft der Reader [finishReading].
+  Future<void> saveReadingPosition(String bookId, ReadingPosition position) =>
+      _useCase().then((u) => u.saveReadingPosition(bookId, position));
+
+  /// Beim Verlassen des Readers: letzte Position sichern und die Ansichten
+  /// (Buchdetail, "Mehr") einmal neu laden lassen.
+  Future<void> finishReading(String bookId, ReadingPosition? position) async {
+    if (position != null) await saveReadingPosition(bookId, position);
+    // Der Reader ruft dies aus `dispose`; ein Provider darf erst nach dem
+    // Aufräumen des Widget-Baums geändert werden (Mikrotask, kein Timer).
+    await Future<void>.microtask(() {});
+    // Beim Schließen der ganzen App ist der Provider schon weg.
+    if (!ref.mounted) return;
+    _bump();
+  }
+
+  /// Normalisierter Titel für den Ähnlichkeitsvergleich: Kleinschreibung,
+  /// nur Buchstaben und Ziffern.
+  static String _titleKey(String title) => title.toLowerCase().replaceAll(
+    RegExp(r'[^\p{L}\p{N}]+', unicode: true),
+    '',
+  );
+
+  /// Gleich oder eines enthält das andere (ab vier Zeichen).
+  static bool _similar(String a, String b) {
+    if (a.isEmpty || b.isEmpty) return false;
+    if (a == b) return true;
+    final shorter = a.length < b.length ? a : b;
+    final longer = a.length < b.length ? b : a;
+    return shorter.length >= 4 && longer.contains(shorter);
   }
 
   Future<Passage?> addPassage(
@@ -121,12 +237,14 @@ class BookActions {
     required String text,
     String? page,
     String? thought,
+    PassageAnchor? anchor,
   }) async {
     final p = await (await _useCase()).addPassage(
       bookId,
       text: text,
       page: page,
       thought: thought,
+      anchor: anchor,
     );
     if (p != null) _bump();
     return p;

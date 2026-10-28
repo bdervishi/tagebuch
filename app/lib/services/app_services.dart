@@ -30,6 +30,7 @@ class AppServices {
     required this.deleteFiles,
     required this.features,
     required this.audioFiles,
+    required this.bookFiles,
     this.sttEngine,
     this.fileTranscriber,
     this.fileTranscriberCheck,
@@ -94,6 +95,9 @@ class AppServices {
   /// Gerätewechsel (D6).
   final AudioFiles audioFiles;
 
+  /// Buchdateien des E-Readers (EPUB, D25), verschlüsselt wie Audio.
+  final BookFileStore bookFiles;
+
   /// Argon2id-Parameter des Backups (Tests: `Argon2Params.testing`).
   final Argon2Params argon2Params;
 
@@ -135,9 +139,14 @@ class AppServices {
   GoalsUseCase goalsUseCase() =>
       GoalsUseCase(journalId: journalId, goals: goals, ids: ids, clock: clock);
 
-  /// Bücher und Passagen (D21) mit diesen Ports.
-  BooksUseCase booksUseCase() =>
-      BooksUseCase(journalId: journalId, books: books, ids: ids, clock: clock);
+  /// Bücher und Passagen (D21) samt E-Book-Dateien (D25) mit diesen Ports.
+  BooksUseCase booksUseCase() => BooksUseCase(
+    journalId: journalId,
+    books: books,
+    ids: ids,
+    clock: clock,
+    files: bookFiles,
+  );
 
   /// Backup und Gerätewechsel mit diesen Ports. Die Einstellungen der
   /// App-Sperre bleiben außen vor (D23 Punkt 6): Sie gehören zum Gerät, und
@@ -150,6 +159,7 @@ class AppServices {
     notes: notes,
     goals: goals,
     books: books,
+    bookFiles: bookFiles,
     settings: DeviceBoundSettings(settings),
     audioSource: audioFiles,
     audioSink: audioFiles,

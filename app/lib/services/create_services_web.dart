@@ -59,6 +59,7 @@ Future<AppServices> createAppServices() async {
     },
     features: const WebPlatformFeatures(),
     audioFiles: WebAudioFilesPort(files),
+    bookFiles: WebBookFiles(files),
     // "App zurücksetzen" (D23): Verbindung schließen, dann die ganze
     // Datenbank samt Master-Key löschen (Crypto-Shredding, docs/05 3.4).
     resetAll: () async {
@@ -166,6 +167,10 @@ class WebPlatformFeatures implements PlatformFeatures {
   @override
   Future<Uint8List?> pickContainerFile() =>
       pickFile(accept: '.${TransferUseCase.fileExtension}');
+
+  @override
+  Future<Uint8List?> pickEpubFile() =>
+      pickFile(accept: '.epub,application/epub+zip');
 
   @override
   bool get canScanQr => QrCameraScanner.isSupported;

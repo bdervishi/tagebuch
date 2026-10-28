@@ -121,12 +121,20 @@ class MoreScreen extends ConsumerWidget {
     return '${l10n.moreGoalsActive(goals.length)} · $nextText';
   }
 
-  /// "Lese ich: Titel · 2 Passagen"; ohne Buch in Arbeit die leise Frage.
+  /// "Lese ich: Titel · 2 Passagen"; bei einem angelesenen E-Book (D25)
+  /// "Weiterlesen: Titel, Kap. 3"; ohne Buch in Arbeit die leise Frage.
   String? _readingState(WidgetRef ref, AppLocalizations l10n) {
     final state = ref.watch(readingBookProvider);
     if (state.isLoading && !state.hasValue) return null;
     final view = state.value;
     if (view == null) return l10n.moreReadingEmpty;
+    final position = view.book.readingPosition;
+    if (view.book.hasFile && position != null && position.progress > 0) {
+      return l10n.moreContinueReading(
+        view.book.title,
+        position.chapterIndex + 1,
+      );
+    }
     return '${l10n.moreReadingLabel(view.book.title)} · '
         '${l10n.bookPassageCount(view.passages.length)}';
   }

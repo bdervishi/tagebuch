@@ -239,6 +239,15 @@ abstract final class ModelJson {
     'createdAt': _time(b.createdAt),
     'updatedAt': _time(b.updatedAt),
     'finishedAt': b.finishedAt == null ? null : _time(b.finishedAt!),
+    // E-Book (D25); fehlen in älteren Datensätzen und gelten dann als
+    // "keine Datei".
+    'format': b.format?.name,
+    'fileName': b.fileName,
+    'fileKeyWrapped': b.fileKeyWrapped == null
+        ? null
+        : base64Encode(b.fileKeyWrapped!),
+    'fileSizeBytes': b.fileSizeBytes,
+    'readingPosition': b.readingPosition?.toJson(),
   };
 
   static Book decodeBook(Map<String, Object?> m) => Book(
@@ -254,6 +263,17 @@ abstract final class ModelJson {
     finishedAt: m['finishedAt'] == null
         ? null
         : _parseTime(m['finishedAt'] as String),
+    format: BookFormat.tryParse(m['format'] as String?),
+    fileName: m['fileName'] as String?,
+    fileKeyWrapped: m['fileKeyWrapped'] == null
+        ? null
+        : _bytes(m['fileKeyWrapped'] as String),
+    fileSizeBytes: (m['fileSizeBytes'] as num?)?.toInt(),
+    readingPosition: switch (m['readingPosition']) {
+      final Map rp => ReadingPosition.fromJson(Map<String, Object?>.from(rp)),
+      final String rp => ReadingPosition.decode(rp),
+      _ => null,
+    },
   );
 
   static Map<String, Object?> encodePassage(Passage p) => {
@@ -265,6 +285,7 @@ abstract final class ModelJson {
     'page': p.page,
     'thought': p.thought,
     'day': p.day.iso,
+    'anchor': p.anchor?.toJson(),
   };
 
   static Passage decodePassage(Map<String, Object?> m) {
@@ -280,6 +301,11 @@ abstract final class ModelJson {
       day: m['day'] == null
           ? LocalDay.forMoment(createdAt)
           : LocalDay.parse(m['day'] as String),
+      anchor: switch (m['anchor']) {
+        final Map a => PassageAnchor.fromJson(Map<String, Object?>.from(a)),
+        final String a => PassageAnchor.decode(a),
+        _ => null,
+      },
     );
   }
 

@@ -1,0 +1,21 @@
+name: diary_epub
+description: "EPUB-Parser des Sprach-Tagebuchs (D25): ZIP, OPF, NAV/NCX und Kapitel-XHTML zu Bloecken; reines Dart ohne Netzwerkzugriff."
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  meta: ^1.16.0
+  # ZIP entpacken (EPUB ist ein ZIP). Reines Dart; Laufzeitabhängigkeiten nur crypto und path (D25 Punkt 6).
+  archive: ^3.6.1
+  # container.xml, OPF und NCX lesen. Reines Dart (collection, meta, petitparser).
+  xml: ^6.5.0
+  # Kapitel-XHTML parsen (Entitäten, fehlertolerant). Reines Dart (csslib, source_span).
+  html: ^0.15.5
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6

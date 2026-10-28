@@ -48,6 +48,7 @@ Future<AppServices> createAppServices() async {
     deleteFiles: (_) async {},
     features: const NativePlatformFeatures(),
     audioFiles: InMemoryAudioFiles(),
+    bookFiles: InMemoryBookFiles(),
     // Ohne Speicherschicht genügt es, die Dienste neu anzulegen (die App
     // verwirft den Provider nach `resetAll`).
     ids: ids,

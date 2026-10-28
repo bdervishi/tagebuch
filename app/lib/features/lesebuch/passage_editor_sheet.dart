@@ -17,25 +17,45 @@ const Key passageSaveKey = Key('passage-save');
 /// der Systemtastatur zum Diktieren; die App bringt dafür keine eigene
 /// Erkennung), Seite oder Kapitel, eigener Gedanke. Liefert die angelegte
 /// oder geänderte Passage oder `null`, wenn abgebrochen.
+///
+/// Aus dem Reader (D25) kommt das Blatt vorbefüllt: [initialText] ist die
+/// Markierung, [initialPage] "Kap. n", [anchor] die Stelle im Buch.
 Future<Passage?> showPassageEditorSheet(
   BuildContext context, {
   required String bookId,
   Passage? existing,
+  String? initialText,
+  String? initialPage,
+  PassageAnchor? anchor,
 }) {
   return showModalBottomSheet<Passage?>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (context) =>
-        _PassageEditorSheet(bookId: bookId, existing: existing),
+    builder: (context) => _PassageEditorSheet(
+      bookId: bookId,
+      existing: existing,
+      initialText: initialText,
+      initialPage: initialPage,
+      anchor: anchor,
+    ),
   );
 }
 
 class _PassageEditorSheet extends ConsumerStatefulWidget {
-  const _PassageEditorSheet({required this.bookId, this.existing});
+  const _PassageEditorSheet({
+    required this.bookId,
+    this.existing,
+    this.initialText,
+    this.initialPage,
+    this.anchor,
+  });
 
   final String bookId;
   final Passage? existing;
+  final String? initialText;
+  final String? initialPage;
+  final PassageAnchor? anchor;
 
   @override
   ConsumerState<_PassageEditorSheet> createState() =>
@@ -44,10 +64,10 @@ class _PassageEditorSheet extends ConsumerStatefulWidget {
 
 class _PassageEditorSheetState extends ConsumerState<_PassageEditorSheet> {
   late final TextEditingController _text = TextEditingController(
-    text: widget.existing?.text ?? '',
+    text: widget.existing?.text ?? widget.initialText ?? '',
   );
   late final TextEditingController _page = TextEditingController(
-    text: widget.existing?.page ?? '',
+    text: widget.existing?.page ?? widget.initialPage ?? '',
   );
   late final TextEditingController _thought = TextEditingController(
     text: widget.existing?.thought ?? '',
@@ -81,6 +101,7 @@ class _PassageEditorSheetState extends ConsumerState<_PassageEditorSheet> {
         text: text,
         page: _page.text,
         thought: _thought.text,
+        anchor: widget.anchor,
       );
       navigator.pop(passage);
     } else {

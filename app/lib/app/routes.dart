@@ -10,6 +10,7 @@ import '../features/eintrag/entry_screen.dart';
 import '../features/lesebuch/book_detail_screen.dart';
 import '../features/lesebuch/books_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
+import '../features/reader/reader_screen.dart';
 import '../features/rueckblick/week_review_screen.dart';
 import '../features/schreiben/write_screen.dart';
 import '../features/schutz/pin_flow_screen.dart';
@@ -68,6 +69,9 @@ abstract final class AppRoutes {
   /// Lesebuch: Bücher und Passagen (D21); Details mit Buch-ID als [String].
   static const String books = '/books';
   static const String book = '/book';
+
+  /// E-Reader (D25) mit Buch-ID als [String].
+  static const String read = '/read';
 
   /// Bewegungspausen und Übungen (D24).
   static const String movement = '/movement';
@@ -150,6 +154,13 @@ abstract final class AppRoutes {
         return MaterialPageRoute<void>(
           settings: settings,
           builder: (_) => BookDetailScreen(bookId: id),
+        );
+      case read:
+        final id = settings.arguments;
+        if (id is! String) return null;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => ReaderScreen(bookId: id),
         );
       case onboarding:
         return SheetPageRoute<void>(
@@ -238,6 +249,10 @@ abstract final class AppRoutes {
   /// Öffnet die Details eines Buchs.
   static Future<void> openBook(BuildContext context, String bookId) =>
       Navigator.of(context).pushNamed(book, arguments: bookId);
+
+  /// Öffnet den E-Reader für ein Buch mit Datei (D25).
+  static Future<void> openReader(BuildContext context, String bookId) =>
+      Navigator.of(context).pushNamed(read, arguments: bookId);
 
   /// Öffnet den Schreiben-Bildschirm für [day], optional für eine Notiz.
   static Future<void> openWrite(

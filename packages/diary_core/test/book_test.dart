@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:diary_core/diary_core.dart';
 import 'package:test/test.dart';
@@ -79,6 +80,91 @@ void main() {
     });
     expect(minimalPassage.day, LocalDay.forMoment(t0));
     expect(minimalPassage.page, isNull);
+  });
+
+  test('E-Book-Felder (D25): Codec tolerant, Leseposition, Anker', () {
+    final b = Book(
+      id: 'b1',
+      journalId: 'j',
+      title: 'E-Book',
+      status: BookStatus.reading,
+      createdAt: t0,
+      updatedAt: t0,
+      format: BookFormat.epub,
+      fileName: 'book-b1.epub.tgbc',
+      fileKeyWrapped: Uint8List.fromList(List.filled(60, 7)),
+      fileSizeBytes: 12345,
+      readingPosition: const ReadingPosition(
+        chapterIndex: 3,
+        blockIndex: 12,
+        progress: 0.25,
+      ),
+    );
+    expect(b.hasFile, isTrue);
+    final back = ModelJson.decodeBook(
+      jsonDecode(jsonEncode(ModelJson.encodeBook(b))) as Map<String, Object?>,
+    );
+    expect(back.format, BookFormat.epub);
+    expect(back.fileName, 'book-b1.epub.tgbc');
+    expect(back.fileKeyWrapped, b.fileKeyWrapped);
+    expect(back.fileSizeBytes, 12345);
+    expect(back.readingPosition, b.readingPosition);
+    expect(back.hasFile, isTrue);
+
+    // Ohne Datei: alle Felder null, kein E-Book.
+    final plain = b.copyWith(clearFile: true);
+    expect(plain.hasFile, isFalse);
+    expect(plain.readingPosition, isNull);
+    final plainBack = ModelJson.decodeBook(ModelJson.encodeBook(plain));
+    expect(plainBack.format, isNull);
+    expect(plainBack.fileName, isNull);
+    // Unbekanntes Format aus einer neueren Fassung: kein E-Book, kein Fehler.
+    final unknown = ModelJson.decodeBook({
+      ...ModelJson.encodeBook(b),
+      'format': 'pdf',
+      'readingPosition': 'kein json',
+    });
+    expect(unknown.format, isNull);
+    expect(unknown.hasFile, isFalse);
+    expect(unknown.readingPosition, isNull);
+
+    expect(ReadingPosition.decode(null), isNull);
+    expect(
+      ReadingPosition.decode('{"chapter":1,"progress":2}'),
+      const ReadingPosition(chapterIndex: 1, progress: 1),
+    );
+
+    const anchor = PassageAnchor(
+      chapterIndex: 1,
+      blockIndex: 4,
+      start: 10,
+      end: 30,
+      endBlockIndex: 5,
+      excerpt: 'Ein Satz',
+    );
+    final p = Passage(
+      id: 'p1',
+      bookId: 'b1',
+      createdAt: t0,
+      updatedAt: t0,
+      text: 'Ein Satz, der bleibt.',
+      day: const LocalDay(2026, 10, 27),
+      anchor: anchor,
+    );
+    final pBack = ModelJson.decodePassage(
+      jsonDecode(jsonEncode(ModelJson.encodePassage(p)))
+          as Map<String, Object?>,
+    );
+    expect(pBack.anchor, anchor);
+    expect(pBack.anchor!.lastBlockIndex, 5);
+    expect(
+      ModelJson.decodePassage(
+        ModelJson.encodePassage(p.copyWith(text: 'x'))..remove('anchor'),
+      ).anchor,
+      isNull,
+    );
+    expect(PassageAnchor.decode('[]'), isNull);
+    expect(PassageAnchor.decode(anchor.encode()), anchor);
   });
 
   test('BooksUseCase: anlegen, Status, Passagen, löschen', () async {

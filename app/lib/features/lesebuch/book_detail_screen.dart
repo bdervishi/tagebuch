@@ -2,11 +2,14 @@ import 'package:diary_core/diary_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/routes.dart';
 import '../../data/books_view.dart';
 import '../../data/settings_notifier.dart';
+import '../../data/size_format.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/reveal.dart';
 import '../../widgets/surface_card.dart';
+import '../reader/epub_import.dart';
 import '../zitate/quote_library.dart';
 import 'book_editor_sheet.dart';
 import 'books_screen.dart';
@@ -17,6 +20,8 @@ const Key bookMenuKey = Key('book-menu');
 const Key bookEditKey = Key('book-edit');
 const Key bookDeleteKey = Key('book-delete');
 const Key bookAddPassageKey = Key('book-add-passage');
+const Key bookLoadEpubKey = Key('book-load-epub');
+const Key bookReadKey = Key('book-read');
 
 /// Key des Status-Segments im Kopf der Buchdetails.
 Key bookDetailStatusKey(BookStatus status) =>
@@ -76,6 +81,8 @@ class BookDetailScreen extends ConsumerWidget {
     switch (action) {
       case _BookMenuAction.edit:
         showBookEditorSheet(context, existing: book);
+      case _BookMenuAction.loadEpub:
+        importEpub(context, ref, intoBookId: book.id);
       case _BookMenuAction.delete:
         _delete(context, ref, book);
     }
@@ -103,6 +110,15 @@ class BookDetailScreen extends ConsumerWidget {
                   child: Text(l10n.bookEdit),
                 ),
                 PopupMenuItem(
+                  key: bookLoadEpubKey,
+                  value: _BookMenuAction.loadEpub,
+                  child: Text(
+                    view.book.hasFile
+                        ? l10n.bookReplaceEpub
+                        : l10n.booksLoadEpub,
+                  ),
+                ),
+                PopupMenuItem(
                   key: bookDeleteKey,
                   value: _BookMenuAction.delete,
                   child: Text(l10n.bookDelete),
@@ -128,7 +144,7 @@ class BookDetailScreen extends ConsumerWidget {
   }
 }
 
-enum _BookMenuAction { edit, delete }
+enum _BookMenuAction { edit, loadEpub, delete }
 
 class _BookBody extends ConsumerWidget {
   const _BookBody({required this.view});
@@ -187,6 +203,15 @@ class _BookBody extends ConsumerWidget {
               ),
             ),
           ),
+        // E-Book (D25): "Lesen" bzw. "Weiterlesen" mit Kapitel und Größe.
+        if (book.hasFile)
+          Reveal(
+            index: 2,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: _ReadRow(book: book),
+            ),
+          ),
         const SizedBox(height: 20),
         Reveal(
           index: 2,
@@ -230,6 +255,46 @@ class _BookBody extends ConsumerWidget {
               onPressed: () => showPassageEditorSheet(context, bookId: book.id),
               icon: const Icon(Icons.format_quote_outlined),
               label: Text(l10n.passageAdd),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// "Lesen" oder "Weiterlesen" für ein Buch mit Datei: Taste, daneben
+/// Kapitel und Dateigröße.
+class _ReadRow extends StatelessWidget {
+  const _ReadRow({required this.book});
+
+  final Book book;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final position = book.readingPosition;
+    final started = position != null && position.progress > 0;
+    final info = [
+      l10n.bookFileInfo(formatBytes(l10n, book.fileSizeBytes ?? 0)),
+      if (started) l10n.readerChapterPage(position.chapterIndex + 1),
+    ].join(' · ');
+    return Row(
+      children: [
+        FilledButton.icon(
+          key: bookReadKey,
+          onPressed: () => AppRoutes.openReader(context, book.id),
+          icon: const Icon(Icons.auto_stories_outlined),
+          label: Text(started ? l10n.bookContinueReading : l10n.bookRead),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            info,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
             ),
           ),
         ),

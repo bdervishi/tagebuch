@@ -64,6 +64,9 @@ dependencies:
     path: ../packages/diary_web
   diary_stt_web:
     path: ../packages/diary_stt_web
+  # E-Reader (D25): EPUB-Parser, reines Dart (archive, xml, html; kein Netzwerkzugriff).
+  diary_epub:
+    path: ../packages/diary_epub
 
 dev_dependencies:
   flutter_test:
@@ -75,6 +78,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  # Nur für Tests: erzeugt ein EPUB (ZIP) im Speicher, damit keine Binärdatei im Git liegt (D25).
+  archive: ^3.6.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

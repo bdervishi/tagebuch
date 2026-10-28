@@ -403,6 +403,34 @@ class InMemoryAudioFiles implements AudioFiles {
   }
 }
 
+/// Buchdateien (D25) im Speicher: der "gewrappte Schlüssel" ist ein
+/// Zähler, `read` prüft ihn wie der echte Store.
+class InMemoryBookFiles implements BookFileStore {
+  final Map<String, (Uint8List, Uint8List)> files = {};
+  int _writes = 0;
+
+  @override
+  Future<StoredBookFile> write(String fileName, Uint8List bytes) async {
+    _writes++;
+    final key = Uint8List.fromList(List.filled(60, _writes & 0xff));
+    files[fileName] = (key, Uint8List.fromList(bytes));
+    return StoredBookFile(fileKeyWrapped: key, sizeBytes: bytes.length + 96);
+  }
+
+  @override
+  Future<Uint8List?> read(String fileName, Uint8List fileKeyWrapped) async {
+    final f = files[fileName];
+    if (f == null || f.$1.length != fileKeyWrapped.length) return null;
+    for (var i = 0; i < f.$1.length; i++) {
+      if (f.$1[i] != fileKeyWrapped[i]) return null;
+    }
+    return f.$2;
+  }
+
+  @override
+  Future<void> delete(String fileName) async => files.remove(fileName);
+}
+
 /// Suche über die In-Memory-Transkripte, Notizen (D17) und Passagen (D21):
 /// Kleinschreibung, `ß → ss`, Teilworttreffer; Sprungziel ist bei
 /// Transkripten der Start des ersten passenden Segments, bei Notizen keines;

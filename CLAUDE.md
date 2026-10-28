@@ -5,7 +5,7 @@ Lokales Sprach-Tagebuch für iOS und Android: täglich zu einer selbst gewählte
 ## Wo was steht
 
 - `docs/00-anforderungen.md` bis `docs/09-roadmap.md`: Konzept (Anforderungen, Markt, Produkt, Technik, Sicherheit, Transfer, Geschäftsmodell, Name, Roadmap). Sprache Deutsch.
-- `docs/entscheidungen.md`: verbindliche Entscheidungen D1 bis D15. Erst lesen, dann bauen. Abweichungen dort begründen, nicht still im Code.
+- `docs/entscheidungen.md`: verbindliche Entscheidungen D1 bis D25. Erst lesen, dann bauen. Abweichungen dort begründen, nicht still im Code.
 - `docs/12-gestaltung.md`: Gestaltung und Bewegung (Tokens in `app/lib/app/motion.dart`, Bausteine `Pressable`, `Reveal`, `SurfaceCard` in `app/lib/widgets/`). Vor jeder neuen Animation oder Karte die Prüfliste dort durchgehen; keine eigenen Dauern oder Kurven im Code.
 - `docs/recherche/`: Rechercheberichte und Faktenprüfung (`verifikation.json`).
 - `docs/ressourcen.md`: kostenlose Dienste aus free-for.dev und wo wir sie einsetzen (CI, iOS-Builds ohne Mac, Übersetzung, Website, Support-Mail) und wo bewusst nicht (Crash-Reporter, Analytics). Vor dem Anbinden eines Dienstes dort nachsehen und eintragen.
@@ -16,9 +16,10 @@ Lokales Sprach-Tagebuch für iOS und Android: täglich zu einer selbst gewählte
   - `diary_chunkfile` Chunk-AEAD-Dateiformat mit wahlfreiem Zugriff (Format in dessen README, Testvektoren für Swift/Kotlin)
   - `diary_container` Transfer-/Backup-Container: Kopf, QR-Nutzlast, Manifest, Rahmung, Schlüsselableitung (Argon2id, X25519/HKDF), Stromverschlüsselung (Referenz Kennung 2) und Writer/Reader (Format in dessen README)
   - `diary_storage` drift-Schema, FTS5, SQLCipher-Öffnung
+  - `diary_epub` EPUB-Parser für den E-Reader (D25): ZIP, OPF, NAV/NCX, Kapitel-XHTML zu Blöcken; reines Dart mit `archive`, `xml`, `html` (kein Netzwerkzugriff). Darstellung in `app/lib/features/reader/`; Buchdateien liegen verschlüsselt im Dateispeicher (`BookFileStore`), im Container unter `books/`
   - `diary_audio`, `diary_stt`, `diary_keys`, `diary_reminders` Schnittstellen mit Fakes; native Brücken folgen in den Spikes. `diary_reminders` enthält außerdem `CalendarLinks` (vorbefüllte Links für Google Kalender und Outlook, D18)
   - `diary_stt_web` Whisper im Browser (transformers.js + ONNX Runtime Web im Worker `app/web/stt/`, Modell vom eigenen Origin; Dateiliste `app/web/stt/MODELS.md`), experimentell (W5)
-  - `diary_web` Web-Umsetzungen der Ports: WebCrypto-Master-Key, verschlüsselte Datensätze und Audiodateien in IndexedDB, MediaRecorder-Aufnahme, Player, ICS-Erinnerung (Tests laufen im Chromium)
+  - `diary_web` Web-Umsetzungen der Ports: WebCrypto-Master-Key, verschlüsselte Datensätze, Audio- und Buchdateien in IndexedDB, MediaRecorder-Aufnahme, Player, ICS-Erinnerung (Tests laufen im Chromium, je Datei starten; der Sammellauf hängt)
 - `tool/check_no_network.sh`: Netz-Wächter (keine INTERNET-Berechtigung, keine gesperrten Pakete, keine Netzwerk-APIs). Läuft in der CI.
 - `app/assets/quotes/`: gebündelter Zitatenschatz (D20; Regeln in dessen README: nur gemeinfreie Autorinnen und Autoren, eigene Übertragungen, belegte Quellen).
 - `app/assets/movement/`: gebündelte Übungen für Bewegungspausen (D24; Regeln in dessen README: Alltagsbewegung ohne Gerät, keine medizinischen Versprechen, Hinweis zu Schmerzen bleibt). Logik und Oberfläche in `app/lib/features/bewegung/`.
@@ -31,7 +32,7 @@ export PATH=/opt/flutter/bin:$PATH          # in dieser Umgebung; Flutter 3.47.x
 flutter pub get                              # einmal an der Workspace-Wurzel (pub workspace)
 dart format .
 flutter analyze
-(cd packages/diary_crypto && dart test)      # reine Dart-Pakete: dart test
+(cd packages/diary_crypto && dart test)      # reine Dart-Pakete: dart test (auch diary_core, diary_container, diary_epub)
 (cd packages/diary_reminders && flutter test) # Flutter-Pakete und app/: flutter test
 tool/check_no_network.sh
 (cd packages/diary_storage && dart run build_runner build --delete-conflicting-outputs)  # nach Schemaänderungen
@@ -51,7 +52,7 @@ Kein Android-SDK und kein Xcode in dieser Umgebung: Builds laufen in der CI (`.g
 ## Regeln
 
 - **Kein Netz.** Keine Abhängigkeit mit Netzwerkzugriff, keine Analytics-, Crash- oder Werbe-SDKs, keine `INTERNET`-Berechtigung im Release. Der Netz-Wächter muss vor jedem Commit bestehen. Einzige Ausnahme sind die vorbefüllten "Termin anlegen"-Links für Google Kalender und Outlook (D18): nur die drei Hosts aus `CalendarLinks.allowedHosts`, geöffnet nur auf Tipp über `PlatformFeatures.openExternalLink`, nie von der App geladen. Die spätere WLAN-Direktübertragung (D6, Version 1.x) ändert diese Regel sichtbar in `tool/check_no_network.sh` und in den Docs, nicht nebenbei.
-- **Kein Klartext auf dem Dateisystem.** Audio nur über `diary_chunkfile`, Metadaten nur in SQLCipher, Schlüssel nur über `diary_keys`. Keine Temp-Dateien mit Nutzdaten, keine Inhalte in Benachrichtigungen, Widgets oder Logs.
+- **Kein Klartext auf dem Dateisystem.** Audio und Buchdateien (EPUB, D25) nur über `diary_chunkfile`, Metadaten nur in SQLCipher, Schlüssel nur über `diary_keys`. Keine Temp-Dateien mit Nutzdaten, keine Inhalte in Benachrichtigungen, Widgets oder Logs.
 - **Entscheidungen zuerst.** Was in `docs/entscheidungen.md` steht, gilt. Wer davon abweichen muss, ändert zuerst die Entscheidung mit Begründung (Historie oben in der Datei), dann den Code.
 - **Sprache.** Bezeichner im Code Englisch; Kommentare, Doku, Commit-Nachrichten und Oberflächentexte Deutsch (Oberfläche zusätzlich Englisch über ARB in `app/lib/l10n`). Keine hartkodierten UI-Strings.
 - **Tests gehören zur Änderung.** Kryptografie und Dateiformate mit Testvektoren; Format- und Schemaänderungen brauchen Migration und Test.

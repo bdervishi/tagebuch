@@ -30,13 +30,18 @@ Bekannte Grenzen auf iOS: Aufnahme nur, solange die App im Vordergrund ist (Bild
 
 Wer über den Tag an kleine Pausen erinnert werden will (Entscheidung D24), schaltet sie in den Einstellungen unter "Bewegung" ein und wählt bis zu drei Zeiten mit Wochentagen. Eine Benachrichtigung gibt es in der Web-App nicht; stattdessen "Bewegungspausen in den Kalender": je Pause ein Termin für Google Kalender (mit Wochentagen) oder Outlook, oder eine Kalenderdatei mit allen Pausen für Apple Kalender. Beim Öffnen der App ab der Pausenzeit zeigt "Heute" die Karte "Zeit für Bewegung" mit drei Übungen; ein Tipp notiert die Übung mit Uhrzeit in deinem Tag. Übungen und eigene Übungen stehen unter "Mehr", Zeile "Bewegung". Bei Schmerzen abbrechen; bei Beschwerden ärztlichen Rat einholen.
 
+## Bücher als EPUB lesen
+
+Im Lesebuch (Reiter "Mehr") lädt "EPUB laden" ein Buch aus den Dateien des Telefons (Entscheidung D25). Die Datei wird verschlüsselt in der App abgelegt und nie im Klartext gespeichert; sie verlässt das Gerät nicht. Kopiergeschützte Bücher (Adobe-DRM, LCP) lassen sich nicht öffnen, die App sagt das und speichert nichts; Dateien über 50 MB ebenso. Im Reader wechselt Wischen das Kapitel, ein Tipp in die Mitte blendet die Leiste ein und aus, "Inhalt" springt zu Kapiteln, "Darstellung" stellt Schriftgröße, Zeilenabstand und Farben (hell, dunkel, sepia). Text lange drücken markiert ihn; "Passage festhalten" legt eine Passage mit Anker an (im Buch hinterlegt), "Als Zitat merken" ein eigenes Zitat. Speicher: Jedes Buch wiegt meist einige Megabyte und wandert mit dem Backup; der Backup-Bildschirm nennt die Summe. PDF folgt in einer späteren Runde.
+
 ## Nach der Installation prüfen
 
 1. Eine kurze Aufnahme machen, App schließen, neu öffnen: Der Eintrag muss da sein.
 2. Wiedergabe funktioniert, auch nach einem Neustart des Telefons.
 3. Flugmodus einschalten, App öffnen, aufnehmen, abspielen: Alles muss ohne Netz gehen.
-4. Backup erstellen (Reiter "Mehr", Zeile "Backup und Gerätewechsel", oder Einstellungen, Daten), Datei sicher ablegen (z. B. in der Dateien-App), einmal probeweise wiederherstellen; die Zusammenfassung muss alle Arten nennen (Tage, Aufnahmen, Transkripte, Notizen, Wege, Etappen, Bücher, Passagen, Einstellungen). Die Zeile auf "Mehr" zeigt danach das Datum des Backups.
+4. Backup erstellen (Reiter "Mehr", Zeile "Backup und Gerätewechsel", oder Einstellungen, Daten), Datei sicher ablegen (z. B. in der Dateien-App), einmal probeweise wiederherstellen; die Zusammenfassung muss alle Arten nennen (Tage, Aufnahmen, Transkripte, Notizen, Wege, Etappen, Bücher, Passagen, Einstellungen). Die Zeile auf "Mehr" zeigt danach das Datum des Backups. Mit einem geladenen EPUB: Nach dem Wiederherstellen muss das Buch "Lesen" anbieten und sich öffnen lassen.
 5. App-Sperre (Einstellungen, Schutz) einschalten, App in den Hintergrund legen, nach der gewählten Zeit zurückkehren: Der Sperrbildschirm muss erscheinen, und beim Wechsel darf der App-Switcher keine Inhalte zeigen. Dabei die Dauer der PIN-Prüfung beobachten (Ziel: höchstens rund eine Sekunde; Messwert in D23 nachtragen).
+6. Ein EPUB laden, Kapitel wischen, Text lange drücken und als Passage festhalten, App schließen und neu öffnen: Das Buch muss an derselben Stelle weitergehen ("Weiterlesen"), die Markierung hinterlegt bleiben; Bilder im Buch müssen erscheinen. Mit Systemschrift 200 % prüfen, dass Leiste und Text lesbar bleiben.
 
 ## App-Sperre: PIN merken
 

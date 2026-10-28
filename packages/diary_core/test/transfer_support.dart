@@ -270,6 +270,35 @@ class MemoryAudioFiles implements AudioFileSource, AudioFileSink {
   }
 }
 
+/// Buchdateien (D25) im Speicher: `write` liefert einen erkennbaren
+/// gewrappten Schlüssel, `read` prüft ihn.
+class MemoryBookFiles implements BookFileStore {
+  final Map<String, (Uint8List key, Uint8List bytes)> files = {};
+  int writes = 0;
+
+  @override
+  Future<StoredBookFile> write(String fileName, Uint8List bytes) async {
+    writes++;
+    final key = Uint8List.fromList(List.filled(60, 100 + writes));
+    files[fileName] = (key, Uint8List.fromList(bytes));
+    return StoredBookFile(fileKeyWrapped: key, sizeBytes: bytes.length + 96);
+  }
+
+  @override
+  Future<Uint8List?> read(String fileName, Uint8List fileKeyWrapped) async {
+    final f = files[fileName];
+    if (f == null) return null;
+    if (f.$1.length != fileKeyWrapped.length) return null;
+    for (var i = 0; i < f.$1.length; i++) {
+      if (f.$1[i] != fileKeyWrapped[i]) return null;
+    }
+    return f.$2;
+  }
+
+  @override
+  Future<void> delete(String fileName) async => files.remove(fileName);
+}
+
 /// Ein vollständiges Gerät (Repositories, Audio, Anwendungsfall).
 class Device {
   Device(
@@ -278,6 +307,7 @@ class Device {
     bool withNotes = true,
     bool withGoals = true,
     bool withBooks = true,
+    bool withBookFiles = true,
   }) : ids = MemoryIds(idPrefix),
        clock = FixedClock(now ?? DateTime(2026, 10, 27, 20)) {
     entries = MemoryEntries(ids);
@@ -289,6 +319,7 @@ class Device {
       notes: withNotes ? notes : null,
       goals: withGoals ? goals : null,
       books: withBooks ? books : null,
+      bookFiles: withBooks && withBookFiles ? bookFiles : null,
       settings: settings,
       audioSource: audio,
       audioSink: audio,
@@ -308,6 +339,7 @@ class Device {
   final notes = MemoryNotes();
   final goals = MemoryGoals();
   final books = MemoryBooks();
+  final bookFiles = MemoryBookFiles();
   final settings = MemorySettings();
   final audio = MemoryAudioFiles();
   late final TransferUseCase useCase;

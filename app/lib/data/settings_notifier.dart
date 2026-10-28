@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/bewegung/movement_library.dart';
+import '../features/reader/reader_theme.dart';
 import '../features/zitate/quote_library.dart';
 import '../services/app_services.dart';
 import 'app_lock.dart';
@@ -54,6 +55,9 @@ class AppSettings {
     this.movementBreaks = MovementBreak.defaults,
     this.ownExercises = const [],
     this.movementDismissed = const {},
+    this.readerFontScale = 1.0,
+    this.readerLineHeight = 1.5,
+    this.readerTheme = ReaderTheme.system,
   });
 
   /// Schlüssel im `SettingsRepository`.
@@ -91,6 +95,20 @@ class AppSettings {
   static const keyMovementBreaks = 'movementBreaks';
   static const keyOwnExercises = 'ownExercises';
   static const keyMovementDismissed = 'movementDismissed';
+
+  /// E-Reader (D25): Schriftgröße als Faktor, Zeilenhöhe, Farbstimmung;
+  /// global für alle Bücher, verschlüsselt im Store und im Backup.
+  static const keyReaderFontScale = 'readerFontScale';
+  static const keyReaderLineHeight = 'readerLineHeight';
+  static const keyReaderTheme = 'readerTheme';
+
+  /// Grenzen der Reader-Schrift (Faktor auf den Fließtext) und Zeilenhöhe.
+  static const double readerFontScaleMin = 0.8;
+  static const double readerFontScaleMax = 2.0;
+  static const double readerFontScaleStep = 0.1;
+  static const double readerLineHeightMin = 1.3;
+  static const double readerLineHeightMax = 1.9;
+  static const double readerLineHeightStep = 0.1;
 
   /// Zeitpunkt des letzten Backups (ISO-8601) für die Backup-Erinnerung.
   static const keyLastBackupAt = 'lastBackupAt';
@@ -155,6 +173,15 @@ class AppSettings {
   /// zählt, ältere Einträge werden beim nächsten Schreiben verworfen.
   final Set<String> movementDismissed;
 
+  /// Schriftgröße im Reader als Faktor (D25), 0,8 bis 2,0.
+  final double readerFontScale;
+
+  /// Zeilenhöhe im Reader, 1,3 bis 1,9.
+  final double readerLineHeight;
+
+  /// Farbstimmung des Readers.
+  final ReaderTheme readerTheme;
+
   /// Kennung des Tageszustands einer Pause (D24).
   static String dismissKey(LocalDay day, int breakIndex) =>
       '${day.iso}:$breakIndex';
@@ -204,7 +231,30 @@ class AppSettings {
       ),
       ownExercises: Exercise.decodeList(await repo.get(keyOwnExercises)),
       movementDismissed: _splitList(await repo.get(keyMovementDismissed)),
+      readerFontScale: _clampedDouble(
+        await repo.get(keyReaderFontScale),
+        1.0,
+        readerFontScaleMin,
+        readerFontScaleMax,
+      ),
+      readerLineHeight: _clampedDouble(
+        await repo.get(keyReaderLineHeight),
+        1.5,
+        readerLineHeightMin,
+        readerLineHeightMax,
+      ),
+      readerTheme: ReaderTheme.fromSetting(await repo.get(keyReaderTheme)),
     );
+  }
+
+  static double _clampedDouble(
+    String? value,
+    double fallback,
+    double min,
+    double max,
+  ) {
+    final parsed = value == null ? null : double.tryParse(value);
+    return (parsed ?? fallback).clamp(min, max);
   }
 
   static Set<String> _splitList(String? value) => {
@@ -250,6 +300,9 @@ class AppSettings {
     List<MovementBreak>? movementBreaks,
     List<Exercise>? ownExercises,
     Set<String>? movementDismissed,
+    double? readerFontScale,
+    double? readerLineHeight,
+    ReaderTheme? readerTheme,
   }) {
     return AppSettings(
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
@@ -275,6 +328,9 @@ class AppSettings {
       movementBreaks: movementBreaks ?? this.movementBreaks,
       ownExercises: ownExercises ?? this.ownExercises,
       movementDismissed: movementDismissed ?? this.movementDismissed,
+      readerFontScale: readerFontScale ?? this.readerFontScale,
+      readerLineHeight: readerLineHeight ?? this.readerLineHeight,
+      readerTheme: readerTheme ?? this.readerTheme,
     );
   }
 
@@ -468,6 +524,45 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
           repo.set(AppSettings.keyOwnExercises, Exercise.encodeList(next)),
     );
   }
+
+  // ----- E-Reader (D25) --------------------------------------------------
+
+  /// Schriftgröße in Schritten von 0,1 zwischen 0,8 und 2,0; der Wert wird
+  /// gerundet, damit A-/A+ nicht driftet.
+  Future<void> setReaderFontScale(double value) {
+    final clamped =
+        (value.clamp(
+                  AppSettings.readerFontScaleMin,
+                  AppSettings.readerFontScaleMax,
+                ) *
+                10)
+            .round() /
+        10;
+    return _update(
+      _current.copyWith(readerFontScale: clamped),
+      (repo) => repo.set(AppSettings.keyReaderFontScale, '$clamped'),
+    );
+  }
+
+  Future<void> setReaderLineHeight(double value) {
+    final clamped =
+        (value.clamp(
+                  AppSettings.readerLineHeightMin,
+                  AppSettings.readerLineHeightMax,
+                ) *
+                10)
+            .round() /
+        10;
+    return _update(
+      _current.copyWith(readerLineHeight: clamped),
+      (repo) => repo.set(AppSettings.keyReaderLineHeight, '$clamped'),
+    );
+  }
+
+  Future<void> setReaderTheme(ReaderTheme theme) => _update(
+    _current.copyWith(readerTheme: theme),
+    (repo) => repo.set(AppSettings.keyReaderTheme, theme.name),
+  );
 
   Future<void> completeOnboarding() => _update(
     _current.copyWith(onboardingDone: true),

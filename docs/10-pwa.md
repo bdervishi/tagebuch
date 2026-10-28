@@ -40,18 +40,21 @@ packages/diary_web/       Web-spezifische Umsetzungen der Ports aus diary_core (
  ├─ IndexedDbStore        Promise-/Event-Brücke zu IndexedDB: Datenbank `tagebuch`, Stores keys, records, files, meta
  ├─ WebMasterKeyStore     WebCrypto AES-256-GCM, extractable=false, als CryptoKey in IndexedDB; wrappt alle Schlüssel (DekWrapper)
  ├─ EncryptedRecordStore  verschlüsselte JSON-Datensätze (Sammlungen entries, recordings, transcripts, notes, goals, milestones, books, passages, settings), AAD = <Sammlung>/<ID>
- ├─ EncryptedFileStore    Audio als Chunk-AEAD-Datei (diary_chunkfile) im Store `files`; OPFS als spätere Ausbaustufe
+ ├─ EncryptedFileStore    Audio und Buchdateien (EPUB, D25) als Chunk-AEAD-Datei (diary_chunkfile) im Store `files`; OPFS als spätere Ausbaustufe
  ├─ Web…Repository        Repositories aus diary_core auf dem EncryptedRecordStore, WebSearchRepository mit Index im Speicher
  ├─ MediaRecorderCapture  Aufnahme, Pegel, Wellenform; PCM-Abgriff über AnalyserNode (AudioWorklet folgt mit der Erkennung, W5)
  ├─ WebAudioPlayer        Wiedergabe aus dem Speicher (Blob-URL), Geschwindigkeit 0,8 bis 2,0
  ├─ WebStorageInfo        navigator.storage.persist/estimate, installiert?, iOS?
  ├─ IcsReminder           Kalenderdatei für die tägliche Erinnerung, Download über Blob-URL
  ├─ WebAudioFiles         Audio für den Container lesen/schreiben (Ports AudioFileSource/AudioFileSink aus diary_core)
+ ├─ WebBookFiles          Buchdateien des E-Readers (Port BookFileStore aus diary_core); Parser in packages/diary_epub, Reader in app/lib/features/reader
  ├─ downloadBytes/pickFile Containerdatei herunterladen (Blob-URL) und wählen (<input type=file>), nur im Speicher
  └─ QrCameraScanner       QR-Code per BarcodeDetector aus dem Kamerabild (Platform-View), Rückfall Texteingabe
 ```
 
 Schlüsselhierarchie wie D5: Der WebCrypto-Master-Key wrappt pro Aufnahme einen zufälligen Dateischlüssel (Zweck `chunkfile-v1`) und einmalig den Datensatz-Schlüssel (Zweck `records-v1`); die Audiodatei wird mit `diary_chunkfile` (AES-256-GCM, `AeadId.aes256Gcm`, damit WebCrypto und die Dart-Referenz dasselbe Format lesen) geschrieben. Weil der Master-Key die Anwendung nie als Bytes erreicht, bietet `diary_chunkfile` die Varianten `ChunkFileWriter.withWrappedFileKey` und `ChunkFileReader.openWith`; das Byte-Layout bleibt identisch, und der gewrappte Dateischlüssel steht sowohl im Dateikopf als auch in `Recording.fileKeyWrapped` (Crypto-Shredding löscht den Datensatz-Blob). Datensätze (JSON) werden einzeln mit `nonce || AES-256-GCM(JSON)` verschlüsselt; Zusatzdaten sind `<Sammlung>/<ID>`, damit Datensätze nicht vertauscht werden können.
+
+Buchdateien (D25): Ein geladenes EPUB wird vor dem Ablegen genauso behandelt wie eine Aufnahme (Chunk-AEAD-Datei im Store `files`, Dateischlüssel gewrappt im Buch-Datensatz) und zum Lesen vollständig in den Speicher entschlüsselt; der Parser hält das entpackte ZIP je Sitzung im Arbeitsspeicher. Ein EPUB wiegt meist 0,3 bis 5 MB, mit Bildern mehr; die Grenze liegt bei 50 MB je Datei. Buchdateien zählen zum Origin-Speicher (Speicherstatus in den Einstellungen) und wandern mit dem Backup (`books/<Dateiname>`), das dadurch entsprechend wächst; der Backup-Bildschirm nennt die Summe.
 
 Abweichung vom ursprünglichen Bild (Stand W2/W3): Audiodateien liegen als Ganzes im IndexedDB-Store `files`, nicht im Origin Private File System. Für Tagebuchaufnahmen (3 Minuten bei 32 kbit/s sind rund 0,7 MB) reicht das; die Datei wird zum Abspielen vollständig in den Speicher entschlüsselt. OPFS mit chunkweisem Lesen bleibt die Ausbaustufe für sehr lange Aufnahmen (Plus, 30 Minuten). Der PCM-Abgriff läuft über einen `AnalyserNode` (Momentaufnahmen alle 100 ms): genug für Pegel, Wellenform und die Fake-Erkennung, nicht lückenlos. Die echte Erkennung (W5) braucht ihn nicht: `MediaRecorderCapture` liefert die komprimierte Aufnahme nach dem Stopp ohnehin als Ganzes im Arbeitsspeicher (`RecordedAudio.plaintextBytes`, nie auf dem Dateisystem); `RecordDayUseCase` gibt sie an den `AudioFileTranscriberPort` (`WasmSttEngine.transcribeAudio`), der sie im Hauptthread mit `OfflineAudioContext(sampleRate: 16000).decodeAudioData` zu 16-kHz-Mono-PCM dekodiert und an den Worker überträgt. Ein `AudioWorklet` bleibt nur für eine spätere Live-Vorschau nötig.
 

@@ -100,6 +100,11 @@ abstract interface class PlatformFeatures {
   /// Lässt den Nutzer eine Containerdatei wählen; `null` bei Abbruch.
   Future<Uint8List?> pickContainerFile();
 
+  /// Lässt die Nutzerin ein EPUB wählen (D25); `null` bei Abbruch oder wenn
+  /// die Plattform keine Dateiauswahl hat. Die Datei wird nur im Speicher
+  /// gelesen und danach verschlüsselt abgelegt.
+  Future<Uint8List?> pickEpubFile();
+
   /// Ob die Kamera QR-Codes lesen kann (sonst: Code eintippen).
   bool get canScanQr;
 
@@ -155,6 +160,9 @@ class NativePlatformFeatures implements PlatformFeatures {
 
   @override
   Future<Uint8List?> pickContainerFile() async => null;
+
+  @override
+  Future<Uint8List?> pickEpubFile() async => null;
 
   @override
   bool get canScanQr => false;

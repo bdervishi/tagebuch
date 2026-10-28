@@ -4,14 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/routes.dart';
 import '../../data/books_view.dart';
+import '../../data/size_format.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/reveal.dart';
 import '../../widgets/surface_card.dart';
+import '../reader/epub_import.dart';
 import 'book_editor_sheet.dart';
 
 /// Widget-Keys für Tests.
 const Key booksNewKey = Key('books-new');
 const Key booksEmptyNewKey = Key('books-empty-new');
+const Key booksLoadEpubKey = Key('books-load-epub');
 
 /// Key der Karte eines Buchs auf dem Bildschirm "Lesebuch".
 Key bookCardKey(String bookId) => Key('book-card-$bookId');
@@ -21,9 +24,18 @@ Key booksSectionKey(BookStatus status) => Key('books-section-${status.name}');
 
 /// Bildschirm "Lesebuch" (D21): drei Abschnitte "Lese ich", "Vorgemerkt" und
 /// "Gelesen" (mit Datum), je Buch eine Karte mit Titel, Autor und Zahl der
-/// Passagen. Keine Cover, keine Statistik, keine Empfehlungen.
+/// Passagen. Keine Cover, keine Statistik, keine Empfehlungen. "EPUB laden"
+/// (D25) legt ein Buch mit Datei an oder hängt die Datei an ein Buch mit
+/// ähnlichem Titel.
 class BooksScreen extends ConsumerWidget {
   const BooksScreen({super.key});
+
+  Future<void> _loadEpub(BuildContext context, WidgetRef ref) async {
+    final book = await importEpub(context, ref);
+    if (book != null && context.mounted) {
+      await AppRoutes.openBook(context, book.id);
+    }
+  }
 
   static const List<BookStatus> _order = [
     BookStatus.reading,
@@ -52,6 +64,12 @@ class BooksScreen extends ConsumerWidget {
         title: Text(l10n.booksTitle),
         actions: [
           IconButton(
+            key: booksLoadEpubKey,
+            tooltip: l10n.booksLoadEpub,
+            icon: const Icon(Icons.file_open_outlined),
+            onPressed: () => _loadEpub(context, ref),
+          ),
+          IconButton(
             key: booksNewKey,
             tooltip: l10n.booksNew,
             icon: const Icon(Icons.add),
@@ -74,12 +92,25 @@ class BooksScreen extends ConsumerWidget {
                     children: [
                       Text(l10n.booksEmpty, style: theme.textTheme.bodyLarge),
                       const SizedBox(height: 12),
-                      FilledButton.icon(
-                        key: booksEmptyNewKey,
-                        onPressed: () => showBookEditorSheet(context),
-                        icon: const Icon(Icons.add),
-                        label: Text(l10n.booksNew),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 8,
+                        children: [
+                          FilledButton.icon(
+                            key: booksEmptyNewKey,
+                            onPressed: () => showBookEditorSheet(context),
+                            icon: const Icon(Icons.add),
+                            label: Text(l10n.booksNew),
+                          ),
+                          FilledButton.tonalIcon(
+                            onPressed: () => _loadEpub(context, ref),
+                            icon: const Icon(Icons.file_open_outlined),
+                            label: Text(l10n.booksLoadEpub),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 8),
+                      Text(l10n.booksLoadEpubHint, style: muted),
                     ],
                   ),
                 ),
@@ -155,10 +186,16 @@ class _BookCard extends StatelessWidget {
     final book = view.book;
     final finished = book.status == BookStatus.finished;
     final finishedAt = book.finishedAt;
-    final meta = finished && finishedAt != null
-        ? '${l10n.bookPassageCount(view.passages.length)} · '
-              '${l10n.bookFinishedOn(materialL10n.formatMediumDate(finishedAt))}'
-        : l10n.bookPassageCount(view.passages.length);
+    final position = book.readingPosition;
+    final meta = [
+      l10n.bookPassageCount(view.passages.length),
+      if (finished && finishedAt != null)
+        l10n.bookFinishedOn(materialL10n.formatMediumDate(finishedAt)),
+      if (book.hasFile && !finished)
+        position == null
+            ? l10n.bookFileInfo(formatBytes(l10n, book.fileSizeBytes ?? 0))
+            : l10n.readerChapterPage(position.chapterIndex + 1),
+    ].join(' · ');
     return SurfaceCard(
       key: bookCardKey(book.id),
       color: finished ? scheme.surfaceContainerLow : null,

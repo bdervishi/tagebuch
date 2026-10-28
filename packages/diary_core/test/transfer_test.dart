@@ -497,6 +497,103 @@ void main() {
     },
   );
 
+  test('Buchdatei (D25): wandert als books/<Datei> mit, wird neu gewrappt; '
+      'ohne Dateispeicher kommt das Buch ohne Datei an', () async {
+    final old = Device('alt-');
+    final useCase = BooksUseCase(
+      journalId: Device.journalId,
+      books: old.books,
+      ids: old.ids,
+      clock: old.clock,
+      files: old.bookFiles,
+    );
+    final book = await useCase.addBook(title: 'E-Book', author: 'A.');
+    final epub = Uint8List.fromList(List.generate(5000, (i) => i & 0xff));
+    final attached = (await useCase.attachFile(book.id, bytes: epub))!;
+    expect(attached.hasFile, isTrue);
+    expect(attached.fileName, 'book-${book.id}.epub.tgbc');
+    await useCase.saveReadingPosition(
+      book.id,
+      const ReadingPosition(chapterIndex: 2, blockIndex: 7, progress: 0.4),
+    );
+    final plain = await useCase.addBook(title: 'Nur eingetragen');
+    final anchored = await useCase.addPassage(
+      book.id,
+      text: 'Markiert.',
+      page: 'Kap. 3',
+      anchor: const PassageAnchor(
+        chapterIndex: 2,
+        blockIndex: 7,
+        start: 3,
+        end: 12,
+        excerpt: 'Markiert.',
+      ),
+    );
+    expect(anchored, isNotNull);
+
+    final bytes = await old.useCase.exportWithPassphrase('korrektes pferd');
+    final fresh = Device('neu-');
+    final opened = await fresh.useCase.openWithPassphrase(
+      bytes,
+      'korrektes pferd',
+    );
+    expect(opened.manifest.bookCount, 2);
+    expect(opened.manifest.bookFileCount, 1);
+    expect(opened.payload.fileNames, contains('books/${attached.fileName}'));
+    expect(opened.payload.file('books/${attached.fileName}'), epub);
+    // Der Dateischlüssel bleibt auf dem alten Gerät.
+    expect(
+      opened.snapshot.books.firstWhere((b) => b.id == book.id).fileKeyWrapped,
+      isEmpty,
+    );
+
+    final result = await fresh.useCase.import(opened);
+    expect(result.booksImported, 2);
+    expect(result.passagesImported, 1);
+    final imported = (await fresh.books.bookById(book.id))!;
+    expect(imported.hasFile, isTrue);
+    expect(imported.format, BookFormat.epub);
+    expect(imported.fileName, attached.fileName);
+    expect(imported.fileKeyWrapped, isNotEmpty);
+    expect(imported.fileSizeBytes, epub.length + 96);
+    expect(
+      imported.readingPosition,
+      const ReadingPosition(chapterIndex: 2, blockIndex: 7, progress: 0.4),
+    );
+    expect(
+      await fresh.bookFiles.read(imported.fileName!, imported.fileKeyWrapped!),
+      epub,
+    );
+    expect((await fresh.books.bookById(plain.id))!.hasFile, isFalse);
+    final passage = (await fresh.books.listPassages(book.id)).single;
+    expect(passage.anchor?.chapterIndex, 2);
+    expect(passage.anchor?.start, 3);
+    expect(passage.anchor?.excerpt, 'Markiert.');
+
+    // Gerät mit Büchern, aber ohne Dateispeicher: Buch ohne Datei.
+    final noFiles = Device('ohne-', withBookFiles: false);
+    final r = await noFiles.useCase.import(
+      await noFiles.useCase.openWithPassphrase(bytes, 'korrektes pferd'),
+    );
+    expect(r.booksImported, 2);
+    final bare = (await noFiles.books.bookById(book.id))!;
+    expect(bare.hasFile, isFalse);
+    expect(bare.readingPosition, isNull);
+    expect(bare.title, 'E-Book');
+
+    // Löschen entfernt die Datei mit.
+    final freshUseCase = BooksUseCase(
+      journalId: Device.journalId,
+      books: fresh.books,
+      ids: fresh.ids,
+      clock: fresh.clock,
+      files: fresh.bookFiles,
+    );
+    await freshUseCase.deleteBook(book.id);
+    expect(fresh.bookFiles.files, isEmpty);
+    expect(await fresh.books.bookById(book.id), isNull);
+  });
+
   test('Import: Passage ohne ihr Buch wird übersprungen', () async {
     final snap = TransferSnapshot.decodeNdjson(
       '{"type":"book","id":"b1","journalId":"j","title":"A",'

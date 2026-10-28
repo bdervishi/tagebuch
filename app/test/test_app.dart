@@ -228,6 +228,7 @@ class TestServices {
       deleteFiles: (names) async => deletedFiles.addAll(names),
       features: features,
       audioFiles: audioFiles,
+      bookFiles: bookFiles,
       // Schnelle Argon2id-Parameter, damit Backup- und Sperre-Tests nicht
       // Sekunden dauern.
       argon2Params: Argon2Params.testing,
@@ -265,6 +266,9 @@ class TestServices {
   /// standardmäßig aus).
   final MovementLibrary? movementLibrary;
   final InMemoryAudioFiles audioFiles = InMemoryAudioFiles();
+
+  /// Buchdateien des E-Readers (D25), nur im Speicher.
+  final InMemoryBookFiles bookFiles = InMemoryBookFiles();
   late final InMemoryEntryRepository entries;
   late final InMemoryRecordingRepository recordings;
   late final InMemoryTranscriptRepository transcripts;
@@ -363,6 +367,12 @@ class FakePlatformFeatures implements PlatformFeatures {
 
   @override
   Future<Uint8List?> pickContainerFile() async => fileToPick;
+
+  /// EPUB, das die nächste Dateiauswahl liefert (`null` = abgebrochen).
+  Uint8List? epubToPick;
+
+  @override
+  Future<Uint8List?> pickEpubFile() async => epubToPick;
 
   /// Schnellaktion für den nächsten Start (einmalig abgeholt).
   StartAction? startAction;
