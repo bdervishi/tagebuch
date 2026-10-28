@@ -9,19 +9,22 @@ import '../../services/app_services.dart';
 import '../../widgets/backup_reminder_card.dart';
 import '../../widgets/reveal.dart';
 import '../../widgets/surface_card.dart';
+import '../bewegung/movement_providers.dart';
+import '../bewegung/movement_texts.dart';
 import '../daten/transfer_support.dart';
 import '../zitate/quote_providers.dart';
 
 /// Widget-Keys der Zeilen (für Tests).
 const Key moreGoalsRowKey = Key('more-goals');
 const Key moreBooksRowKey = Key('more-books');
+const Key moreMovementRowKey = Key('more-movement');
 const Key moreQuotesRowKey = Key('more-quotes');
 const Key moreWeekRowKey = Key('more-week');
 const Key moreBackupRowKey = Key('more-backup');
 
 /// Reiter "Mehr": alles, was nicht täglich gebraucht wird, als ruhige Liste
 /// von Zeilen mit Symbol, Titel, einer Zeile Zustand und Pfeil: Wege (D19),
-/// Lesebuch (D21), Zitate (D20), Wochenrückblick (D17) und Backup samt
+/// Lesebuch (D21), Bewegung (D24), Zitate (D20), Wochenrückblick (D17) und Backup samt
 /// Gerätewechsel (D6, D16). Darunter bei Bedarf die Karte "Zeit für ein
 /// Backup". Ein Tipp öffnet die bestehenden Routen. Die Zeilen erscheinen
 /// gestaffelt (docs/12); kein Zähler drängt, der Zustand informiert nur.
@@ -60,6 +63,16 @@ class MoreScreen extends ConsumerWidget {
             Reveal(
               index: 2,
               child: _MoreRow(
+                key: moreMovementRowKey,
+                icon: Icons.directions_walk,
+                title: l10n.movementTitle,
+                state: _movementState(context, ref, l10n),
+                onTap: () => AppRoutes.openMovement(context),
+              ),
+            ),
+            Reveal(
+              index: 3,
+              child: _MoreRow(
                 key: moreQuotesRowKey,
                 icon: Icons.format_quote_outlined,
                 title: l10n.quotesTitle,
@@ -68,7 +81,7 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
             Reveal(
-              index: 3,
+              index: 4,
               child: _MoreRow(
                 key: moreWeekRowKey,
                 icon: Icons.view_week_outlined,
@@ -78,7 +91,7 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
             Reveal(
-              index: 4,
+              index: 5,
               child: _MoreRow(
                 key: moreBackupRowKey,
                 icon: Icons.save_alt,
@@ -88,7 +101,7 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            const Reveal(index: 5, child: BackupReminderCard()),
+            const Reveal(index: 6, child: BackupReminderCard()),
           ],
         ),
       ),
@@ -116,6 +129,40 @@ class MoreScreen extends ConsumerWidget {
     if (view == null) return l10n.moreReadingEmpty;
     return '${l10n.moreReadingLabel(view.book.title)} · '
         '${l10n.bookPassageCount(view.passages.length)}';
+  }
+
+  /// "Nächste Pause 15:00 · heute 1 Pause", "Aus" oder "Keine Pausen
+  /// eingestellt" (D24). Liegt die nächste Pause nicht heute, steht der
+  /// Wochentag davor. Die Zahl informiert nur; kein Soll, kein Vergleich.
+  String? _movementState(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) {
+    final summary = ref.watch(movementSummaryProvider).value;
+    if (summary == null) return null;
+    if (!summary.enabled) return l10n.moreMovementOff;
+    final next = summary.next;
+    if (next == null) return l10n.moreMovementNoBreaks;
+    final now =
+        ref.watch(appServicesProvider).value?.clock.now() ?? DateTime.now();
+    final time = MaterialLocalizations.of(context).formatTimeOfDay(
+      TimeOfDay.fromDateTime(next),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    final sameDay =
+        next.year == now.year && next.month == now.month && next.day == now.day;
+    final nextText = sameDay
+        ? l10n.moreMovementNext(time)
+        : l10n.moreMovementNextDay(
+            MovementTexts.weekdayShort(
+              Localizations.localeOf(context),
+              next.weekday,
+            ),
+            time,
+          );
+    if (summary.todayCount == 0) return nextText;
+    return '$nextText · ${l10n.moreMovementToday(summary.todayCount)}';
   }
 
   /// Das Zitat des Tages in einer Zeile (die Zeile kürzt mit Auslassung);

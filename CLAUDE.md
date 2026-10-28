@@ -21,6 +21,7 @@ Lokales Sprach-Tagebuch für iOS und Android: täglich zu einer selbst gewählte
   - `diary_web` Web-Umsetzungen der Ports: WebCrypto-Master-Key, verschlüsselte Datensätze und Audiodateien in IndexedDB, MediaRecorder-Aufnahme, Player, ICS-Erinnerung (Tests laufen im Chromium)
 - `tool/check_no_network.sh`: Netz-Wächter (keine INTERNET-Berechtigung, keine gesperrten Pakete, keine Netzwerk-APIs). Läuft in der CI.
 - `app/assets/quotes/`: gebündelter Zitatenschatz (D20; Regeln in dessen README: nur gemeinfreie Autorinnen und Autoren, eigene Übertragungen, belegte Quellen).
+- `app/assets/movement/`: gebündelte Übungen für Bewegungspausen (D24; Regeln in dessen README: Alltagsbewegung ohne Gerät, keine medizinischen Versprechen, Hinweis zu Schmerzen bleibt). Logik und Oberfläche in `app/lib/features/bewegung/`.
 - `models/`, `test_assets/`: nur Manifeste und Skripte, keine Binärdateien, keine echten Aufnahmen.
 
 ## Befehle

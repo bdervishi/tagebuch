@@ -2,6 +2,7 @@ import 'package:diary_core/diary_core.dart';
 import 'package:flutter/material.dart';
 
 import '../features/aufnahme/recording_screen.dart';
+import '../features/bewegung/movement_screen.dart';
 import '../features/daten/backup_screen.dart';
 import '../features/daten/restore_screen.dart';
 import '../features/daten/transfer_screen.dart';
@@ -67,6 +68,9 @@ abstract final class AppRoutes {
   /// Lesebuch: Bücher und Passagen (D21); Details mit Buch-ID als [String].
   static const String books = '/books';
   static const String book = '/book';
+
+  /// Bewegungspausen und Übungen (D24).
+  static const String movement = '/movement';
 
   /// Onboarding zum erneuten Ansehen aus den Einstellungen.
   static const String onboarding = '/onboarding';
@@ -134,6 +138,11 @@ abstract final class AppRoutes {
         return MaterialPageRoute<void>(
           settings: settings,
           builder: (_) => const BooksScreen(),
+        );
+      case movement:
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const MovementScreen(),
         );
       case book:
         final id = settings.arguments;
@@ -221,6 +230,10 @@ abstract final class AppRoutes {
   /// Öffnet das Lesebuch.
   static Future<void> openBooks(BuildContext context) =>
       Navigator.of(context).pushNamed(books);
+
+  /// Öffnet den Bildschirm "Bewegung" (D24).
+  static Future<void> openMovement(BuildContext context) =>
+      Navigator.of(context).pushNamed(movement);
 
   /// Öffnet die Details eines Buchs.
   static Future<void> openBook(BuildContext context, String bookId) =>

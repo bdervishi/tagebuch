@@ -25,6 +25,25 @@ class StorageStatus {
   int get freeBytes => quotaBytes > usageBytes ? quotaBytes - usageBytes : 0;
 }
 
+/// Ein Termin für eine Kalenderdatei (D24): Uhrzeit, Titel, Beschreibung und
+/// optional die Wochentage der Wiederholung (`DateTime.weekday`); ohne
+/// [weekdays] täglich. Nur Titel und Uhrzeit, nie Tagebuchinhalte.
+class CalendarEventSpec {
+  const CalendarEventSpec({
+    required this.hour,
+    required this.minute,
+    required this.title,
+    this.description,
+    this.weekdays,
+  });
+
+  final int hour;
+  final int minute;
+  final String title;
+  final String? description;
+  final Set<int>? weekdays;
+}
+
 /// Schnellaktion beim Start (Android: Symbol lange drücken, Manifest
 /// `shortcuts`): die App öffnet direkt die Aufnahme, die Sprachnotiz, die
 /// Kurznotiz (D22) oder das Schreiben.
@@ -59,6 +78,11 @@ abstract interface class PlatformFeatures {
     required String title,
     String? description,
   });
+
+  /// Erzeugt eine ICS-Datei mit mehreren wiederholten Terminen (die
+  /// Bewegungspausen, D24) und löst den Download aus. Nur auf dem Web
+  /// wirksam.
+  void downloadCalendarFile(String fileName, List<CalendarEventSpec> events);
 
   /// Ob [openExternalLink] etwas tut (Web: neuer Tab; nativ folgt mit den
   /// Spikes). Ohne diese Fähigkeit zeigt die Oberfläche nur die ICS-Datei.
@@ -116,6 +140,9 @@ class NativePlatformFeatures implements PlatformFeatures {
     required String title,
     String? description,
   }) {}
+
+  @override
+  void downloadCalendarFile(String fileName, List<CalendarEventSpec> events) {}
 
   @override
   bool get canOpenLinks => false;

@@ -1,0 +1,176 @@
+{
+ "version": 1,
+ "notice": {
+  "de": "Bei Schmerzen abbrechen; bei Beschwerden ärztlichen Rat einholen.",
+  "en": "Stop if anything hurts; seek medical advice for any complaints."
+ },
+ "license": "Eigene Texte (CC0). Kurze Anleitungen ohne medizinische Versprechen; kein Ersatz für ärztlichen Rat.",
+ "categories": [
+  {
+   "key": "stretch",
+   "de": "Dehnen",
+   "en": "Stretch"
+  },
+  {
+   "key": "walk",
+   "de": "Gehen",
+   "en": "Walk"
+  },
+  {
+   "key": "strength",
+   "de": "Kräftigen",
+   "en": "Strengthen"
+  },
+  {
+   "key": "breathe",
+   "de": "Atmen",
+   "en": "Breathe"
+  }
+ ],
+ "exercises": [
+  {
+   "id": "m001",
+   "category": "stretch",
+   "minutes": 2,
+   "de": "Nacken kreisen",
+   "en": "Neck circles",
+   "howDe": "Kopf langsam zur Seite neigen, nach vorn rollen, zur anderen Seite. Nur so weit, wie es angenehm ist; nicht in den Nacken fallen lassen.",
+   "howEn": "Tilt your head slowly to one side, roll it forward, then to the other side. Only as far as feels comfortable; do not drop it backwards."
+  },
+  {
+   "id": "m002",
+   "category": "walk",
+   "minutes": 3,
+   "de": "Treppe statt Aufzug",
+   "en": "Stairs instead of the lift",
+   "howDe": "Beim nächsten Gang die Treppe nehmen, ruhig im eigenen Tempo. Oben einmal tief ausatmen.",
+   "howEn": "Take the stairs next time, calmly at your own pace. At the top, breathe out once, slowly."
+  },
+  {
+   "id": "m003",
+   "category": "strength",
+   "minutes": 1,
+   "de": "10 Kniebeugen",
+   "en": "10 squats",
+   "howDe": "Füße schulterbreit, Rücken lang, Gewicht auf den Fersen. Langsam tief gehen, so weit es geht, und wieder hoch. Zehnmal.",
+   "howEn": "Feet shoulder-width apart, back long, weight on your heels. Lower slowly as far as you can, then rise. Ten times."
+  },
+  {
+   "id": "m004",
+   "category": "strength",
+   "minutes": 1,
+   "de": "Schulterblätter zusammenziehen",
+   "en": "Draw the shoulder blades together",
+   "howDe": "Aufrecht sitzen oder stehen, Arme locker. Schulterblätter nach hinten und unten ziehen, fünf Sekunden halten, lösen. Zehnmal.",
+   "howEn": "Sit or stand upright, arms relaxed. Draw your shoulder blades back and down, hold for five seconds, release. Ten times."
+  },
+  {
+   "id": "m005",
+   "category": "strength",
+   "minutes": 1,
+   "de": "Wadenheben",
+   "en": "Calf raises",
+   "howDe": "An eine Wand oder Stuhllehne stützen, langsam auf die Zehenspitzen und wieder herunter. Fünfzehnmal.",
+   "howEn": "Rest a hand on a wall or chair back, rise slowly onto your toes and lower again. Fifteen times."
+  },
+  {
+   "id": "m006",
+   "category": "breathe",
+   "minutes": 2,
+   "de": "4-7-8-Atmung",
+   "en": "4-7-8 breathing",
+   "howDe": "Vier Sekunden durch die Nase einatmen, sieben Sekunden halten, acht Sekunden durch den Mund ausatmen. Vier Runden. Wird dir schwindlig, normal weiteratmen.",
+   "howEn": "Breathe in through the nose for four seconds, hold for seven, breathe out through the mouth for eight. Four rounds. If you feel dizzy, return to normal breathing."
+  },
+  {
+   "id": "m007",
+   "category": "walk",
+   "minutes": 10,
+   "de": "Spaziergang 10 Minuten",
+   "en": "Ten-minute walk",
+   "howDe": "Einmal um den Block oder bis zur nächsten Ecke und zurück. Ohne Telefon in der Hand, wenn es geht.",
+   "howEn": "Once around the block or to the next corner and back. Without the phone in your hand, if you can."
+  },
+  {
+   "id": "m008",
+   "category": "strength",
+   "minutes": 0.5,
+   "de": "Wandsitz 30 Sekunden",
+   "en": "Wall sit, 30 seconds",
+   "howDe": "Mit dem Rücken an die Wand lehnen und so weit nach unten rutschen, dass die Knie etwa im rechten Winkel sind. Dreißig Sekunden halten, dann aufrichten.",
+   "howEn": "Lean your back against a wall and slide down until your knees are roughly at a right angle. Hold for thirty seconds, then stand up."
+  },
+  {
+   "id": "m009",
+   "category": "stretch",
+   "minutes": 2,
+   "de": "Hüftbeuger dehnen",
+   "en": "Hip flexor stretch",
+   "howDe": "Ein Bein nach hinten setzen, Becken leicht nach vorn schieben, vorderes Knie beugen. Dreißig Sekunden je Seite, ruhig weiteratmen.",
+   "howEn": "Step one foot back, gently push the hips forward and bend the front knee. Thirty seconds per side, keep breathing calmly."
+  },
+  {
+   "id": "m010",
+   "category": "breathe",
+   "minutes": 0.5,
+   "de": "Augen entspannen",
+   "en": "Rest your eyes",
+   "howDe": "Zwanzig Sekunden in die Ferne schauen, am besten aus dem Fenster auf etwas, das weit weg ist. Dabei ein paarmal blinzeln.",
+   "howEn": "Look into the distance for twenty seconds, ideally out of the window at something far away. Blink a few times as you do."
+  },
+  {
+   "id": "m011",
+   "category": "stretch",
+   "minutes": 2,
+   "de": "Katze-Kuh im Stehen",
+   "en": "Standing cat-cow",
+   "howDe": "Hände auf die Oberschenkel, Rücken rund machen und Kinn zur Brust; dann Rücken lang, Brust öffnen, Blick nach vorn. Langsam im Atemrhythmus, zehnmal.",
+   "howEn": "Hands on your thighs, round your back and tuck the chin; then lengthen the back, open the chest, look ahead. Slowly with your breath, ten times."
+  },
+  {
+   "id": "m012",
+   "category": "stretch",
+   "minutes": 1,
+   "de": "Beckenkreisen",
+   "en": "Hip circles",
+   "howDe": "Hände an die Hüften, Füße fest, das Becken in großen, langsamen Kreisen bewegen. Fünf Kreise je Richtung.",
+   "howEn": "Hands on your hips, feet planted, move the pelvis in large, slow circles. Five circles each way."
+  },
+  {
+   "id": "m013",
+   "category": "stretch",
+   "minutes": 1,
+   "de": "Handgelenke dehnen",
+   "en": "Wrist stretch",
+   "howDe": "Einen Arm ausstrecken, Handfläche nach vorn, mit der anderen Hand die Finger sanft zum Körper ziehen. Zwanzig Sekunden, dann Handrücken nach vorn. Beide Seiten.",
+   "howEn": "Extend one arm, palm forward, and gently pull the fingers toward you with the other hand. Twenty seconds, then with the back of the hand forward. Both sides."
+  },
+  {
+   "id": "m014",
+   "category": "stretch",
+   "minutes": 1,
+   "de": "Brust öffnen im Türrahmen",
+   "en": "Chest opener in a doorway",
+   "howDe": "Unterarme an den Türrahmen legen, Ellbogen auf Schulterhöhe, einen Schritt nach vorn, bis es vorn in der Brust zieht. Dreißig Sekunden.",
+   "howEn": "Place your forearms on a door frame, elbows at shoulder height, and step forward until you feel a stretch across the chest. Thirty seconds."
+  },
+  {
+   "id": "m015",
+   "category": "strength",
+   "minutes": 1,
+   "de": "Zehenstand und Fersenstand",
+   "en": "Toes and heels",
+   "howDe": "Abwechselnd auf die Zehenspitzen und auf die Fersen wippen, Arme locker. Zwanzig Wechsel; wer mag, mit geschlossenen Augen.",
+   "howEn": "Rock alternately onto your toes and onto your heels, arms relaxed. Twenty changes; with eyes closed if you like."
+  },
+  {
+   "id": "m016",
+   "category": "walk",
+   "minutes": 3,
+   "de": "Treppen 2 Stockwerke",
+   "en": "Two flights of stairs",
+   "howDe": "Zwei Stockwerke hinauf und wieder hinunter, gleichmäßig. Beim Hinuntergehen den Blick auf die Stufen.",
+   "howEn": "Two flights up and down again, at an even pace. Watch the steps on the way down."
+  }
+ ]
+}

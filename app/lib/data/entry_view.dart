@@ -132,10 +132,19 @@ class EntryView {
   Duration get duration =>
       recordings.fold(Duration.zero, (sum, r) => sum + r.duration);
 
-  /// Wörter aller Transkripte und Notizen.
+  /// Wörter aller Transkripte und Notizen; Bewegungsnotizen (D24) sind
+  /// Übungsnamen, keine Tagebuchworte, und zählen nicht mit.
   int get wordCount =>
       transcripts.values.fold(0, (n, t) => n + (t?.wordCount ?? 0)) +
-      visibleNotes.fold(0, (n, note) => n + note.wordCount);
+      visibleNotes
+          .where((n) => n.promptKey != ReviewPrompts.movement)
+          .fold(0, (n, note) => n + note.wordCount);
+
+  /// Texte der heute notierten Bewegungen (D24), älteste zuerst.
+  List<String> get movementTexts => [
+    for (final n in visibleNotes)
+      if (n.promptKey == ReviewPrompts.movement) n.text.trim(),
+  ];
 
   /// Alle Texte in zeitlicher Reihenfolge, durch Leerzeilen getrennt.
   String get text => items
@@ -371,11 +380,15 @@ class WeekDay {
     this.good = const [],
     this.lesson = const [],
     this.stepDone,
+    this.movement = const [],
   });
   final LocalDay day;
   final int? mood;
   final List<String> good;
   final List<String> lesson;
+
+  /// Notierte Bewegungen dieses Tages (D24), nur Namen, keine Wertung.
+  final List<String> movement;
 
   /// Text des Schritts, der an diesem Tag als erledigt markiert wurde
   /// (die gestrige Antwort auf `next`), oder `null`.
@@ -415,6 +428,7 @@ final weekReviewProvider = FutureProvider<List<WeekDay>>((ref) async {
             if (n.promptKey == ReviewPrompts.lesson) n.text.trim(),
         ],
         stepDone: stepDone,
+        movement: v?.movementTexts ?? const [],
       ),
     );
   }

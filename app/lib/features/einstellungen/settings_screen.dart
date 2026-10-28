@@ -8,6 +8,8 @@ import '../../data/settings_notifier.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
 import '../../services/platform_features.dart';
+import '../bewegung/movement_breaks_editor.dart';
+import '../bewegung/movement_calendar_sheet.dart';
 import '../daten/transfer_support.dart';
 import '../schutz/pin_flow_screen.dart';
 import 'calendar_sheet.dart';
@@ -25,14 +27,17 @@ const Key quotesManageKey = Key('settings-quotes-manage');
 const Key appLockSwitchKey = Key('settings-app-lock');
 const Key appLockChangePinKey = Key('settings-app-lock-pin');
 const Key appLockAfterKey = Key('settings-app-lock-after');
+const Key movementEnabledKey = Key('settings-movement-enabled');
+const Key movementCalendarKey = Key('settings-movement-calendar');
+const Key movementManageKey = Key('settings-movement-manage');
 
 /// Speicherstatus der Plattform (Web: `navigator.storage`).
 final storageStatusProvider = FutureProvider<StorageStatus?>(
   (ref) => ref.watch(platformFeaturesProvider).storageStatus(),
 );
 
-/// Einstellungen: Erinnerung, Transkription, Audio, Schutz, Daten,
-/// Datenschutz. Alles Seltene an einem Ort (docs/03 Abschnitt 3). Auf dem Web
+/// Einstellungen: Erinnerung, Bewegung (D24), Transkription, Audio, Schutz,
+/// Daten, Datenschutz. Alles Seltene an einem Ort (docs/03 Abschnitt 3). Auf dem Web
 /// zusätzlich: Kalenderdatei statt Benachrichtigung, Speicherstatus, Hinweis
 /// auf den Browser-Speicher und die CSP.
 class SettingsScreen extends ConsumerWidget {
@@ -137,6 +142,52 @@ class SettingsScreen extends ConsumerWidget {
               _Note(l10n.reminderWebNote),
             ] else
               _Note(l10n.reminderPlaceholderNote),
+            const Divider(),
+            _SectionHeader(l10n.sectionMovement),
+            SwitchListTile(
+              key: movementEnabledKey,
+              title: Text(l10n.movementEnabled),
+              subtitle: Text(l10n.movementEnabledSubtitle),
+              value: settings.movementEnabled,
+              onChanged: notifier.setMovementEnabled,
+            ),
+            if (settings.movementEnabled) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Text(
+                  l10n.movementBreaksHeading,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(8, 4, 16, 0),
+                child: MovementBreaksEditor(),
+              ),
+              if (features.isWeb) ...[
+                ListTile(
+                  key: movementCalendarKey,
+                  leading: const Icon(Icons.event_available),
+                  title: Text(l10n.movementCalendar),
+                  subtitle: Text(l10n.movementCalendarSubtitle),
+                  onTap: () => showMovementCalendarSheet(
+                    context,
+                    features: features,
+                    breaks: settings.movementBreaks,
+                  ),
+                ),
+                _Note(l10n.movementWebNote),
+              ] else
+                _Note(l10n.movementPlaceholderNote),
+            ],
+            ListTile(
+              key: movementManageKey,
+              leading: const Icon(Icons.directions_walk),
+              title: Text(l10n.movementManage),
+              subtitle: Text(l10n.movementManageSubtitle),
+              onTap: () => AppRoutes.openMovement(context),
+            ),
             const Divider(),
             _SectionHeader(l10n.sectionTranscription),
             ListTile(

@@ -70,6 +70,49 @@ void main() {
       expect(ics, isNot(contains(RegExp('[^\r]\n'))));
     });
 
+    test('mehrere Termine mit Wochentagen (Bewegungspausen, D24)', () {
+      // 27. 10. 2026 ist ein Dienstag.
+      final ics = IcsReminder.buildMany(
+        [
+          const IcsEvent(
+            hour: 10,
+            minute: 0,
+            title: 'Bewegungspause',
+            description: 'Kurz aufstehen, dehnen oder gehen.',
+            byDay: {1, 2, 3, 4, 5},
+          ),
+          const IcsEvent(
+            hour: 15,
+            minute: 30,
+            title: 'Bewegungspause',
+            byDay: {DateTime.saturday, DateTime.sunday},
+          ),
+        ],
+        start: DateTime(2026, 10, 27),
+        stamp: DateTime.utc(2026, 10, 27, 12),
+        uidPrefix: 'test@tagebuch.local',
+      );
+      final lines = ics.split('\r\n');
+      expect(lines.where((l) => l == 'BEGIN:VEVENT'), hasLength(2));
+      expect(lines.where((l) => l == 'END:VEVENT'), hasLength(2));
+      expect(lines, contains('UID:0-test@tagebuch.local'));
+      expect(lines, contains('UID:1-test@tagebuch.local'));
+      expect(lines, contains('DTSTART:20261027T100000'));
+      expect(lines, contains('RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR'));
+      // Der Wochenend-Termin beginnt am nächsten Samstag, dem 31. 10.
+      expect(lines, contains('DTSTART:20261031T153000'));
+      expect(lines, contains('RRULE:FREQ=WEEKLY;BYDAY=SA,SU'));
+      expect(lines, isNot(contains('RRULE:FREQ=DAILY')));
+      expect(
+        lines,
+        contains('DESCRIPTION:Kurz aufstehen\\, dehnen oder gehen.'),
+      );
+      expect(lines.where((l) => l == 'BEGIN:VALARM'), hasLength(2));
+      expect(lines[lines.length - 2], 'END:VCALENDAR');
+      expect(IcsReminder.movementFileName, endsWith('.ics'));
+      expect(() => IcsReminder.buildMany([]), throwsArgumentError);
+    });
+
     test('Uhrzeit mit führender Null', () {
       final ics = IcsReminder.build(
         hour: 7,

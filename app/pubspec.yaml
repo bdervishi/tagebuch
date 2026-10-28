@@ -116,8 +116,10 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
   # Gebündelter Zitatenschatz (gemeinfreie Autorinnen und Autoren, eigene Übertragungen; assets/quotes/README.md).
+  # Gebündelte Übungen für Bewegungspausen (D24; eigene Texte ohne medizinische Versprechen, assets/movement/README.md).
   assets:
     - assets/quotes/quotes.json
+    - assets/movement/exercises.json
 
   # Gebündelte Schrift (SIL Open Font License, assets/fonts/OFL-Inter.txt), damit Flutter Web
   # keine Schriften von einem CDN nachlädt (D14/D16: keine Verbindungen außer zum eigenen Origin).

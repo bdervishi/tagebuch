@@ -31,14 +31,60 @@ abstract final class CalendarLinks {
   /// Dauer des Termins (wie in der ICS-Datei).
   static const Duration duration = Duration(minutes: 15);
 
-  /// Ob der Dienst die tägliche Wiederholung im Link mitnimmt. Outlook kennt
-  /// im Compose-Link keine Wiederholung; dort stellt die Nutzerin
-  /// "Wiederholen: täglich" selbst ein (die Oberfläche sagt das).
+  /// Ob der Dienst die Wiederholung im Link mitnimmt. Outlook kennt im
+  /// Compose-Link keine Wiederholung; dort stellt die Nutzerin
+  /// "Wiederholen: täglich" (oder die Wochentage) selbst ein (die
+  /// Oberfläche sagt das).
   static bool repeatsDaily(CalendarService service) =>
       service == CalendarService.google;
 
-  /// Link für [service]: Termin täglich um [hour]:[minute] ab [start]
-  /// (Standard: heute) mit [title] und optionaler [description].
+  /// Wochentags-Kürzel nach RFC 5545, Index wie `DateTime.weekday`
+  /// (1 = Montag … 7 = Sonntag; Index 0 unbenutzt).
+  static const List<String> weekdayCodes = [
+    '',
+    'MO',
+    'TU',
+    'WE',
+    'TH',
+    'FR',
+    'SA',
+    'SU',
+  ];
+
+  /// Wiederholungsregel: täglich ohne [byDay], sonst wöchentlich an den
+  /// Wochentagen (`DateTime.weekday`, aufsteigend sortiert). Dieselbe Regel
+  /// steht in der ICS-Datei (`diary_web`, `IcsReminder`).
+  static String rrule({Set<int>? byDay}) {
+    if (byDay == null || byDay.isEmpty) return 'RRULE:FREQ=DAILY';
+    final days = byDay.toList()..sort();
+    for (final d in days) {
+      RangeError.checkValueInInterval(d, 1, 7, 'byDay');
+    }
+    return 'RRULE:FREQ=WEEKLY;BYDAY=${days.map((d) => weekdayCodes[d]).join(',')}';
+  }
+
+  /// Erster Termin: [start] um [hour]:[minute]; mit [byDay] der nächste Tag
+  /// ab [start], der auf einen der Wochentage fällt (damit die Wochenregel
+  /// vom ersten Termin an stimmt).
+  static DateTime firstOccurrence(
+    DateTime start, {
+    required int hour,
+    required int minute,
+    Set<int>? byDay,
+  }) {
+    var day = DateTime(start.year, start.month, start.day);
+    if (byDay != null && byDay.isNotEmpty) {
+      while (!byDay.contains(day.weekday)) {
+        day = day.add(const Duration(days: 1));
+      }
+    }
+    return DateTime(day.year, day.month, day.day, hour, minute);
+  }
+
+  /// Link für [service]: Termin um [hour]:[minute] ab [start] (Standard:
+  /// heute) mit [title] und optionaler [description]; täglich wiederholt
+  /// oder, mit [byDay] (`DateTime.weekday`), wöchentlich an diesen Tagen
+  /// (D24). Die Wiederholung trägt nur Google im Link.
   static Uri build(
     CalendarService service, {
     required int hour,
@@ -46,11 +92,16 @@ abstract final class CalendarLinks {
     required String title,
     String? description,
     DateTime? start,
+    Set<int>? byDay,
   }) {
     RangeError.checkValueInInterval(hour, 0, 23, 'hour');
     RangeError.checkValueInInterval(minute, 0, 59, 'minute');
-    final first = start ?? DateTime.now();
-    final begin = DateTime(first.year, first.month, first.day, hour, minute);
+    final begin = firstOccurrence(
+      start ?? DateTime.now(),
+      hour: hour,
+      minute: minute,
+      byDay: byDay,
+    );
     final end = begin.add(duration);
     return switch (service) {
       CalendarService.google => Uri.https(
@@ -60,7 +111,7 @@ abstract final class CalendarLinks {
           'action': 'TEMPLATE',
           'text': title,
           'dates': '${_compact(begin)}/${_compact(end)}',
-          'recur': 'RRULE:FREQ=DAILY',
+          'recur': rrule(byDay: byDay),
           'details': ?description,
           // Kein Standort, keine Gäste, keine Zeitzone: schwebende Zeit.
           'trp': 'false',

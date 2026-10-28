@@ -19,7 +19,8 @@ Key dayTimelineRowKey(String id) => Key('day-timeline-$id');
 
 /// Zeitleiste "Dein Tag" auf "Heute" (D22): alle Aufnahmen und Notizen des
 /// Tages chronologisch, je Zeile Uhrzeit (Tabellenziffern), Symbol
-/// (Aufnahme, Kurznotiz, Impuls-Antwort mit Impulsname, freier Text) und
+/// (Aufnahme, Kurznotiz, Bewegung (D24), Impuls-Antwort mit Impulsname,
+/// freier Text) und
 /// Textanfang. Die Zeilen liegen untereinander in einer [SurfaceCard] mit
 /// Haarlinien dazwischen und erscheinen gestaffelt ([Reveal]); ein Tipp auf
 /// eine Zeile öffnet den Eintrag. Keine Zusammenfassung, keine Bewertung:
@@ -101,6 +102,7 @@ class _TimelineRow extends StatelessWidget {
         note.id,
         switch (note.promptKey) {
           ReviewPrompts.quick => Icons.short_text,
+          ReviewPrompts.movement => Icons.directions_walk,
           null => Icons.edit_note,
           _ => Icons.chat_bubble_outline,
         },

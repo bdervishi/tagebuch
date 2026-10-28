@@ -10,6 +10,8 @@ import 'package:tagebuch_app/app/app.dart';
 import 'package:tagebuch_app/app/routes.dart';
 import 'package:tagebuch_app/app/shell.dart';
 import 'package:tagebuch_app/data/settings_notifier.dart';
+import 'package:tagebuch_app/features/bewegung/movement_library.dart';
+import 'package:tagebuch_app/features/bewegung/movement_providers.dart';
 import 'package:tagebuch_app/features/heute/today_screen.dart';
 import 'package:tagebuch_app/features/zitate/quote_library.dart';
 import 'package:tagebuch_app/features/zitate/quote_providers.dart';
@@ -91,6 +93,7 @@ class TestServices {
     this.sttEngine,
     this.fileTranscriber,
     this.quoteLibrary,
+    this.movementLibrary,
     this.clock = const SystemClock(),
   }) {
     final entryItems = <DiaryEntry>[];
@@ -257,6 +260,10 @@ class TestServices {
 
   /// Zitatenschatz für Tests (D20); ohne Angabe leer, also keine Zitatkarte.
   final QuoteLibrary? quoteLibrary;
+
+  /// Übungsliste für Tests (D24); ohne Angabe leer (Pausen sind ohnehin
+  /// standardmäßig aus).
+  final MovementLibrary? movementLibrary;
   final InMemoryAudioFiles audioFiles = InMemoryAudioFiles();
   late final InMemoryEntryRepository entries;
   late final InMemoryRecordingRepository recordings;
@@ -277,6 +284,12 @@ class TestServices {
     // standardmäßig leer (keine Karte, "Heute" bleibt kurz).
     quoteLibraryProvider.overrideWith(
       (ref) async => quoteLibrary ?? const QuoteLibrary(quotes: [], themes: []),
+    ),
+    // Übungsliste (D24): wie der Zitatenschatz fest statt aus dem Asset.
+    movementLibraryProvider.overrideWith(
+      (ref) async =>
+          movementLibrary ??
+          const MovementLibrary(exercises: [], categories: []),
     ),
     platformFeaturesProvider.overrideWithValue(services.features),
   ];
@@ -330,6 +343,13 @@ class FakePlatformFeatures implements PlatformFeatures {
     required String title,
     String? description,
   }) => downloads.add((hour: hour, minute: minute, title: title));
+
+  /// Heruntergeladene Kalenderdateien mit mehreren Terminen (D24).
+  final List<(String, List<CalendarEventSpec>)> calendarFiles = [];
+
+  @override
+  void downloadCalendarFile(String fileName, List<CalendarEventSpec> events) =>
+      calendarFiles.add((fileName, events));
 
   @override
   bool get canOpenLinks => canOpenLinksValue;

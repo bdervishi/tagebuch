@@ -192,6 +192,10 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).last,
     );
+    // Den Sprung an die Speicherzeile erst rendern lassen: Die Liste ist seit
+    // dem Abschnitt "Bewegung" (D24) länger, und der nächste Scroll würde
+    // sonst aus einem veralteten Frame heraus über den Hinweis hinausfliegen.
+    await tester.pumpAndSettle();
     expect(find.textContaining('Nicht zugesichert'), findsOneWidget);
     expect(find.textContaining('3.0 MB belegt, 100 MB frei'), findsOneWidget);
     await tester.scrollUntilVisible(

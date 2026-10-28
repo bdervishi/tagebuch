@@ -36,6 +36,11 @@ abstract final class ReviewPrompts {
   /// durchsuchbar und im Export enthalten wie jede andere Notiz.
   static const String quick = 'quick';
 
+  /// Erledigte Bewegungspause (D24): Text ist der Name der Übung, mit Dauer.
+  /// Nicht intern (sichtbar in Zeitleiste, Eintrag und Export), aber keine
+  /// Tagebuchworte: zählt nicht zur Wortzahl des Eintrags.
+  static const String movement = 'movement';
+
   /// Interne Notiz an einem Eintrag: Zeitmarken der Impulswechsel während
   /// einer Aufnahme als JSON ([PromptMarks]). Wird nicht als Text gezeigt.
   static const String promptsAt = 'prompts_at';

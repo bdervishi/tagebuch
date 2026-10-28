@@ -141,6 +141,25 @@ class WebPlatformFeatures implements PlatformFeatures {
   }
 
   @override
+  void downloadCalendarFile(String fileName, List<CalendarEventSpec> events) {
+    if (events.isEmpty) return;
+    downloadText(
+      fileName,
+      IcsReminder.buildMany([
+        for (final e in events)
+          IcsEvent(
+            hour: e.hour,
+            minute: e.minute,
+            title: e.title,
+            description: e.description,
+            byDay: e.weekdays,
+          ),
+      ]),
+      mimeType: IcsReminder.mimeType,
+    );
+  }
+
+  @override
   Future<void> saveContainerFile(String fileName, Uint8List bytes) async =>
       downloadBytes(fileName, bytes);
 

@@ -5,6 +5,7 @@ import 'package:diary_keys/diary_keys.dart' show AppLockKeys;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/bewegung/movement_library.dart';
 import '../features/zitate/quote_library.dart';
 import '../services/app_services.dart';
 import 'app_lock.dart';
@@ -49,6 +50,10 @@ class AppSettings {
     this.quoteThemes = const {},
     this.quoteFavorites = const {},
     this.ownQuotes = const [],
+    this.movementEnabled = false,
+    this.movementBreaks = MovementBreak.defaults,
+    this.ownExercises = const [],
+    this.movementDismissed = const {},
   });
 
   /// Schlüssel im `SettingsRepository`.
@@ -77,6 +82,15 @@ class AppSettings {
   static const keyQuoteThemes = 'quoteThemes';
   static const keyQuoteFavorites = 'quoteFavorites';
   static const keyOwnQuotes = 'ownQuotes';
+
+  /// Bewegungspausen (D24): an/aus (Standard aus), Pausenzeiten mit
+  /// Wochentagen (JSON-Liste), eigene Übungen (JSON-Liste) und der
+  /// Tageszustand "Heute nicht" je Pause (Kommaliste `JJJJ-MM-TT:index`);
+  /// alles verschlüsselt im Store und im Backup, kein neues Format.
+  static const keyMovementEnabled = 'movementEnabled';
+  static const keyMovementBreaks = 'movementBreaks';
+  static const keyOwnExercises = 'ownExercises';
+  static const keyMovementDismissed = 'movementDismissed';
 
   /// Zeitpunkt des letzten Backups (ISO-8601) für die Backup-Erinnerung.
   static const keyLastBackupAt = 'lastBackupAt';
@@ -128,6 +142,27 @@ class AppSettings {
   /// Eigene Zitate der Nutzerin.
   final List<Quote> ownQuotes;
 
+  /// Bewegungspausen eingeschaltet (D24, Standard aus).
+  final bool movementEnabled;
+
+  /// Ein bis drei Pausenzeiten mit Wochentagen.
+  final List<MovementBreak> movementBreaks;
+
+  /// Eigene Übungen der Nutzerin.
+  final List<Exercise> ownExercises;
+
+  /// "Heute nicht" je Pause als `JJJJ-MM-TT:index`; nur der heutige Tag
+  /// zählt, ältere Einträge werden beim nächsten Schreiben verworfen.
+  final Set<String> movementDismissed;
+
+  /// Kennung des Tageszustands einer Pause (D24).
+  static String dismissKey(LocalDay day, int breakIndex) =>
+      '${day.iso}:$breakIndex';
+
+  /// Wahr, wenn für die Pause [breakIndex] an [day] "Heute nicht" gilt.
+  bool isMovementDismissed(LocalDay day, int breakIndex) =>
+      movementDismissed.contains(dismissKey(day, breakIndex));
+
   /// Wahr, wenn für [day] "Heute nicht" gewählt wurde.
   bool isSkippedOn(DateTime day) =>
       reminderSkippedOn != null && isSameDay(reminderSkippedOn!, day);
@@ -163,6 +198,12 @@ class AppSettings {
       quoteThemes: _splitList(await repo.get(keyQuoteThemes)),
       quoteFavorites: _splitList(await repo.get(keyQuoteFavorites)),
       ownQuotes: _decodeQuotes(await repo.get(keyOwnQuotes)),
+      movementEnabled: await repo.get(keyMovementEnabled) == 'true',
+      movementBreaks: MovementBreak.decodeList(
+        await repo.get(keyMovementBreaks),
+      ),
+      ownExercises: Exercise.decodeList(await repo.get(keyOwnExercises)),
+      movementDismissed: _splitList(await repo.get(keyMovementDismissed)),
     );
   }
 
@@ -205,6 +246,10 @@ class AppSettings {
     Set<String>? quoteThemes,
     Set<String>? quoteFavorites,
     List<Quote>? ownQuotes,
+    bool? movementEnabled,
+    List<MovementBreak>? movementBreaks,
+    List<Exercise>? ownExercises,
+    Set<String>? movementDismissed,
   }) {
     return AppSettings(
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
@@ -226,6 +271,10 @@ class AppSettings {
       quoteThemes: quoteThemes ?? this.quoteThemes,
       quoteFavorites: quoteFavorites ?? this.quoteFavorites,
       ownQuotes: ownQuotes ?? this.ownQuotes,
+      movementEnabled: movementEnabled ?? this.movementEnabled,
+      movementBreaks: movementBreaks ?? this.movementBreaks,
+      ownExercises: ownExercises ?? this.ownExercises,
+      movementDismissed: movementDismissed ?? this.movementDismissed,
     );
   }
 
@@ -358,6 +407,65 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
           AppSettings.joinList(favorites),
         );
       },
+    );
+  }
+
+  // ----- Bewegungspausen (D24) -------------------------------------------
+
+  Future<void> setMovementEnabled(bool value) => _update(
+    _current.copyWith(movementEnabled: value),
+    (repo) => repo.set(AppSettings.keyMovementEnabled, '$value'),
+  );
+
+  /// Ersetzt die Pausenzeiten (ein bis drei; die Oberfläche hält die
+  /// Grenze, hier wird nur gekürzt).
+  Future<void> setMovementBreaks(List<MovementBreak> breaks) {
+    final next = breaks.take(MovementBreak.maxCount).toList();
+    return _update(
+      _current.copyWith(movementBreaks: next),
+      (repo) => repo.set(
+        AppSettings.keyMovementBreaks,
+        MovementBreak.encodeList(next),
+      ),
+    );
+  }
+
+  /// "Heute nicht" für die Pause [breakIndex] an [day]; ältere Tage werden
+  /// dabei verworfen, damit die Einstellung nicht wächst.
+  Future<void> dismissMovementBreak(LocalDay day, int breakIndex) {
+    final prefix = '${day.iso}:';
+    final next = {
+      for (final k in _current.movementDismissed)
+        if (k.startsWith(prefix)) k,
+      AppSettings.dismissKey(day, breakIndex),
+    };
+    return _update(
+      _current.copyWith(movementDismissed: next),
+      (repo) => repo.set(
+        AppSettings.keyMovementDismissed,
+        AppSettings.joinList(next),
+      ),
+    );
+  }
+
+  Future<void> addOwnExercise(Exercise exercise) {
+    final next = [..._current.ownExercises, exercise];
+    return _update(
+      _current.copyWith(ownExercises: next),
+      (repo) =>
+          repo.set(AppSettings.keyOwnExercises, Exercise.encodeList(next)),
+    );
+  }
+
+  Future<void> removeOwnExercise(String id) {
+    final next = [
+      for (final e in _current.ownExercises)
+        if (e.id != id) e,
+    ];
+    return _update(
+      _current.copyWith(ownExercises: next),
+      (repo) =>
+          repo.set(AppSettings.keyOwnExercises, Exercise.encodeList(next)),
     );
   }
 

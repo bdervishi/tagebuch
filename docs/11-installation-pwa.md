@@ -24,7 +24,11 @@ Bekannte Grenzen auf iOS: Aufnahme nur, solange die App im Vordergrund ist (Bild
 3. App vom Startbildschirm starten, Mikrofon freigeben.
 4. In den Einstellungen der App den Speicherstatus prüfen: "dauerhaft" sollte angezeigt werden; sonst in den Chrome-Einstellungen der Website "Speicher" erlauben.
 5. Schnellaktionen: App-Symbol lange drücken, dann "Aufnehmen", "Sprachnotiz", "Kurznotiz" oder "Schreiben" wählen; die App startet direkt dort (Sprachnotiz: Aufnahme ohne Impulse; Kurznotiz: Blatt mit einem Textfeld, D22). Ein echtes Homescreen-Widget gibt es erst mit der Store-App (`09-roadmap.md`, Phase 8).
-6. Untere Leiste: vier Reiter Heute, Kalender, Mehr (Wege, Lesebuch, Zitate, Woche, Backup) und Einstellungen; der Wechsel ist ohne Animation.
+6. Untere Leiste: vier Reiter Heute, Kalender, Mehr (Wege, Lesebuch, Bewegung, Zitate, Woche, Backup) und Einstellungen; der Wechsel ist ohne Animation.
+
+## Bewegungspausen
+
+Wer über den Tag an kleine Pausen erinnert werden will (Entscheidung D24), schaltet sie in den Einstellungen unter "Bewegung" ein und wählt bis zu drei Zeiten mit Wochentagen. Eine Benachrichtigung gibt es in der Web-App nicht; stattdessen "Bewegungspausen in den Kalender": je Pause ein Termin für Google Kalender (mit Wochentagen) oder Outlook, oder eine Kalenderdatei mit allen Pausen für Apple Kalender. Beim Öffnen der App ab der Pausenzeit zeigt "Heute" die Karte "Zeit für Bewegung" mit drei Übungen; ein Tipp notiert die Übung mit Uhrzeit in deinem Tag. Übungen und eigene Übungen stehen unter "Mehr", Zeile "Bewegung". Bei Schmerzen abbrechen; bei Beschwerden ärztlichen Rat einholen.
 
 ## Nach der Installation prüfen
 

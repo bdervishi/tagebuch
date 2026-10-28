@@ -78,6 +78,51 @@ void main() {
     }
   });
 
+  test('Google mit Wochentagen: BYDAY und erster Termin am passenden Tag', () {
+    // 27. 10. 2026 ist ein Dienstag; Montag bis Freitag beginnt also heute.
+    final uri = CalendarLinks.build(
+      CalendarService.google,
+      hour: 10,
+      minute: 0,
+      title: 'Bewegungspause',
+      description: 'Kurz aufstehen, dehnen oder gehen.',
+      start: start,
+      byDay: {1, 2, 3, 4, 5},
+    );
+    final q = uri.queryParameters;
+    expect(q['recur'], 'RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR');
+    expect(q['dates'], '20261027T100000/20261027T101500');
+
+    // Nur Samstag: der erste Termin rückt auf den 31. 10.
+    final weekend = CalendarLinks.build(
+      CalendarService.google,
+      hour: 15,
+      minute: 30,
+      title: 'Bewegungspause',
+      start: start,
+      byDay: {DateTime.saturday},
+    );
+    expect(weekend.queryParameters['recur'], 'RRULE:FREQ=WEEKLY;BYDAY=SA');
+    expect(weekend.queryParameters['dates'], '20261031T153000/20261031T154500');
+
+    // Leere Menge heißt täglich; die Reihenfolge der Tage ist sortiert.
+    expect(CalendarLinks.rrule(byDay: {}), 'RRULE:FREQ=DAILY');
+    expect(CalendarLinks.rrule(byDay: {7, 1}), 'RRULE:FREQ=WEEKLY;BYDAY=MO,SU');
+    expect(() => CalendarLinks.rrule(byDay: {0}), throwsRangeError);
+
+    // Outlook bleibt ohne Wiederholung, auch mit Wochentagen.
+    final outlook = CalendarLinks.build(
+      CalendarService.outlookPersonal,
+      hour: 10,
+      minute: 0,
+      title: 'Bewegungspause',
+      start: start,
+      byDay: {1, 3},
+    );
+    expect(outlook.queryParameters.containsKey('recur'), isFalse);
+    expect(outlook.queryParameters['startdt'], '2026-10-28T10:00:00');
+  });
+
   test('Ungültige Uhrzeit wird abgewiesen', () {
     expect(
       () => CalendarLinks.build(

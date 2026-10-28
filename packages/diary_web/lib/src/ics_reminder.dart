@@ -3,13 +3,47 @@ import 'dart:js_interop';
 
 import 'package:web/web.dart' as web;
 
-/// Kalenderdatei für die tägliche Erinnerung (D16, Punkt 6): Ohne
-/// Push-Dienst gibt es im Browser keine Benachrichtigung bei geschlossener
-/// App; stattdessen importiert der Nutzer einen täglich wiederholten Termin
-/// mit Alarm in die Kalender-App des Telefons.
+/// Ein Termin in einer Kalenderdatei: Uhrzeit, Titel, optionale
+/// Beschreibung und optional die Wochentage der Wiederholung
+/// (`DateTime.weekday`, 1 = Montag … 7 = Sonntag); ohne [byDay] täglich.
+class IcsEvent {
+  const IcsEvent({
+    required this.hour,
+    required this.minute,
+    required this.title,
+    this.description,
+    this.byDay,
+  });
+
+  final int hour;
+  final int minute;
+  final String title;
+  final String? description;
+  final Set<int>? byDay;
+}
+
+/// Kalenderdatei für die tägliche Erinnerung (D16, Punkt 6) und für die
+/// Bewegungspausen (D24): Ohne Push-Dienst gibt es im Browser keine
+/// Benachrichtigung bei geschlossener App; stattdessen importiert der Nutzer
+/// wiederholte Termine mit Alarm in die Kalender-App des Telefons.
 abstract final class IcsReminder {
   static const String fileName = 'tagebuch-erinnerung.ics';
+
+  /// Dateiname der Bewegungspausen (D24).
+  static const String movementFileName = 'tagebuch-bewegung.ics';
   static const String mimeType = 'text/calendar';
+
+  /// Wochentags-Kürzel nach RFC 5545, Index wie `DateTime.weekday`.
+  static const List<String> weekdayCodes = [
+    '',
+    'MO',
+    'TU',
+    'WE',
+    'TH',
+    'FR',
+    'SA',
+    'SU',
+  ];
 
   /// Erzeugt eine ICS-Datei (RFC 5545) mit einem VEVENT, das täglich zu
   /// [hour]:[minute] (lokale Zeit, ohne Zeitzone, "floating") beginnt, 15
@@ -23,40 +57,95 @@ abstract final class IcsReminder {
     DateTime? start,
     DateTime? stamp,
     String? uid,
+  }) => buildMany(
+    [
+      IcsEvent(
+        hour: hour,
+        minute: minute,
+        title: title,
+        description: description,
+      ),
+    ],
+    start: start,
+    stamp: stamp,
+    uidPrefix: uid,
+  );
+
+  /// Erzeugt eine ICS-Datei mit einem VEVENT je Termin in [events]: täglich
+  /// oder, mit `byDay`, wöchentlich an den genannten Wochentagen
+  /// (`RRULE:FREQ=WEEKLY;BYDAY=MO,TU,…`); der erste Termin liegt dann auf dem
+  /// nächsten passenden Tag ab [start]. Jeder Termin dauert 15 Minuten und
+  /// zeigt zu Beginn einen Alarm. [uidPrefix] (Tests) ersetzt den erzeugten
+  /// Kennungsstamm; bei mehreren Terminen wird der Index angehängt.
+  static String buildMany(
+    List<IcsEvent> events, {
+    DateTime? start,
+    DateTime? stamp,
+    String? uidPrefix,
   }) {
-    RangeError.checkValueInInterval(hour, 0, 23, 'hour');
-    RangeError.checkValueInInterval(minute, 0, 59, 'minute');
+    if (events.isEmpty) {
+      throw ArgumentError.value(events, 'events', 'mindestens ein Termin');
+    }
     final first = start ?? DateTime.now();
-    final begin = DateTime(first.year, first.month, first.day, hour, minute);
     final now = (stamp ?? DateTime.now()).toUtc();
-    final id =
-        uid ??
-        'tagebuch-erinnerung-${_two(hour)}${_two(minute)}-'
-            '${now.millisecondsSinceEpoch}@tagebuch.local';
     final lines = <String>[
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
       'PRODID:-//Tagebuch//Erinnerung//DE',
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
-      'BEGIN:VEVENT',
-      'UID:${escape(id)}',
-      'DTSTAMP:${_utc(now)}',
-      'DTSTART:${_local(begin)}',
-      'DURATION:PT15M',
-      'RRULE:FREQ=DAILY',
-      'SUMMARY:${escape(title)}',
-      if (description != null) 'DESCRIPTION:${escape(description)}',
-      'TRANSP:TRANSPARENT',
-      'BEGIN:VALARM',
-      'ACTION:DISPLAY',
-      'TRIGGER:PT0S',
-      'DESCRIPTION:${escape(title)}',
-      'END:VALARM',
-      'END:VEVENT',
-      'END:VCALENDAR',
     ];
+    for (final (i, e) in events.indexed) {
+      RangeError.checkValueInInterval(e.hour, 0, 23, 'hour');
+      RangeError.checkValueInInterval(e.minute, 0, 59, 'minute');
+      final begin = _firstOccurrence(first, e);
+      final base =
+          uidPrefix ??
+          'tagebuch-erinnerung-${_two(e.hour)}${_two(e.minute)}-'
+              '${now.millisecondsSinceEpoch}@tagebuch.local';
+      final id = events.length == 1 ? base : '$i-$base';
+      lines.addAll([
+        'BEGIN:VEVENT',
+        'UID:${escape(id)}',
+        'DTSTAMP:${_utc(now)}',
+        'DTSTART:${_local(begin)}',
+        'DURATION:PT15M',
+        rrule(e.byDay),
+        'SUMMARY:${escape(e.title)}',
+        if (e.description != null) 'DESCRIPTION:${escape(e.description!)}',
+        'TRANSP:TRANSPARENT',
+        'BEGIN:VALARM',
+        'ACTION:DISPLAY',
+        'TRIGGER:PT0S',
+        'DESCRIPTION:${escape(e.title)}',
+        'END:VALARM',
+        'END:VEVENT',
+      ]);
+    }
+    lines.add('END:VCALENDAR');
     return '${lines.map(_fold).join('\r\n')}\r\n';
+  }
+
+  /// Wiederholungsregel: täglich ohne Wochentage, sonst wöchentlich an den
+  /// sortierten Wochentagen (gleiche Regel wie `CalendarLinks.rrule`).
+  static String rrule(Set<int>? byDay) {
+    if (byDay == null || byDay.isEmpty) return 'RRULE:FREQ=DAILY';
+    final days = byDay.toList()..sort();
+    for (final d in days) {
+      RangeError.checkValueInInterval(d, 1, 7, 'byDay');
+    }
+    return 'RRULE:FREQ=WEEKLY;BYDAY=${days.map((d) => weekdayCodes[d]).join(',')}';
+  }
+
+  static DateTime _firstOccurrence(DateTime start, IcsEvent e) {
+    var day = DateTime(start.year, start.month, start.day);
+    final byDay = e.byDay;
+    if (byDay != null && byDay.isNotEmpty) {
+      while (!byDay.contains(day.weekday)) {
+        day = day.add(const Duration(days: 1));
+      }
+    }
+    return DateTime(day.year, day.month, day.day, e.hour, e.minute);
   }
 
   /// Maskiert Text nach RFC 5545 Abschnitt 3.3.11.
