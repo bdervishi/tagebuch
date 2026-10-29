@@ -48,6 +48,49 @@ class RecordedAudio {
   String get mimeType => container.mimeType;
 }
 
+/// Warum das Mikrofon nicht geöffnet werden konnte; die Oberfläche wählt
+/// danach Text und Hilfe (Web: aus dem Namen der `DOMException`).
+enum MicrophoneErrorKind {
+  /// Zugriff verweigert oder Abfrage weggetippt (`NotAllowedError`).
+  denied,
+
+  /// Kein Mikrofon vorhanden (`NotFoundError`, `OverconstrainedError`).
+  notFound,
+
+  /// Mikrofon von einer anderen App belegt (`NotReadableError`).
+  busy,
+
+  /// Kein sicherer Kontext, Browser ohne Aufnahme (`SecurityError`,
+  /// `UnsupportedError`).
+  unsupported,
+
+  /// Alles andere.
+  unknown;
+
+  /// Zuordnung eines `DOMException.name` (reine Funktion, testbar).
+  static MicrophoneErrorKind fromDomName(String? name) => switch (name) {
+    'NotAllowedError' || 'PermissionDeniedError' => denied,
+    'NotFoundError' ||
+    'OverconstrainedError' ||
+    'DevicesNotFoundError' => notFound,
+    'NotReadableError' || 'AbortError' || 'TrackStartError' => busy,
+    'SecurityError' || 'TypeError' => unsupported,
+    _ => unknown,
+  };
+}
+
+/// Fehler beim Öffnen des Mikrofons mit einer Art aus [MicrophoneErrorKind].
+class MicrophoneException implements Exception {
+  const MicrophoneException(this.kind, [this.detail]);
+
+  final MicrophoneErrorKind kind;
+  final String? detail;
+
+  @override
+  String toString() =>
+      'MicrophoneException(${kind.name}${detail == null ? '' : ': $detail'})';
+}
+
 /// Aufnahmedienst (Port). Eine laufende Aufnahme liefert PCM-Blöcke für die
 /// Transkription und schreibt parallel die verschlüsselte Audiodatei.
 abstract interface class AudioRecorderPort {

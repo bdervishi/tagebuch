@@ -8,6 +8,7 @@ import 'package:diary_core/diary_core.dart';
 import 'package:web/web.dart' as web;
 
 import 'encrypted_file_store.dart';
+import 'microphone_access.dart';
 
 /// Aufnahme im Browser über `MediaRecorder` (D16, Punkt 5).
 ///
@@ -88,16 +89,9 @@ class MediaRecorderCapture implements AudioRecorderPort {
         'Kein unterstütztes Audioformat (WebM/Opus, MP4/AAC)',
       );
     }
-    final stream = await web.window.navigator.mediaDevices
-        .getUserMedia(
-          web.MediaStreamConstraints(
-            audio: web.MediaTrackConstraints(
-              echoCancellation: false.toJS,
-              noiseSuppression: false.toJS,
-            ),
-          ),
-        )
-        .toDart;
+    // Strom aus der frühen Anfrage der Taste (Safari: innerhalb der Geste)
+    // oder jetzt angefragt; Fehler kommen als MicrophoneException mit Art.
+    final stream = await MicrophoneAccess.take();
     final recorder = web.MediaRecorder(
       stream,
       web.MediaRecorderOptions(mimeType: mimeType, audioBitsPerSecond: bitrate),

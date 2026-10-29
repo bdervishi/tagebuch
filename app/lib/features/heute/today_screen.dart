@@ -6,6 +6,7 @@ import '../../app/routes.dart';
 import '../../data/day.dart';
 import '../../data/entry_view.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/app_services.dart';
 import '../../widgets/entry_tile.dart';
 import '../../widgets/record_button.dart';
 import '../../widgets/reveal.dart';
@@ -67,7 +68,13 @@ class TodayScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 28),
                   RecordButton(
-                    onPressed: () => AppRoutes.openRecording(context),
+                    onPressed: () {
+                      // Mikrofon sofort in der Geste anfragen (Safari).
+                      ref
+                          .read(platformFeaturesProvider)
+                          .requestMicrophoneEarly();
+                      AppRoutes.openRecording(context);
+                    },
                     semanticLabel: l10n.recordButtonSemantics,
                   ),
                   const SizedBox(height: 4),
@@ -116,8 +123,12 @@ class TodayScreen extends ConsumerWidget {
                 children: [
                   TextButton.icon(
                     key: quickVoiceKey,
-                    onPressed: () =>
-                        AppRoutes.openRecording(context, quick: true),
+                    onPressed: () {
+                      ref
+                          .read(platformFeaturesProvider)
+                          .requestMicrophoneEarly();
+                      AppRoutes.openRecording(context, quick: true);
+                    },
                     icon: const Icon(Icons.mic_none, size: 18),
                     label: Text(
                       l10n.quickVoiceButton,

@@ -103,6 +103,16 @@ class WebPlatformFeatures implements PlatformFeatures {
   bool get recordsRealAudio => true;
 
   @override
+  void requestMicrophoneEarly() => MicrophoneAccess.requestEarly();
+
+  @override
+  void discardMicrophoneRequest() => MicrophoneAccess.discardPending();
+
+  @override
+  Future<String?> microphonePermissionState() =>
+      MicrophoneAccess.permissionState();
+
+  @override
   Future<StorageStatus?> storageStatus() async {
     final estimate = await _info.estimate();
     if (estimate == null) return null;

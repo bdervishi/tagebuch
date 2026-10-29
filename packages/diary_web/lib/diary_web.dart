@@ -22,6 +22,7 @@ export 'src/external_links.dart';
 export 'src/ics_reminder.dart';
 export 'src/indexed_db_store.dart';
 export 'src/media_recorder_capture.dart';
+export 'src/microphone_access.dart';
 export 'src/qr_camera_scanner.dart';
 export 'src/text_normalization.dart';
 export 'src/web_audio_files.dart';

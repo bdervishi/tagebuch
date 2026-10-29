@@ -21,6 +21,7 @@ Der Inhaber will das Tagebuch sofort auf dem eigenen Smartphone nutzen, ohne Ent
 | Datenverlust | nur bei Geräteverlust | zusätzlich Browser-Speicherräumung, "Website-Daten löschen", Deinstallation | Backup ist Pflichtfunktion der ersten Fassung |
 | Spracherkennung | SpeechTranscriber, sherpa-onnx | WebAssembly-Modell im Browser (Whisper über ONNX Runtime Web), langsamer | Erkennung nach der Aufnahme, als "experimentell" markiert bis Spike W1 |
 | Aufnahme | AAC-LC/M4A, Hintergrund möglich | MediaRecorder: WebM/Opus (Chrome), MP4/AAC (Safari); nur Vordergrund | Codec je Aufnahme gespeichert; Bildschirm an lassen |
+| Mikrofon | Systemabfrage beim ersten Tippen | `getUserMedia` startet sofort in der Tipp-Geste (`MicrophoneAccess.requestEarly`, Safari lehnt sonst still ab); Fehlerarten (`MicrophoneErrorKind`) mit Text, "Erneut versuchen" und Weg in die Einstellungen | erfüllt |
 | Erinnerung | lokale Benachrichtigung / Alarm | kein Push ohne Server; Termin in Google Kalender oder Outlook per vorbefülltem Link (D18), ICS-Kalendereintrag, Systemwecker, Hinweis beim Öffnen | M2 nur teilweise erfüllt |
 | QR-Gerätewechsel | Kamera nativ | `BarcodeDetector` oder Code eintippen; Datei per Download/Dateiauswahl | gleiche Containerdatei |
 | App-Sperre | Biometrie oder Gerätecode, Schlüssel gebunden (D5) | eigener PIN als Bildschirmsperre, Schlüssel nicht gebunden (D23) | ehrlicher Hinweistext in den Einstellungen; Biometrie erst im Store |

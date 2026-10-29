@@ -68,6 +68,10 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
   ActiveRecording? _active;
   Object? _startError;
 
+  /// Berechtigungszustand laut Browser nach einem Fehler (`denied` heißt:
+  /// dauerhaft gesperrt, die Abfrage erscheint nicht mehr).
+  String? _permissionState;
+
   /// Gezählte Aufnahmezeit; Timer-basiert, damit sie bei Pause stehen bleibt
   /// und in Tests mit der Fake-Uhr läuft.
   Duration _elapsed = Duration.zero;
@@ -134,8 +138,26 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
       setState(() {});
     } catch (error) {
       if (!mounted) return;
-      setState(() => _startError = error);
+      final state = await ref
+          .read(platformFeaturesProvider)
+          .microphonePermissionState();
+      if (!mounted) return;
+      setState(() {
+        _startError = error;
+        _permissionState = state;
+      });
     }
+  }
+
+  /// "Erneut versuchen": fragt das Mikrofon in dieser Geste neu an (Safari)
+  /// und startet die Aufnahme noch einmal.
+  void _retry() {
+    ref.read(platformFeaturesProvider).requestMicrophoneEarly();
+    setState(() {
+      _startError = null;
+      _permissionState = null;
+    });
+    unawaited(_start());
   }
 
   @override
@@ -252,6 +274,8 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
     final active = _active;
     if (_finishing) return;
     if (active == null) {
+      // Noch nicht gestartet: eine frühe Mikrofon-Anfrage wieder freigeben.
+      ref.read(platformFeaturesProvider).discardMicrophoneRequest();
       Navigator.of(context).pop();
       return;
     }
@@ -334,7 +358,13 @@ class _RecordingScreenState extends ConsumerState<RecordingScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: _startError != null
-                ? _ErrorBody(message: l10n.recordingMicError)
+                ? _ErrorBody(
+                    error: _startError!,
+                    permissionState: _permissionState,
+                    isIos: features.isIos,
+                    isWeb: features.isWeb,
+                    onRetry: _retry,
+                  )
                 : LayoutBuilder(
                     builder: (context, constraints) => SingleChildScrollView(
                       child: ConstrainedBox(
@@ -634,27 +664,92 @@ class _PromptCard extends StatelessWidget {
   }
 }
 
-/// Mikrofon nicht verfügbar oder verweigert.
-class _ErrorBody extends StatelessWidget {
-  const _ErrorBody({required this.message});
+/// Widget-Key der Taste "Erneut versuchen" (für Tests).
+const Key micRetryKey = Key('recording-mic-retry');
 
-  final String message;
+/// Mikrofon nicht verfügbar oder verweigert: Text je Fehlerart, Taste
+/// "Erneut versuchen" (fragt in der Geste neu an) und, wenn der Browser die
+/// Berechtigung dauerhaft gesperrt hat, der Weg in die Einstellungen.
+class _ErrorBody extends StatelessWidget {
+  const _ErrorBody({
+    required this.error,
+    required this.permissionState,
+    required this.isIos,
+    required this.isWeb,
+    required this.onRetry,
+  });
+
+  final Object error;
+  final String? permissionState;
+  final bool isIos;
+  final bool isWeb;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final kind = error is MicrophoneException
+        ? (error as MicrophoneException).kind
+        : MicrophoneErrorKind.unknown;
+    final message = switch (kind) {
+      MicrophoneErrorKind.denied => l10n.recordingMicDenied,
+      MicrophoneErrorKind.notFound => l10n.recordingMicNotFound,
+      MicrophoneErrorKind.busy => l10n.recordingMicBusy,
+      MicrophoneErrorKind.unsupported => l10n.recordingMicUnsupported,
+      MicrophoneErrorKind.unknown => l10n.recordingMicError,
+    };
+    final blocked = permissionState == 'denied';
+    final showHint =
+        isWeb &&
+        (kind == MicrophoneErrorKind.denied ||
+            kind == MicrophoneErrorKind.unknown);
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.mic_off, size: 48, color: theme.colorScheme.error),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyLarge,
-          ),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.mic_off, size: 48, color: scheme.error),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              key: const Key('recording-mic-message'),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyLarge,
+            ),
+            if (blocked) ...[
+              const SizedBox(height: 12),
+              Text(
+                l10n.recordingMicBlocked,
+                key: const Key('recording-mic-blocked'),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            if (showHint) ...[
+              const SizedBox(height: 12),
+              Text(
+                isIos ? l10n.recordingMicHintIos : l10n.recordingMicHintAndroid,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            if (kind != MicrophoneErrorKind.unsupported) ...[
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                key: micRetryKey,
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh),
+                label: Text(l10n.recordingMicRetry),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

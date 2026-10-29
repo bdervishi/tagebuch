@@ -95,6 +95,7 @@ class TestServices {
     this.quoteLibrary,
     this.movementLibrary,
     this.clock = const SystemClock(),
+    AudioRecorderPort? recorder,
   }) {
     final entryItems = <DiaryEntry>[];
     final recordingItems = <Recording>[];
@@ -217,7 +218,7 @@ class TestServices {
         notes: notes,
         books: books,
       ),
-      recorder: SimulatedRecorder(),
+      recorder: recorder ?? SimulatedRecorder(),
       transcriber: FakeSttEngine(text: fakeTranscript),
       sttEngine: sttEngine,
       fileTranscriber: fileTranscriber,
@@ -333,6 +334,22 @@ class FakePlatformFeatures implements PlatformFeatures {
 
   @override
   bool get recordsRealAudio => isWeb;
+
+  /// Zahl der frühen Mikrofon-Anfragen aus der Tipp-Geste.
+  int microphoneRequests = 0;
+  int microphoneDiscards = 0;
+
+  /// Berechtigungszustand für Tests (`null` = Browser verrät nichts).
+  String? microphonePermission;
+
+  @override
+  void requestMicrophoneEarly() => microphoneRequests++;
+
+  @override
+  void discardMicrophoneRequest() => microphoneDiscards++;
+
+  @override
+  Future<String?> microphonePermissionState() async => microphonePermission;
 
   @override
   Future<StorageStatus?> storageStatus() async => storage;

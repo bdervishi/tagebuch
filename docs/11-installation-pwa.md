@@ -13,7 +13,7 @@ Nach der Veröffentlichung über GitHub Pages: `https://bdervishi.github.io/tage
 1. Adresse in Safari öffnen (nicht in einem anderen Browser: nur Safari kann auf iOS installieren).
 2. Teilen-Symbol tippen, "Zum Home-Bildschirm", "Hinzufügen".
 3. Die App vom Home-Bildschirm starten. Erst die installierte App benutzen: Nur so sind die Daten vor der Sieben-Tage-Löschung des Safari-Speichers geschützt.
-4. Beim ersten Aufnehmen die Mikrofonfreigabe erteilen.
+4. Beim ersten Aufnehmen die Mikrofonfreigabe erteilen. Die Abfrage erscheint direkt nach dem Tipp auf die Aufnahmetaste (Safari verlangt das innerhalb der Geste; die App fragt deshalb sofort). Wurde sie abgelehnt: Einstellungen, Apps, Tagebuch (oder Safari), Mikrofon erlauben; in der App auf "Erneut versuchen" tippen. Die installierte App fragt bei jedem Start neu.
 
 Bekannte Grenzen auf iOS: Aufnahme nur, solange die App im Vordergrund ist (Bildschirm an); keine Benachrichtigung zur Erinnerungszeit (stattdessen Kalendereintrag aus den Einstellungen: Google Kalender, Outlook oder Kalenderdatei für Apple Kalender); Daten verschwinden, wenn die App vom Home-Bildschirm entfernt oder "Website-Daten löschen" ausgeführt wird. Deshalb regelmäßig ein Backup erstellen.
 

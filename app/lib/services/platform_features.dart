@@ -64,6 +64,18 @@ abstract interface class PlatformFeatures {
   /// Ob die Aufnahme echt ist (Mikrofon) oder simuliert.
   bool get recordsRealAudio;
 
+  /// Fragt das Mikrofon sofort innerhalb der Tipp-Geste an (Web: Safari
+  /// verlangt das; sonst keine Systemabfrage). Die Aufnahme holt den Strom
+  /// danach ab. Nativ ohne Wirkung.
+  void requestMicrophoneEarly();
+
+  /// Verwirft eine unbenutzte frühe Anfrage.
+  void discardMicrophoneRequest();
+
+  /// Zustand der Mikrofonberechtigung (`granted`, `denied`, `prompt`) oder
+  /// `null`, wenn die Plattform ihn nicht verrät.
+  Future<String?> microphonePermissionState();
+
   /// Speicherstatus oder `null`, wenn die Plattform keinen liefert.
   Future<StorageStatus?> storageStatus();
 
@@ -131,6 +143,15 @@ class NativePlatformFeatures implements PlatformFeatures {
 
   @override
   final bool recordsRealAudio;
+
+  @override
+  void requestMicrophoneEarly() {}
+
+  @override
+  void discardMicrophoneRequest() {}
+
+  @override
+  Future<String?> microphonePermissionState() async => null;
 
   @override
   Future<StorageStatus?> storageStatus() async => null;
