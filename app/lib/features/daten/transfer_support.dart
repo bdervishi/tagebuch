@@ -277,6 +277,14 @@ class ImportSummary extends StatelessWidget {
             result.milestonesSkipped,
           ),
         ),
+      if (result.projectsImported > 0 || result.projectsSkipped > 0)
+        (
+          'projects',
+          withSkipped(
+            l10n.importLineProjects(result.projectsImported),
+            result.projectsSkipped,
+          ),
+        ),
       if (result.booksImported > 0 || result.booksSkipped > 0)
         (
           'books',

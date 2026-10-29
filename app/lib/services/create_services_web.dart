@@ -41,6 +41,7 @@ Future<AppServices> createAppServices() async {
     transcripts: WebTranscriptRepository(records),
     notes: WebNoteRepository(records),
     goals: WebGoalRepository(records),
+    projects: WebProjectRepository(records),
     books: WebBookRepository(records),
     settings: WebSettingsRepository(records),
     search: WebSearchRepository(records),

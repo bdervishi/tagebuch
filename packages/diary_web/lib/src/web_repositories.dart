@@ -15,6 +15,7 @@ abstract final class Collections {
   static const notes = 'notes';
   static const goals = 'goals';
   static const milestones = 'milestones';
+  static const projects = 'projects';
   static const books = 'books';
   static const passages = 'passages';
   static const settings = 'settings';
@@ -205,8 +206,62 @@ class WebNoteRepository implements NoteRepository {
   }
 
   @override
+  Future<List<EntryNote>> listForProject(String projectId) async => [
+    for (final m in await _store.getAll(Collections.notes))
+      if (m['projectId'] == projectId) Codecs.decodeNote(m),
+  ]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  @override
   Future<void> delete(String noteId) =>
       _store.delete(Collections.notes, noteId);
+}
+
+/// Projekte (D26) als verschlüsselte Datensätze in der Sammlung `projects`.
+/// Die Tagesnotizen liegen bei den Notizen (`projectId`).
+class WebProjectRepository implements ProjectRepository {
+  WebProjectRepository(this._store);
+
+  final EncryptedRecordStore _store;
+
+  Future<List<Project>> _all(String journalId) async => [
+    for (final m in await _store.getAll(Collections.projects))
+      if (m['journalId'] == journalId) Codecs.decodeProject(m),
+  ];
+
+  @override
+  Future<void> insert(Project project) => _store.put(
+    Collections.projects,
+    project.id,
+    Codecs.encodeProject(project),
+  );
+
+  @override
+  Future<void> update(Project project) => insert(project);
+
+  @override
+  Future<Project?> byId(String projectId) async {
+    final m = await _store.get(Collections.projects, projectId);
+    return m == null ? null : Codecs.decodeProject(m);
+  }
+
+  @override
+  Future<List<Project>> listActive(String journalId) async =>
+      (await _all(journalId)).where((p) => p.isActive).toList()
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+  @override
+  Future<List<Project>> listArchived(String journalId) async =>
+      (await _all(journalId)).where((p) => !p.isActive).toList()
+        ..sort((a, b) => b.archivedAt!.compareTo(a.archivedAt!));
+
+  @override
+  Future<List<Project>> listAll(String journalId) async =>
+      (await _all(journalId))
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+  @override
+  Future<void> delete(String projectId) =>
+      _store.delete(Collections.projects, projectId);
 }
 
 /// Ziele und Etappen (D19) als verschlüsselte Datensätze in den Sammlungen

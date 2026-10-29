@@ -40,6 +40,7 @@ class ContainerManifest {
     required this.files,
     this.noteCount = 0,
     this.goalCount = 0,
+    this.projectCount = 0,
     this.milestoneCount = 0,
     this.bookCount = 0,
     this.passageCount = 0,
@@ -76,6 +77,10 @@ class ContainerManifest {
   final int goalCount;
   final int milestoneCount;
 
+  /// Projekte (Zeilentyp `project`, D26); fehlt in Dateien älterer
+  /// Versionen und gilt dann als 0.
+  final int projectCount;
+
   /// Bücher und Passagen (Zeilentypen `book` und `passage`, D21); fehlen in
   /// Dateien älterer Versionen und gelten dann als 0.
   final int bookCount;
@@ -103,6 +108,7 @@ class ContainerManifest {
     'notes': noteCount,
     'goals': goalCount,
     'milestones': milestoneCount,
+    'projects': projectCount,
     'books': bookCount,
     'passages': passageCount,
     'bookFiles': bookFileCount,
@@ -134,6 +140,7 @@ class ContainerManifest {
       noteCount: j['notes'] as int? ?? 0,
       goalCount: j['goals'] as int? ?? 0,
       milestoneCount: j['milestones'] as int? ?? 0,
+      projectCount: j['projects'] as int? ?? 0,
       bookCount: j['books'] as int? ?? 0,
       passageCount: j['passages'] as int? ?? 0,
       bookFileCount: j['bookFiles'] as int? ?? 0,

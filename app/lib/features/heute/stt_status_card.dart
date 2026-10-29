@@ -69,7 +69,12 @@ class SttStatusCard extends ConsumerWidget {
         );
       case SttPhase.unavailable:
         final online = ref.watch(platformFeaturesProvider).isOnline;
-        final reason = status.reason;
+        final raw = status.reason;
+        // Technische Gründe der Engine in einen Satz übersetzen; unbekannte
+        // bleiben wörtlich (die Einstellungen zeigen sie immer wörtlich).
+        final reason = raw == null
+            ? null
+            : (friendlySttReason(l10n, raw) ?? raw);
         body = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -115,6 +120,22 @@ class SttStatusCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Übersetzt bekannte Fehlertexte der Browser-Erkennung (transformers.js,
+/// fetch) in einen verständlichen Satz; `null` für unbekannte.
+String? friendlySttReason(AppLocalizations l10n, String reason) {
+  final r = reason.toLowerCase();
+  if (r.contains('not found locally') || r.contains('404')) {
+    return l10n.sttReasonMissingFiles;
+  }
+  if (r.contains('failed to fetch') ||
+      r.contains('load failed') ||
+      r.contains('networkerror') ||
+      r.contains('network error')) {
+    return l10n.sttReasonNetwork;
+  }
+  return null;
 }
 
 class _Title extends StatelessWidget {

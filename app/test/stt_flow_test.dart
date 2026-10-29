@@ -12,10 +12,8 @@ import 'test_app.dart';
 
 /// Engine, deren Laden über einen Strom gesteuert wird.
 class _ScriptedEngine extends FakeSttEngine {
-  _ScriptedEngine(this.progress, {this.text = 'Erkannt.'});
+  _ScriptedEngine(this.progress, {super.text = 'Erkannt.'});
   final Stream<double> progress;
-  @override
-  final String text;
   bool ready = false;
   @override
   String get id => 'scripted';
@@ -48,10 +46,10 @@ class _FlakyEngine extends FakeSttEngine {
   @override
   Stream<double> prepare(String locale) async* {
     attempts++;
-    if (failed) throw const TranscriptionException('Load failed');
+    if (failed) throw const TranscriptionException('Worker-Fehler: kaputt');
     if (attempts == 1) {
       failed = true;
-      throw const TranscriptionException('Load failed');
+      throw const TranscriptionException('Worker-Fehler: kaputt');
     }
     yield 1.0;
     ready = true;
@@ -187,7 +185,29 @@ void main() {
     );
     await tester.pumpWidget(buildTestApp(services: services));
     await tester.pumpAndSettle();
-    expect(find.textContaining('(Load failed)'), findsOneWidget);
+    expect(find.textContaining('(Worker-Fehler: kaputt)'), findsOneWidget);
+  });
+
+  testWidgets('Bekannte technische Gründe werden übersetzt', (tester) async {
+    final engine = _ScriptedEngine(
+      Stream.error(
+        const TranscriptionException(
+          '`local_files_only=true` or `env.allowRemoteModels=false` and file '
+          'was not found locally at "https://x/models/whisper-base/config.json".',
+        ),
+      ),
+    );
+    final services = _servicesWithoutText(
+      sttEngine: engine,
+      fileTranscriber: engine,
+    );
+    await tester.pumpWidget(buildTestApp(services: services));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('(Die Modelldateien fehlen auf dem Server der App)'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('local_files_only'), findsNothing);
   });
 
   testWidgets('Nachholen ersetzt den Platzhalter der Fake-Erkennung', (

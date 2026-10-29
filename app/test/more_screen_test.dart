@@ -15,6 +15,22 @@ import 'test_app.dart';
 
 /// Verlässt die oberste Route (die AppBar der App hat keinen Standard-Zurück-
 /// Knopf, den `pageBack` finden könnte).
+/// Rollt die Liste von "Mehr", bis [finder] sichtbar ist (seit der Zeile
+/// "Projekte" liegt die Backup-Zeile im Testfenster unter dem Rand).
+Future<void> _scrollMoreTo(WidgetTester tester, Finder finder) async {
+  await tester.scrollUntilVisible(
+    finder,
+    200,
+    scrollable: find
+        .descendant(
+          of: find.byType(MoreScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await tester.pumpAndSettle();
+}
+
 Future<void> _back(WidgetTester tester) async {
   Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
   await tester.pumpAndSettle();
@@ -110,10 +126,6 @@ void main() {
     expect(find.text('„${quote.de}“ · ${quote.author}'), findsOneWidget);
     expect(find.text('Woche'), findsOneWidget);
     expect(find.text('Die letzten sieben Tage im Rückblick'), findsOneWidget);
-    expect(find.text('Backup und Gerätewechsel'), findsOneWidget);
-    expect(find.text('Letztes Backup: noch keins'), findsOneWidget);
-    // Ein Eintrag: noch keine Erinnerungskarte.
-    expect(find.byKey(backupReminderCardKey), findsNothing);
 
     await tester.tap(find.byKey(moreGoalsRowKey));
     await tester.pumpAndSettle();
@@ -137,6 +149,11 @@ void main() {
     expect(find.byType(WeekReviewScreen), findsOneWidget);
     await _back(tester);
 
+    await _scrollMoreTo(tester, find.byKey(moreBackupRowKey));
+    expect(find.text('Backup und Gerätewechsel'), findsOneWidget);
+    expect(find.text('Letztes Backup: noch keins'), findsOneWidget);
+    // Ein Eintrag: noch keine Erinnerungskarte.
+    expect(find.byKey(backupReminderCardKey), findsNothing);
     await tester.tap(find.byKey(moreBackupRowKey));
     await tester.pumpAndSettle();
     expect(find.byType(BackupScreen), findsOneWidget);
@@ -171,6 +188,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Week'), findsOneWidget);
+    await _scrollMoreTo(tester, find.byKey(moreBackupRowKey));
     expect(find.text('Backup and device transfer'), findsOneWidget);
     expect(find.text('Last backup: none yet'), findsOneWidget);
     expect(find.byKey(backupReminderCardKey), findsNothing);
@@ -187,6 +205,7 @@ void main() {
     await tester.pumpWidget(buildTestApp(services: stale));
     await tester.pumpAndSettle();
     await openMoreTab(tester);
+    await _scrollMoreTo(tester, find.byKey(moreBackupRowKey));
     expect(find.textContaining('Letztes Backup: '), findsOneWidget);
     expect(find.textContaining('· älter als eine Woche'), findsOneWidget);
   });

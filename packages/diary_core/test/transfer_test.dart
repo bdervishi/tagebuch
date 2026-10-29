@@ -298,6 +298,69 @@ void main() {
   );
 
   test(
+    'Projekte (D26): Export zählt sie, Notizen behalten die Zuordnung',
+    () async {
+      final old = Device('alt-');
+      await old.seed(d1, 'Gesprochen am 25.');
+      final useCase = ProjectsUseCase(
+        journalId: Device.journalId,
+        projects: old.projects,
+        notes: old.notes,
+        entries: old.entries,
+        ids: old.ids,
+        clock: old.clock,
+      );
+      final p = await useCase.createProject(name: 'App', about: 'Tagebuch');
+      final resting = await useCase.createProject(name: 'Ruht');
+      await useCase.archiveProject(resting.id);
+      await useCase.logDay(
+        p.id,
+        done: 'Parser gebaut.',
+        good: 'Lief.',
+        day: d1,
+      );
+      final bytes = await old.useCase.exportWithPassphrase('korrektes pferd');
+
+      final fresh = Device('neu-');
+      final opened = await fresh.useCase.openWithPassphrase(
+        bytes,
+        'korrektes pferd',
+      );
+      expect(opened.manifest.projectCount, 2);
+      expect(opened.manifest.noteCount, 2);
+      expect(opened.snapshot.projects, hasLength(2));
+      final result = await fresh.useCase.import(opened);
+      expect(result.projectsImported, 2);
+      expect(result.projectsSkipped, 0);
+      expect(result.notesImported, 2);
+      final imported = (await fresh.projects.byId(p.id))!;
+      expect(imported.name, 'App');
+      expect(imported.about, 'Tagebuch');
+      expect((await fresh.projects.byId(resting.id))!.isActive, isFalse);
+      final notes = await fresh.notes.listForProject(p.id);
+      expect(notes.map((n) => n.promptKey), [
+        ReviewPrompts.projectDone,
+        ReviewPrompts.projectGood,
+      ]);
+
+      // Zweiter Import: alles schon da.
+      final again = await fresh.useCase.import(
+        await fresh.useCase.openWithPassphrase(bytes, 'korrektes pferd'),
+      );
+      expect(again.projectsSkipped, 2);
+      expect(again.projectsImported, 0);
+
+      // Gerät ohne Projekte liest die Datei trotzdem.
+      final bare = Device('bare-', withProjects: false);
+      final r = await bare.useCase.import(
+        await bare.useCase.openWithPassphrase(bytes, 'korrektes pferd'),
+      );
+      expect(r.projectsImported, 0);
+      expect(r.notesImported, 2);
+    },
+  );
+
+  test(
     'Ziele und Etappen (D19): Export zählt sie, Import übernimmt sie',
     () async {
       final old = Device('alt-');

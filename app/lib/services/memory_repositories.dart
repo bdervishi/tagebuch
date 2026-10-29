@@ -206,8 +206,53 @@ class InMemoryNoteRepository implements NoteRepository {
         ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
   @override
+  Future<List<EntryNote>> listForProject(String projectId) async =>
+      items.where((n) => n.projectId == projectId).toList()
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  @override
   Future<void> delete(String noteId) async =>
       items.removeWhere((n) => n.id == noteId);
+}
+
+/// Projekte (D26) im Speicher.
+class InMemoryProjectRepository implements ProjectRepository {
+  InMemoryProjectRepository({List<Project> initial = const []})
+    : items = [...initial];
+
+  final List<Project> items;
+
+  @override
+  Future<void> insert(Project project) async {
+    items.removeWhere((p) => p.id == project.id);
+    items.add(project);
+  }
+
+  @override
+  Future<void> update(Project project) => insert(project);
+
+  @override
+  Future<Project?> byId(String projectId) async =>
+      items.where((p) => p.id == projectId).firstOrNull;
+
+  @override
+  Future<List<Project>> listActive(String journalId) async =>
+      items.where((p) => p.journalId == journalId && p.isActive).toList()
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+  @override
+  Future<List<Project>> listArchived(String journalId) async =>
+      items.where((p) => p.journalId == journalId && !p.isActive).toList()
+        ..sort((a, b) => b.archivedAt!.compareTo(a.archivedAt!));
+
+  @override
+  Future<List<Project>> listAll(String journalId) async =>
+      items.where((p) => p.journalId == journalId).toList()
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+
+  @override
+  Future<void> delete(String projectId) async =>
+      items.removeWhere((p) => p.id == projectId);
 }
 
 /// Ziele und Etappen (D19) im Speicher.

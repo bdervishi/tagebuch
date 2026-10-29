@@ -17,6 +17,8 @@ abstract final class PromptTexts {
     ReviewPrompts.good => l10n.promptGoodTitle,
     ReviewPrompts.lesson => l10n.promptLessonTitle,
     ReviewPrompts.next => l10n.promptNextTitle,
+    ReviewPrompts.projectDone => l10n.projectDoneTitle,
+    ReviewPrompts.projectGood => l10n.projectGoodTitle,
     _ => key,
   };
 
@@ -36,6 +38,8 @@ abstract final class PromptTexts {
     ReviewPrompts.next => l10n.promptLabelNext,
     ReviewPrompts.quick => l10n.promptLabelQuick,
     ReviewPrompts.movement => l10n.promptLabelMovement,
+    ReviewPrompts.projectDone => l10n.projectDoneLabel,
+    ReviewPrompts.projectGood => l10n.projectGoodLabel,
     _ => key,
   };
 

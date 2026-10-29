@@ -10,6 +10,7 @@ import '../../app/routes.dart';
 import '../../data/books_view.dart';
 import '../../data/entry_view.dart';
 import '../../data/goals_view.dart';
+import '../../data/projects_view.dart';
 import '../../data/settings_notifier.dart';
 import '../../data/transcription_jobs.dart';
 import '../../l10n/app_localizations.dart';
@@ -266,6 +267,12 @@ class _NoteCard extends ConsumerWidget {
     final goal = goalId == null
         ? null
         : ref.watch(goalViewProvider(goalId)).value?.goal;
+    // Projektnotiz (D26): "Projektname · Gemacht".
+    final projectId = note.projectId;
+    final projectName = projectId == null
+        ? null
+        : ref.watch(projectNamesProvider).value?[projectId];
+    final isProject = ReviewPrompts.isProject(key);
     return SurfaceCard(
       key: Key('note-card-${note.id}'),
       padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
@@ -274,12 +281,21 @@ class _NoteCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.edit_note, size: 20, color: scheme.primary),
+              Icon(
+                isProject ? Icons.work_outline : Icons.edit_note,
+                size: 20,
+                color: scheme.primary,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   key == null
                       ? l10n.writtenAt(formatTime(context, note.createdAt))
+                      : isProject && projectName != null
+                      ? l10n.timelineProject(
+                          projectName,
+                          PromptTexts.label(l10n, key),
+                        )
                       : PromptTexts.label(l10n, key),
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: scheme.onSurfaceVariant,

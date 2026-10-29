@@ -41,6 +41,17 @@ abstract final class ReviewPrompts {
   /// Tagebuchworte: zählt nicht zur Wortzahl des Eintrags.
   static const String movement = 'movement';
 
+  /// Projekt (D26): "Was habe ich gemacht?" Notiz mit `projectId`; sichtbar
+  /// im Eintrag, in "Dein Tag", im Wochenrückblick und beim Projekt.
+  static const String projectDone = 'project_done';
+
+  /// Projekt (D26): "Was lief gut?" Notiz mit `projectId`.
+  static const String projectGood = 'project_good';
+
+  /// Wahr für die beiden Projekt-Schlüssel.
+  static bool isProject(String? promptKey) =>
+      promptKey == projectDone || promptKey == projectGood;
+
   /// Interne Notiz an einem Eintrag: Zeitmarken der Impulswechsel während
   /// einer Aufnahme als JSON ([PromptMarks]). Wird nicht als Text gezeigt.
   static const String promptsAt = 'prompts_at';
@@ -69,6 +80,7 @@ class EntryNote {
     this.promptKey,
     this.source = NoteSource.typed,
     this.goalId,
+    this.projectId,
   });
 
   final String id;
@@ -85,18 +97,25 @@ class EntryNote {
   /// [ReviewPrompts.next] belegt, sonst `null`. Fehlt in älteren Datensätzen.
   final String? goalId;
 
+  /// Projekt (D26), zu dem die Notiz gehört; nur bei
+  /// [ReviewPrompts.projectDone] und [ReviewPrompts.projectGood] belegt.
+  /// Fehlt in älteren Datensätzen.
+  final String? projectId;
+
   bool get isInternal => ReviewPrompts.isInternal(promptKey);
 
   int get wordCount =>
       text.trim().isEmpty ? 0 : text.trim().split(RegExp(r'\s+')).length;
 
-  /// [clearGoalId] löst die Zuordnung zu einem Ziel.
+  /// [clearGoalId] löst die Zuordnung zu einem Ziel, [clearProjectId] die zu
+  /// einem Projekt.
   EntryNote copyWith({
     String? text,
     DateTime? updatedAt,
     String? entryId,
     String? goalId,
     bool clearGoalId = false,
+    bool clearProjectId = false,
   }) => EntryNote(
     id: id,
     entryId: entryId ?? this.entryId,
@@ -106,6 +125,7 @@ class EntryNote {
     promptKey: promptKey,
     source: source,
     goalId: clearGoalId ? null : (goalId ?? this.goalId),
+    projectId: clearProjectId ? null : projectId,
   );
 }
 

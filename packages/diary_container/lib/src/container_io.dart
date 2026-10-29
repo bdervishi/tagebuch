@@ -312,6 +312,7 @@ class ContainerPayloadBuilder {
     this.noteCount = 0,
     this.goalCount = 0,
     this.milestoneCount = 0,
+    this.projectCount = 0,
     this.bookCount = 0,
     this.passageCount = 0,
     this.bookFileCount = 0,
@@ -327,6 +328,7 @@ class ContainerPayloadBuilder {
   final int noteCount;
   final int goalCount;
   final int milestoneCount;
+  final int projectCount;
   final int bookCount;
   final int passageCount;
   final int bookFileCount;
@@ -361,6 +363,7 @@ class ContainerPayloadBuilder {
     noteCount: noteCount,
     goalCount: goalCount,
     milestoneCount: milestoneCount,
+    projectCount: projectCount,
     bookCount: bookCount,
     passageCount: passageCount,
     bookFileCount: bookFileCount,

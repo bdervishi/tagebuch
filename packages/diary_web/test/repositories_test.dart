@@ -14,6 +14,7 @@ void main() {
   late WebTranscriptRepository transcripts;
   late WebNoteRepository notes;
   late WebGoalRepository goals;
+  late WebProjectRepository projects;
   late WebBookRepository books;
   late WebSettingsRepository settings;
   late WebSearchRepository search;
@@ -28,6 +29,7 @@ void main() {
     transcripts = WebTranscriptRepository(store);
     notes = WebNoteRepository(store);
     goals = WebGoalRepository(store);
+    projects = WebProjectRepository(store);
     books = WebBookRepository(store);
     settings = WebSettingsRepository(store);
     search = WebSearchRepository(store);
@@ -513,4 +515,59 @@ void main() {
     await books.deleteBook('b1');
     expect(await search.search('strasse'), isEmpty);
   });
+
+  test(
+    'Projekte (D26): Reihenfolge, zur Seite gelegt, Notizen je Projekt',
+    () async {
+      final t0 = DateTime(2026, 10, 29, 9);
+      Project project(String id, int sort, {DateTime? archivedAt}) => Project(
+        id: id,
+        journalId: journalId,
+        name: 'Projekt $id',
+        about: id == 'p1' ? 'Darum.' : null,
+        createdAt: t0,
+        updatedAt: t0,
+        sortIndex: sort,
+        archivedAt: archivedAt,
+      );
+      await projects.insert(project('p2', 1));
+      await projects.insert(project('p1', 0));
+      await projects.insert(
+        project('p3', 2, archivedAt: t0.add(const Duration(days: 1))),
+      );
+      expect((await projects.listActive(journalId)).map((p) => p.id), [
+        'p1',
+        'p2',
+      ]);
+      expect((await projects.listArchived(journalId)).map((p) => p.id), ['p3']);
+      expect((await projects.listAll(journalId)), hasLength(3));
+      expect((await projects.byId('p1'))!.about, 'Darum.');
+      await projects.update((await projects.byId('p1'))!.copyWith(name: 'Neu'));
+      expect((await projects.byId('p1'))!.name, 'Neu');
+
+      final e = await seed(LocalDay(2026, 10, 29), 'Tag');
+      for (final (i, key) in [
+        'project_done',
+        'project_good',
+        'quick',
+      ].indexed) {
+        await notes.insert(
+          EntryNote(
+            id: 'n$i',
+            entryId: e.id,
+            createdAt: t0.add(Duration(minutes: i)),
+            updatedAt: t0,
+            text: 'Text $i',
+            promptKey: key,
+            projectId: key == 'quick' ? null : 'p1',
+          ),
+        );
+      }
+      final mine = await notes.listForProject('p1');
+      expect(mine.map((n) => n.id), ['n0', 'n1']);
+      expect(mine.first.projectId, 'p1');
+      await projects.delete('p1');
+      expect(await projects.byId('p1'), isNull);
+    },
+  );
 }

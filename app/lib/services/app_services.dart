@@ -21,6 +21,7 @@ class AppServices {
     required this.transcripts,
     required this.notes,
     required this.goals,
+    required this.projects,
     required this.books,
     required this.settings,
     required this.search,
@@ -59,6 +60,9 @@ class AppServices {
 
   /// Ziele mit Etappen, "Wege" (D19).
   final GoalRepository goals;
+
+  /// Projekte (D26).
+  final ProjectRepository projects;
 
   /// Bücher und Passagen, "Lesebuch" (D21).
   final BookRepository books;
@@ -145,6 +149,16 @@ class AppServices {
   GoalsUseCase goalsUseCase() =>
       GoalsUseCase(journalId: journalId, goals: goals, ids: ids, clock: clock);
 
+  /// Projekte (D26) mit diesen Ports.
+  ProjectsUseCase projectsUseCase() => ProjectsUseCase(
+    journalId: journalId,
+    projects: projects,
+    notes: notes,
+    entries: entries,
+    ids: ids,
+    clock: clock,
+  );
+
   /// Bücher und Passagen (D21) samt E-Book-Dateien (D25) mit diesen Ports.
   BooksUseCase booksUseCase() => BooksUseCase(
     journalId: journalId,
@@ -164,6 +178,7 @@ class AppServices {
     transcripts: transcripts,
     notes: notes,
     goals: goals,
+    projects: projects,
     books: books,
     bookFiles: bookFiles,
     settings: DeviceBoundSettings(settings),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/routes.dart';
 import '../../data/books_view.dart';
 import '../../data/goals_view.dart';
+import '../../data/projects_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/app_services.dart';
 import '../../widgets/backup_reminder_card.dart';
@@ -16,6 +17,7 @@ import '../zitate/quote_providers.dart';
 
 /// Widget-Keys der Zeilen (für Tests).
 const Key moreGoalsRowKey = Key('more-goals');
+const Key moreProjectsRowKey = Key('more-projects');
 const Key moreBooksRowKey = Key('more-books');
 const Key moreMovementRowKey = Key('more-movement');
 const Key moreQuotesRowKey = Key('more-quotes');
@@ -24,7 +26,7 @@ const Key moreBackupRowKey = Key('more-backup');
 
 /// Reiter "Mehr": alles, was nicht täglich gebraucht wird, als ruhige Liste
 /// von Zeilen mit Symbol, Titel, einer Zeile Zustand und Pfeil: Wege (D19),
-/// Lesebuch (D21), Bewegung (D24), Zitate (D20), Wochenrückblick (D17) und Backup samt
+/// Projekte (D26), Lesebuch (D21), Bewegung (D24), Zitate (D20), Wochenrückblick (D17) und Backup samt
 /// Gerätewechsel (D6, D16). Darunter bei Bedarf die Karte "Zeit für ein
 /// Backup". Ein Tipp öffnet die bestehenden Routen. Die Zeilen erscheinen
 /// gestaffelt (docs/12); kein Zähler drängt, der Zustand informiert nur.
@@ -53,6 +55,16 @@ class MoreScreen extends ConsumerWidget {
             Reveal(
               index: 1,
               child: _MoreRow(
+                key: moreProjectsRowKey,
+                icon: Icons.work_outline,
+                title: l10n.projectsTitle,
+                state: _projectsState(context, ref, l10n),
+                onTap: () => AppRoutes.openProjects(context),
+              ),
+            ),
+            Reveal(
+              index: 2,
+              child: _MoreRow(
                 key: moreBooksRowKey,
                 icon: Icons.menu_book_outlined,
                 title: l10n.booksTitle,
@@ -61,7 +73,7 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
             Reveal(
-              index: 2,
+              index: 3,
               child: _MoreRow(
                 key: moreMovementRowKey,
                 icon: Icons.directions_walk,
@@ -71,7 +83,7 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
             Reveal(
-              index: 3,
+              index: 4,
               child: _MoreRow(
                 key: moreQuotesRowKey,
                 icon: Icons.format_quote_outlined,
@@ -81,7 +93,7 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
             Reveal(
-              index: 4,
+              index: 5,
               child: _MoreRow(
                 key: moreWeekRowKey,
                 icon: Icons.view_week_outlined,
@@ -91,7 +103,7 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
             Reveal(
-              index: 5,
+              index: 6,
               child: _MoreRow(
                 key: moreBackupRowKey,
                 icon: Icons.save_alt,
@@ -101,7 +113,7 @@ class MoreScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            const Reveal(index: 6, child: BackupReminderCard()),
+            const Reveal(index: 7, child: BackupReminderCard()),
           ],
         ),
       ),
@@ -119,6 +131,30 @@ class MoreScreen extends ConsumerWidget {
         ? l10n.moreGoalsNoOpen
         : l10n.moreGoalsNext(next.title);
     return '${l10n.moreGoalsActive(goals.length)} · $nextText';
+  }
+
+  /// "2 Projekte · zuletzt 28. Okt.: App"; ohne Projekte der leise Hinweis.
+  String? _projectsState(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) {
+    final projects = ref.watch(activeProjectsProvider).value;
+    if (projects == null) return null;
+    if (projects.isEmpty) return l10n.moreProjectsEmpty;
+    ProjectView? newest;
+    for (final p in projects) {
+      final latest = p.latest;
+      if (latest == null) continue;
+      if (newest == null || latest.day.isAfter(newest.latest!.day)) {
+        newest = p;
+      }
+    }
+    final count = l10n.moreProjectsActive(projects.length);
+    if (newest == null) return '$count · ${l10n.projectNoEntries}';
+    final date = MaterialLocalizations.of(context)
+        .formatMediumDate(newest.latest!.day.startOfDay);
+    return '$count · ${l10n.moreProjectsLast(date, newest.project.name)}';
   }
 
   /// "Lese ich: Titel · 2 Passagen"; bei einem angelesenen E-Book (D25)

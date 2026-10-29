@@ -8,6 +8,7 @@ import 'package:meta/meta.dart';
 import '../model/book.dart';
 import '../model/entry.dart';
 import '../model/goal.dart';
+import '../model/project.dart';
 import '../model/json_codecs.dart';
 import '../model/local_day.dart';
 import '../model/note.dart';
@@ -117,6 +118,7 @@ class TransferSnapshot {
     this.notes = const [],
     this.goals = const [],
     this.milestones = const [],
+    this.projects = const [],
     this.books = const [],
     this.passages = const [],
     this.reminder,
@@ -140,6 +142,10 @@ class TransferSnapshot {
   /// Ziele und Etappen (D19); fehlen in Dateien älterer Versionen.
   final List<Goal> goals;
   final List<Milestone> milestones;
+
+  /// Projekte (D26); fehlen in Dateien älterer Versionen. Ihre Tagesnotizen
+  /// sind gewöhnliche `note`-Zeilen mit `projectId`.
+  final List<Project> projects;
 
   /// Bücher und Passagen (D21); fehlen in Dateien älterer Versionen.
   final List<Book> books;
@@ -177,6 +183,9 @@ class TransferSnapshot {
     for (final g in goals) {
       line('goal', ModelJson.encodeGoal(g));
     }
+    for (final p in projects) {
+      line('project', ModelJson.encodeProject(p));
+    }
     for (final m in milestones) {
       line('milestone', ModelJson.encodeMilestone(m));
     }
@@ -208,6 +217,7 @@ class TransferSnapshot {
     final notes = <EntryNote>[];
     final goals = <Goal>[];
     final milestones = <Milestone>[];
+    final projects = <Project>[];
     final books = <Book>[];
     final passages = <Passage>[];
     ReminderSettings? reminder;
@@ -232,6 +242,8 @@ class TransferSnapshot {
           goals.add(ModelJson.decodeGoal(m));
         case 'milestone':
           milestones.add(ModelJson.decodeMilestone(m));
+        case 'project':
+          projects.add(ModelJson.decodeProject(m));
         case 'book':
           books.add(ModelJson.decodeBook(m));
         case 'passage':
@@ -251,6 +263,7 @@ class TransferSnapshot {
       notes: notes,
       goals: goals,
       milestones: milestones,
+      projects: projects,
       books: books,
       passages: passages,
       reminder: reminder,
@@ -289,6 +302,8 @@ class ImportResult {
     this.goalsSkipped = 0,
     this.milestonesImported = 0,
     this.milestonesSkipped = 0,
+    this.projectsImported = 0,
+    this.projectsSkipped = 0,
     this.booksImported = 0,
     this.booksSkipped = 0,
     this.passagesImported = 0,
@@ -321,6 +336,10 @@ class ImportResult {
   final int goalsSkipped;
   final int milestonesImported;
   final int milestonesSkipped;
+
+  /// Projekte (D26), übernommen bzw. übersprungen (Kennung schon da).
+  final int projectsImported;
+  final int projectsSkipped;
 
   /// Bücher und Passagen (D21), übernommen bzw. übersprungen (Kennung schon
   /// vorhanden oder Buch der Passage unbekannt).
@@ -356,6 +375,7 @@ class TransferUseCase {
     required this.clock,
     this.notes,
     this.goals,
+    this.projects,
     this.books,
     this.bookFiles,
     this.appVersion = '0.0.0',
@@ -383,6 +403,9 @@ class TransferUseCase {
 
   /// Ziele und Etappen (D19); `null`, wenn die Plattform keine hat.
   final GoalRepository? goals;
+
+  /// Projekte (D26); `null`, wenn die Plattform keine hat.
+  final ProjectRepository? projects;
 
   /// Bücher und Passagen (D21); `null`, wenn die Plattform keine hat.
   final BookRepository? books;
@@ -516,6 +539,10 @@ class TransferUseCase {
         allMilestones.addAll(await goalRepo.listMilestones(g.id));
       }
     }
+    final projectRepo = projects;
+    final allProjects = projectRepo == null
+        ? const <Project>[]
+        : await projectRepo.listAll(journalId);
     final bookRepo = books;
     final allBooks = bookRepo == null
         ? const <Book>[]
@@ -533,6 +560,7 @@ class TransferUseCase {
       notes: allNotes,
       goals: allGoals,
       milestones: allMilestones,
+      projects: allProjects,
       books: allBooks,
       passages: allPassages,
       reminder: await settings.reminder(),
@@ -572,6 +600,7 @@ class TransferUseCase {
       noteCount: snap.notes.length,
       goalCount: snap.goals.length,
       milestoneCount: snap.milestones.length,
+      projectCount: snap.projects.length,
       bookCount: snap.books.length,
       passageCount: snap.passages.length,
       bookFileCount: bookFileBytes.length,
@@ -908,6 +937,34 @@ class TransferUseCase {
       }
     }
 
+    // Projekte (D26): Kennungen bleiben, vorhandene werden übersprungen. Die
+    // Tagesnotizen sind schon mit den Notizen gekommen; ihre `projectId`
+    // zeigt auf ein Projekt dieses Imports oder ein vorhandenes.
+    var projectsImported = 0;
+    var projectsSkipped = 0;
+    final projectRepo = projects;
+    if (projectRepo != null && snap.projects.isNotEmpty) {
+      for (final p in snap.projects) {
+        if (await projectRepo.byId(p.id) != null) {
+          projectsSkipped++;
+          continue;
+        }
+        await projectRepo.insert(
+          Project(
+            id: p.id,
+            journalId: journalId,
+            name: p.name,
+            about: p.about,
+            createdAt: p.createdAt,
+            updatedAt: p.updatedAt,
+            archivedAt: p.archivedAt,
+            sortIndex: p.sortIndex,
+          ),
+        );
+        projectsImported++;
+      }
+    }
+
     // Bücher und Passagen (D21): Kennungen bleiben, vorhandene werden
     // übersprungen; eine Passage ohne ihr Buch wird übersprungen.
     var booksImported = 0;
@@ -998,6 +1055,8 @@ class TransferUseCase {
       goalsImported: goalsImported,
       goalsSkipped: goalsSkipped,
       milestonesImported: milestonesImported,
+      projectsImported: projectsImported,
+      projectsSkipped: projectsSkipped,
       milestonesSkipped: milestonesSkipped,
       booksImported: booksImported,
       booksSkipped: booksSkipped,

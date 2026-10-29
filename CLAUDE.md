@@ -5,13 +5,13 @@ Lokales Sprach-Tagebuch für iOS und Android: täglich zu einer selbst gewählte
 ## Wo was steht
 
 - `docs/00-anforderungen.md` bis `docs/09-roadmap.md`: Konzept (Anforderungen, Markt, Produkt, Technik, Sicherheit, Transfer, Geschäftsmodell, Name, Roadmap). Sprache Deutsch.
-- `docs/entscheidungen.md`: verbindliche Entscheidungen D1 bis D25. Erst lesen, dann bauen. Abweichungen dort begründen, nicht still im Code.
+- `docs/entscheidungen.md`: verbindliche Entscheidungen D1 bis D26. Erst lesen, dann bauen. Abweichungen dort begründen, nicht still im Code.
 - `docs/12-gestaltung.md`: Gestaltung und Bewegung (Tokens in `app/lib/app/motion.dart`, Bausteine `Pressable`, `Reveal`, `SurfaceCard` in `app/lib/widgets/`). Vor jeder neuen Animation oder Karte die Prüfliste dort durchgehen; keine eigenen Dauern oder Kurven im Code.
 - `docs/recherche/`: Rechercheberichte und Faktenprüfung (`verifikation.json`).
 - `docs/ressourcen.md`: kostenlose Dienste aus free-for.dev und wo wir sie einsetzen (CI, iOS-Builds ohne Mac, Übersetzung, Website, Support-Mail) und wo bewusst nicht (Crash-Reporter, Analytics). Vor dem Anbinden eines Dienstes dort nachsehen und eintragen.
 - `app/`: Flutter-App (Paket `tagebuch_app`, Anwendungs-ID `dev.tagebuch.app` als Platzhalter bis zur Namenswahl). Erste Zielplattform ist das Web als installierbare PWA (D16, `docs/10-pwa.md`); `app/web/` enthält Manifest, `index.html` mit Content-Security-Policy und Icons.
 - `packages/`: Kernpakete, jedes einzeln testbar:
-  - `diary_core` Domänenmodell (auch `EntryNote` für geschriebene Texte und Rückblick-Antworten, D17; `Goal` und `Milestone` für Wege mit Etappen, D19; `Book` und `Passage` für das Lesebuch, D21), Ports, Anwendungsfälle `RecordDayUseCase`, `GoalsUseCase` (höchstens drei aktive Ziele), `BooksUseCase` (Bücher, Status, Passagen) und `TransferUseCase` (Backup, Gerätewechsel; reines Dart)
+  - `diary_core` Domänenmodell (auch `EntryNote` für geschriebene Texte und Rückblick-Antworten, D17; `Goal` und `Milestone` für Wege mit Etappen, D19; `Book` und `Passage` für das Lesebuch, D21; `Project` für Projekte, deren Tagesnotizen gewöhnliche `EntryNote`s mit `projectId` sind, D26), Ports, Anwendungsfälle `RecordDayUseCase`, `GoalsUseCase` (höchstens drei aktive Ziele), `ProjectsUseCase` (Projekte und ihre Tagesnotizen), `BooksUseCase` (Bücher, Status, Passagen) und `TransferUseCase` (Backup, Gerätewechsel; reines Dart)
   - `diary_crypto` AEAD-Schnittstelle, Key-Wrapping, HKDF, Argon2id-Parameter (reines Dart, Referenz mit `package:cryptography`)
   - `diary_chunkfile` Chunk-AEAD-Dateiformat mit wahlfreiem Zugriff (Format in dessen README, Testvektoren für Swift/Kotlin)
   - `diary_container` Transfer-/Backup-Container: Kopf, QR-Nutzlast, Manifest, Rahmung, Schlüsselableitung (Argon2id, X25519/HKDF), Stromverschlüsselung (Referenz Kennung 2) und Writer/Reader (Format in dessen README)

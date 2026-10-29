@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/entry_view.dart';
 import '../../data/goals_view.dart';
+import '../../data/projects_view.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/mood_dots.dart';
 import '../../widgets/reveal.dart';
@@ -24,6 +25,8 @@ class WeekReviewScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final week = ref.watch(weekReviewProvider);
     final weekGoals = ref.watch(weekGoalsProvider).value ?? const [];
+    final projectNames =
+        ref.watch(projectNamesProvider).value ?? const <String, String>{};
     return Scaffold(
       appBar: AppBar(title: Text(l10n.weekTitle)),
       body: SafeArea(
@@ -31,6 +34,7 @@ class WeekReviewScreen extends ConsumerWidget {
           AsyncData(value: final days) => _WeekBody(
             days: days,
             goals: weekGoals,
+            projectNames: projectNames,
           ),
           AsyncError() => Center(child: Text(l10n.startError)),
           _ => Center(
@@ -47,12 +51,19 @@ class WeekReviewScreen extends ConsumerWidget {
 }
 
 class _WeekBody extends StatelessWidget {
-  const _WeekBody({required this.days, required this.goals});
+  const _WeekBody({
+    required this.days,
+    required this.goals,
+    this.projectNames = const {},
+  });
 
   final List<WeekDay> days;
 
   /// Je Weg die in dieser Woche erledigten Etappen (D19).
   final List<(Goal, List<Milestone>)> goals;
+
+  /// Projektnamen nach Kennung (D26).
+  final Map<String, String> projectNames;
 
   @override
   Widget build(BuildContext context) {
@@ -137,11 +148,119 @@ class _WeekBody extends StatelessWidget {
         ),
         Reveal(
           index: 6,
+          child: _ProjectsSection(
+            days: days,
+            projectNames: projectNames,
+            format: materialL10n.formatMediumDate,
+          ),
+        ),
+        Reveal(
+          index: 7,
           child: _MovementSection(
             days: days,
             format: materialL10n.formatMediumDate,
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// "Projekte diese Woche" (D26): je Projekt die Notizen der letzten sieben
+/// Tage mit Datum und Etikett ("Gemacht", "Gut gelaufen"). Projekte ohne
+/// Notizen in der Woche fehlen; ohne jede nur die leise Leerzeile.
+class _ProjectsSection extends StatelessWidget {
+  const _ProjectsSection({
+    required this.days,
+    required this.projectNames,
+    required this.format,
+  });
+
+  final List<WeekDay> days;
+  final Map<String, String> projectNames;
+  final String Function(DateTime) format;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final byProject = <String, List<(LocalDay, EntryNote)>>{};
+    for (final d in days) {
+      for (final n in d.projectNotes) {
+        final id = n.projectId;
+        if (id == null) continue;
+        byProject.putIfAbsent(id, () => []).add((d.day, n));
+      }
+    }
+    final ids = byProject.keys.toList()
+      ..sort((a, b) => (projectNames[a] ?? a).compareTo(projectNames[b] ?? b));
+    return Column(
+      key: const Key('week-projects'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.work_outline, size: 20, color: scheme.primary),
+            const SizedBox(width: 8),
+            Text(l10n.weekProjectsHeading, style: theme.textTheme.titleSmall),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (ids.isEmpty)
+          Text(
+            l10n.weekSectionEmpty,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          )
+        else
+          for (final id in ids)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    projectNames[id] ?? l10n.projectsTitle,
+                    style: theme.textTheme.titleSmall,
+                  ),
+                  for (final (day, n) in byProject[id]!)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            n.promptKey == ReviewPrompts.projectGood
+                                ? Icons.wb_sunny_outlined
+                                : Icons.check,
+                            size: 18,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              n.text.trim(),
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            format(day.startOfDay),
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        const SizedBox(height: 24),
       ],
     );
   }

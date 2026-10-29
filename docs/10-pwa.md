@@ -40,7 +40,7 @@ packages/diary_stt_web/       WasmSttEngine (SttEngine + AudioFileTranscriberPor
 packages/diary_web/       Web-spezifische Umsetzungen der Ports aus diary_core (nur dart:js_interop und package:web)
  ├─ IndexedDbStore        Promise-/Event-Brücke zu IndexedDB: Datenbank `tagebuch`, Stores keys, records, files, meta
  ├─ WebMasterKeyStore     WebCrypto AES-256-GCM, extractable=false, als CryptoKey in IndexedDB; wrappt alle Schlüssel (DekWrapper)
- ├─ EncryptedRecordStore  verschlüsselte JSON-Datensätze (Sammlungen entries, recordings, transcripts, notes, goals, milestones, books, passages, settings), AAD = <Sammlung>/<ID>
+ ├─ EncryptedRecordStore  verschlüsselte JSON-Datensätze (Sammlungen entries, recordings, transcripts, notes, goals, milestones, projects, books, passages, settings), AAD = <Sammlung>/<ID>
  ├─ EncryptedFileStore    Audio und Buchdateien (EPUB, D25) als Chunk-AEAD-Datei (diary_chunkfile) im Store `files`; OPFS als spätere Ausbaustufe
  ├─ Web…Repository        Repositories aus diary_core auf dem EncryptedRecordStore, WebSearchRepository mit Index im Speicher
  ├─ MediaRecorderCapture  Aufnahme, Pegel, Wellenform; PCM-Abgriff über AnalyserNode (AudioWorklet folgt mit der Erkennung, W5)

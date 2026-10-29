@@ -120,8 +120,41 @@ class MemoryNotes implements NoteRepository {
       items.where((n) => n.entryId == entryId).toList()
         ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
   @override
+  Future<List<EntryNote>> listForProject(String projectId) async =>
+      items.where((n) => n.projectId == projectId).toList();
+  @override
   Future<void> delete(String noteId) async =>
       items.removeWhere((n) => n.id == noteId);
+}
+
+/// Projekte (D26) im Speicher.
+class MemoryProjects implements ProjectRepository {
+  final List<Project> items = [];
+  @override
+  Future<void> insert(Project project) async {
+    items.removeWhere((p) => p.id == project.id);
+    items.add(project);
+  }
+
+  @override
+  Future<void> update(Project project) => insert(project);
+  @override
+  Future<Project?> byId(String projectId) async =>
+      items.where((p) => p.id == projectId).firstOrNull;
+  @override
+  Future<List<Project>> listActive(String journalId) async =>
+      items.where((p) => p.journalId == journalId && p.isActive).toList()
+        ..sort((a, b) => a.sortIndex.compareTo(b.sortIndex));
+  @override
+  Future<List<Project>> listArchived(String journalId) async =>
+      items.where((p) => p.journalId == journalId && !p.isActive).toList()
+        ..sort((a, b) => b.archivedAt!.compareTo(a.archivedAt!));
+  @override
+  Future<List<Project>> listAll(String journalId) async =>
+      items.where((p) => p.journalId == journalId).toList();
+  @override
+  Future<void> delete(String projectId) async =>
+      items.removeWhere((p) => p.id == projectId);
 }
 
 /// Ziele und Etappen (D19) im Speicher.
@@ -306,6 +339,7 @@ class Device {
     DateTime? now,
     bool withNotes = true,
     bool withGoals = true,
+    bool withProjects = true,
     bool withBooks = true,
     bool withBookFiles = true,
   }) : ids = MemoryIds(idPrefix),
@@ -318,6 +352,7 @@ class Device {
       transcripts: transcripts,
       notes: withNotes ? notes : null,
       goals: withGoals ? goals : null,
+      projects: withProjects ? projects : null,
       books: withBooks ? books : null,
       bookFiles: withBooks && withBookFiles ? bookFiles : null,
       settings: settings,
@@ -338,6 +373,7 @@ class Device {
   final transcripts = MemoryTranscripts();
   final notes = MemoryNotes();
   final goals = MemoryGoals();
+  final projects = MemoryProjects();
   final books = MemoryBooks();
   final bookFiles = MemoryBookFiles();
   final settings = MemorySettings();

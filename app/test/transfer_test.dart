@@ -248,6 +248,13 @@ void main() {
       );
       await tester.pumpWidget(screen(const MoreScreen(), few));
       await tester.pumpAndSettle();
+      // Die Backup-Zeile liegt im Testfenster unter dem Rand.
+      await tester.scrollUntilVisible(
+        find.byKey(moreBackupRowKey),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       expect(find.byKey(backupReminderCardKey), findsNothing);
       // Die Zeile "Backup und Gerätewechsel" nennt den Stand trotzdem.
       expect(find.text('Letztes Backup: noch keins'), findsOneWidget);
@@ -259,6 +266,12 @@ void main() {
       await tester.pumpWidget(screen(const MoreScreen(), many));
       await tester.pumpAndSettle();
       // Die Karte steht auf "Mehr" unter den Zeilen.
+      await tester.scrollUntilVisible(
+        find.byKey(backupReminderCardKey),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       expect(find.byKey(backupReminderCardKey), findsOneWidget);
       expect(find.textContaining('Du hast schon 3 Einträge.'), findsOneWidget);
       // Die Tasten der Karte liegen im Testfenster knapp unter dem Rand.
@@ -290,6 +303,12 @@ void main() {
         DateTime.now().subtract(const Duration(days: 9)).toIso8601String(),
       );
       await tester.pumpWidget(screen(const MoreScreen(), stale));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(backupReminderCardKey),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
       expect(find.byKey(backupReminderCardKey), findsOneWidget);
       expect(

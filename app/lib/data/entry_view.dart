@@ -83,9 +83,17 @@ class EntryView {
     for (final item in items)
       if (switch (item) {
         RecordingItem(:final promptMarks) => promptMarks == null,
-        NoteItem(:final note) => note.promptKey == ReviewPrompts.quick,
+        NoteItem(:final note) =>
+          note.promptKey == ReviewPrompts.quick ||
+              ReviewPrompts.isProject(note.promptKey),
       })
         item,
+  ];
+
+  /// Projektnotizen des Tages (D26), in Reihenfolge.
+  List<EntryNote> get projectNotes => [
+    for (final n in visibleNotes)
+      if (ReviewPrompts.isProject(n.promptKey)) n,
   ];
 
   /// Zeitmarken der Impulse zu einer Aufnahme oder `null`.
@@ -381,6 +389,7 @@ class WeekDay {
     this.lesson = const [],
     this.stepDone,
     this.movement = const [],
+    this.projectNotes = const [],
   });
   final LocalDay day;
   final int? mood;
@@ -389,6 +398,9 @@ class WeekDay {
 
   /// Notierte Bewegungen dieses Tages (D24), nur Namen, keine Wertung.
   final List<String> movement;
+
+  /// Projektnotizen dieses Tages (D26): gemacht und gut gelaufen je Projekt.
+  final List<EntryNote> projectNotes;
 
   /// Text des Schritts, der an diesem Tag als erledigt markiert wurde
   /// (die gestrige Antwort auf `next`), oder `null`.
@@ -429,6 +441,7 @@ final weekReviewProvider = FutureProvider<List<WeekDay>>((ref) async {
         ],
         stepDone: stepDone,
         movement: v?.movementTexts ?? const [],
+        projectNotes: v?.projectNotes ?? const [],
       ),
     );
   }

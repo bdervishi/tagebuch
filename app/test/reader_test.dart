@@ -329,7 +329,17 @@ void main() {
         await tester.pumpAndSettle();
         Navigator.of(tester.element(find.byType(BooksScreen))).pop();
         await tester.pumpAndSettle();
-        await tester.ensureVisible(find.byKey(moreBackupRowKey));
+        // Die Backup-Zeile liegt seit der Zeile "Projekte" unter dem Rand.
+        await tester.scrollUntilVisible(
+          find.byKey(moreBackupRowKey),
+          200,
+          scrollable: find
+              .descendant(
+                of: find.byType(MoreScreen),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(moreBackupRowKey));
         await tester.pumpAndSettle();

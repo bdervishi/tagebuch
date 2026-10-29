@@ -7,6 +7,7 @@ import '../model/goal.dart';
 import '../model/journal.dart';
 import '../model/local_day.dart';
 import '../model/note.dart';
+import '../model/project.dart';
 import '../model/recording.dart';
 import '../model/reminder_settings.dart';
 import '../model/transcript.dart';
@@ -169,6 +170,7 @@ abstract final class ModelJson {
     'promptKey': n.promptKey,
     'source': n.source.name,
     'goalId': n.goalId,
+    'projectId': n.projectId,
   };
 
   static EntryNote decodeNote(Map<String, Object?> m) => EntryNote(
@@ -182,6 +184,31 @@ abstract final class ModelJson {
       m['source'] as String? ?? NoteSource.typed.name,
     ),
     goalId: m['goalId'] as String?,
+    projectId: m['projectId'] as String?,
+  );
+
+  static Map<String, Object?> encodeProject(Project p) => {
+    'id': p.id,
+    'journalId': p.journalId,
+    'name': p.name,
+    'about': p.about,
+    'createdAt': _time(p.createdAt),
+    'updatedAt': _time(p.updatedAt),
+    'archivedAt': p.archivedAt == null ? null : _time(p.archivedAt!),
+    'sortIndex': p.sortIndex,
+  };
+
+  static Project decodeProject(Map<String, Object?> m) => Project(
+    id: m['id'] as String,
+    journalId: m['journalId'] as String,
+    name: m['name'] as String,
+    about: m['about'] as String?,
+    createdAt: _parseTime(m['createdAt'] as String),
+    updatedAt: _parseTime(m['updatedAt'] as String),
+    archivedAt: m['archivedAt'] == null
+        ? null
+        : _parseTime(m['archivedAt'] as String),
+    sortIndex: m['sortIndex'] as int? ?? 0,
   );
 
   static Map<String, Object?> encodeGoal(Goal g) => {

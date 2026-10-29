@@ -417,3 +417,14 @@ Umgesetzt in der PWA und in den Kernpaketen; Entscheidung und Begründung in `en
 
 **Bewusst nicht gebaut.** Kein PDF (spätere Runde), kein Vorlesen, kein Wörterbuch, keine Übersetzung, kein CSS und keine Schriften des Buchs, keine Cover, keine Lesestatistik oder Seitenzähler, keine Synchronisation außer über das Backup, keine DRM-Umgehung, kein Rendering-Fremdpaket und kein WebView.
 
+## Umsetzungsstand: Projekte (D26, 29. 10. 2026)
+
+Umgesetzt in der PWA und in den Kernpaketen; Entscheidung und Begründung in `entscheidungen.md`, D26. Projekte sind die Klammer für das, woran die Nutzerin über Wochen arbeitet; was sie dafür getan hat und was gut lief, hält sie je Tag in zwei Sätzen fest, und beides steht im Tagebuch des Tages.
+
+**Was gebaut ist.**
+- Modell `Project` in `diary_core` mit JSON-Codec, Port `ProjectRepository`, Anwendungsfall `ProjectsUseCase` (`logDay` legt die Notizen `project_done` und `project_good` mit `projectId` am Tageseintrag an und den Eintrag bei Bedarf gleich mit). `EntryNote.projectId` und `NoteRepository.listForProject` verbinden Notiz und Projekt; `ReviewPrompts.isProject` kennzeichnet die beiden Schlüssel.
+- Speicherung verschlüsselt im Browser (`diary_web`, Sammlung `projects`), In-Memory-Fake für die native App; Backup und Gerätewechsel mit der NDJSON-Zeile `project` und dem Manifest-Zähler `projects` (Schemaversion bleibt 1); die Zusammenfassung nach dem Einspielen nennt Projekte.
+- Bildschirm "Projekte" (Route `/projects`, vom Reiter "Mehr"): Karten mit Name, worum es geht, dem jüngsten Tag und dem zuletzt Gemachten, je Karte "Heute festhalten" (Blatt mit "Was hast du gemacht?" und "Was lief gut?"; leere Felder werden nicht gespeichert); Abschnitt "Zur Seite gelegt". Details (Route `/project`) mit dem Verlauf als Tageskarten (Datum, "Gemacht", "Gut gelaufen"), Tipp öffnet den Tageseintrag; Menü mit bearbeiten, zur Seite legen, wieder aufnehmen, löschen mit Rückfrage (die Notizen bleiben im Tagebuch).
+- Im Tagebuch: Der Eintrag zeigt Projektnotizen als Notizkarten mit Etikett "Projektname · Gemacht" (bearbeiten und löschen wie jede Notiz), "Dein Tag" zeigt sie als Stücke des Tages, der Wochenrückblick hat den Abschnitt "Projekte diese Woche", die Suche findet den Text wie bei allen Notizen. Zeile "Projekte" auf "Mehr": "2 Projekte · zuletzt 28. Okt.: App".
+
+**Bewusst nicht gebaut.** Kein Fortschritt, keine Etappen (dafür gibt es Wege, D19), keine Frist, keine Zeiterfassung, keine Statistik "Tage am Projekt", keine Erinnerung an "lange nichts festgehalten", keine Sprachnotiz je Projekt (die Sprachnotiz des Tages bleibt der Weg zum Sprechen; eine Zuordnung zum Projekt ist ein möglicher späterer Chip).

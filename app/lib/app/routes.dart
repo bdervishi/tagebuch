@@ -10,6 +10,8 @@ import '../features/eintrag/entry_screen.dart';
 import '../features/lesebuch/book_detail_screen.dart';
 import '../features/lesebuch/books_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
+import '../features/projekte/project_detail_screen.dart';
+import '../features/projekte/projects_screen.dart';
 import '../features/reader/reader_screen.dart';
 import '../features/rueckblick/week_review_screen.dart';
 import '../features/schreiben/write_screen.dart';
@@ -65,6 +67,10 @@ abstract final class AppRoutes {
 
   /// Zitatenschatz (D20).
   static const String quotes = '/quotes';
+
+  /// Projekte (D26); Details mit Projekt-ID als [String].
+  static const String projects = '/projects';
+  static const String project = '/project';
 
   /// Lesebuch: Bücher und Passagen (D21); Details mit Buch-ID als [String].
   static const String books = '/books';
@@ -137,6 +143,18 @@ abstract final class AppRoutes {
         return MaterialPageRoute<void>(
           settings: settings,
           builder: (_) => GoalDetailScreen(goalId: id),
+        );
+      case projects:
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const ProjectsScreen(),
+        );
+      case project:
+        final id = settings.arguments;
+        if (id is! String) return null;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => ProjectDetailScreen(projectId: id),
         );
       case books:
         return MaterialPageRoute<void>(
@@ -237,6 +255,14 @@ abstract final class AppRoutes {
   /// Öffnet die Details eines Wegs.
   static Future<void> openGoal(BuildContext context, String goalId) =>
       Navigator.of(context).pushNamed(goal, arguments: goalId);
+
+  /// Öffnet den Bildschirm "Projekte" (D26).
+  static Future<void> openProjects(BuildContext context) =>
+      Navigator.of(context).pushNamed(projects);
+
+  /// Öffnet die Details eines Projekts.
+  static Future<void> openProject(BuildContext context, String projectId) =>
+      Navigator.of(context).pushNamed(project, arguments: projectId);
 
   /// Öffnet das Lesebuch.
   static Future<void> openBooks(BuildContext context) =>

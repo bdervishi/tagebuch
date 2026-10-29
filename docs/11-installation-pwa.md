@@ -38,6 +38,10 @@ Im Lesebuch (Reiter "Mehr") lädt "EPUB laden" ein Buch aus den Dateien des Tele
 
 Die App wandelt Aufnahmen auf dem Gerät in Text um (Whisper im Browser, Entscheidung D16 Punkt 4). Dafür lädt sie beim ersten Start mit Internet einmalig das Modell (rund 60 bis 140 MB je Gerät, von derselben Adresse wie die App); "Heute" zeigt dabei die Karte "Spracherkennung wird vorbereitet" mit Fortschritt. Danach läuft alles ohne Internet, auch im Flugmodus. Eine Aufnahme ist sofort gespeichert; ihr Text erscheint im Eintrag und in "Dein Tag", sobald die Erkennung fertig ist (je nach Telefon ein Vielfaches der Aufnahmedauer). Wer die App vorher schließt, verliert nichts: Beim nächsten Start werden Aufnahmen ohne Text nachgeholt. Scheitert das Laden (etwa ohne Netz vor dem ersten Download), steht der Grund auf der Karte und "Erneut versuchen" startet neu; der Eintrag zeigt unter "Kein Text" den Grund und "Erneut transkribieren". Hochdeutsch liefert die besten Ergebnisse (Einstellungen, Transkription, Sprache).
 
+## Projekte
+
+Woran du länger arbeitest, bekommt unter "Mehr" eine Zeile "Projekte" (Entscheidung D26). Je Projekt hältst du mit "Heute festhalten" in zwei Sätzen fest, was du gemacht hast und was gut lief; beides landet als Notiz im Eintrag des Tages und erscheint in "Dein Tag", im Wochenrückblick und in der Suche. Das Projekt zeigt seinen Verlauf nach Tagen; ein Tipp auf einen Tag öffnet den Eintrag, wo du die Notizen wie alle anderen bearbeitest. Zur Seite legen lässt sich ein Projekt jederzeit; Löschen entfernt nur die Klammer, die Notizen bleiben im Tagebuch.
+
 ## Nach der Installation prüfen
 
 1. Eine kurze Aufnahme machen, App schließen, neu öffnen: Der Eintrag muss da sein.

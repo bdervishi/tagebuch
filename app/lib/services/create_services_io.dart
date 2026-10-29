@@ -30,6 +30,7 @@ Future<AppServices> createAppServices() async {
     transcripts: transcripts,
     notes: notes,
     goals: InMemoryGoalRepository(),
+    projects: InMemoryProjectRepository(),
     books: books,
     settings: InMemorySettingsRepository(),
     search: InMemorySearchRepository(

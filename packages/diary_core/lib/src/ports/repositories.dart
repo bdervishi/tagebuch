@@ -4,6 +4,7 @@ import '../model/goal.dart';
 import '../model/journal.dart';
 import '../model/local_day.dart';
 import '../model/note.dart';
+import '../model/project.dart';
 import '../model/recording.dart';
 import '../model/reminder_settings.dart';
 import '../model/transcript.dart';
@@ -64,7 +65,29 @@ abstract interface class NoteRepository {
 
   /// Notizen eines Eintrags, älteste zuerst (nach `createdAt`).
   Future<List<EntryNote>> listForEntry(String entryId);
+
+  /// Alle Notizen eines Projekts (D26), über alle Einträge.
+  Future<List<EntryNote>> listForProject(String projectId);
   Future<void> delete(String noteId);
+}
+
+/// Projekte (D26). Umgesetzt in `diary_web` (verschlüsselte Datensätze,
+/// Sammlung `projects`) und als In-Memory-Fake. Die Tagesnotizen eines
+/// Projekts liegen im [NoteRepository] (`listForProject`).
+abstract interface class ProjectRepository {
+  Future<void> insert(Project project);
+  Future<void> update(Project project);
+  Future<Project?> byId(String projectId);
+
+  /// Aktive Projekte nach Reihenfolge.
+  Future<List<Project>> listActive(String journalId);
+
+  /// Zur Seite gelegte Projekte, zuletzt beendete zuerst.
+  Future<List<Project>> listArchived(String journalId);
+
+  /// Alle Projekte (Export).
+  Future<List<Project>> listAll(String journalId);
+  Future<void> delete(String projectId);
 }
 
 /// Ziele und Etappen (D19). Umgesetzt in `diary_web` (Sammlungen `goals`

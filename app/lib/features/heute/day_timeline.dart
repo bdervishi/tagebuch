@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/formats.dart';
 import '../../app/routes.dart';
 import '../../data/entry_view.dart';
+import '../../data/projects_view.dart';
 import '../../data/transcription_jobs.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/reveal.dart';
@@ -34,6 +35,8 @@ class DayTimeline extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final jobs = ref.watch(transcriptionJobsProvider);
+    final projectNames =
+        ref.watch(projectNamesProvider).value ?? const <String, String>{};
     final items = view.items;
     return SurfaceCard(
       key: dayTimelineKey,
@@ -54,6 +57,7 @@ class DayTimeline extends ConsumerWidget {
               child: _TimelineRow(
                 item: item,
                 view: view,
+                projectNames: projectNames,
                 transcribing: switch (item) {
                   RecordingItem(:final recording) => jobs.contains(
                     recording.id,
@@ -76,10 +80,14 @@ class _TimelineRow extends StatelessWidget {
     required this.item,
     required this.view,
     required this.transcribing,
+    this.projectNames = const {},
   });
 
   final EntryItem item;
   final EntryView view;
+
+  /// Projektnamen nach Kennung für das Etikett der Projektnotizen (D26).
+  final Map<String, String> projectNames;
 
   /// Wahr, solange die Erkennung dieser Aufnahme im Hintergrund läuft.
   final bool transcribing;
@@ -103,11 +111,21 @@ class _TimelineRow extends StatelessWidget {
         switch (note.promptKey) {
           ReviewPrompts.quick => Icons.short_text,
           ReviewPrompts.movement => Icons.directions_walk,
+          ReviewPrompts.projectDone ||
+          ReviewPrompts.projectGood => Icons.work_outline,
           null => Icons.edit_note,
           _ => Icons.chat_bubble_outline,
         },
         switch (note.promptKey) {
           null => l10n.timelineWritten,
+          final key when ReviewPrompts.isProject(key) =>
+            switch (projectNames[note.projectId]) {
+              final name? => l10n.timelineProject(
+                name,
+                PromptTexts.label(l10n, key),
+              ),
+              null => PromptTexts.label(l10n, key),
+            },
           final key => PromptTexts.label(l10n, key),
         },
         note.text.trim(),
