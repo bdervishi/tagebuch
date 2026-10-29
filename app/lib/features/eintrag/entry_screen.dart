@@ -346,20 +346,16 @@ class _MissingTranscript extends ConsumerStatefulWidget {
 }
 
 class _MissingTranscriptState extends ConsumerState<_MissingTranscript> {
-  bool _failed = false;
-
   Recording? get _candidate =>
       widget.recording.state == RecordingState.audioDeleted
       ? null
       : widget.recording;
 
   Future<void> _retranscribe(Recording recording) async {
-    setState(() => _failed = false);
     final locale = (await ref.read(settingsProvider.future)).language.tag;
-    final ok = await ref
+    await ref
         .read(transcriptionJobsProvider.notifier)
         .retranscribe(recording, locale: locale);
-    if (!ok && mounted) setState(() => _failed = true);
   }
 
   @override
@@ -368,6 +364,10 @@ class _MissingTranscriptState extends ConsumerState<_MissingTranscript> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final jobs = ref.watch(transcriptionJobsProvider);
+    final failure = ref.watch(
+      transcriptionFailuresProvider,
+    )[widget.recording.id];
+    final stt = ref.watch(sttStatusProvider).value;
     final services = ref.watch(appServicesProvider).value;
     final recording = _candidate;
     final running = jobs.contains(widget.recording.id);
@@ -376,27 +376,42 @@ class _MissingTranscriptState extends ConsumerState<_MissingTranscript> {
     final muted = theme.textTheme.bodyMedium?.copyWith(
       color: scheme.onSurfaceVariant,
     );
+    // Solange das Modell noch lädt, wartet die Erkennung darauf; das sagt
+    // die Zeile, statt nur zu kreiseln.
+    final loading = stt?.phase == SttPhase.loading;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (running)
           Row(
             children: [
-              const SizedBox(
+              SizedBox(
                 width: 16,
                 height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  value: loading ? stt!.progress.clamp(0.0, 1.0) : null,
+                ),
               ),
               const SizedBox(width: 12),
-              Text(l10n.transcriptionRunning, style: muted),
+              Expanded(
+                child: Text(
+                  loading
+                      ? l10n.transcriptionPreparing(
+                          (stt!.progress * 100).round(),
+                        )
+                      : l10n.transcriptionRunning,
+                  style: muted,
+                ),
+              ),
             ],
           )
         else
           Text(l10n.transcriptMissing, style: muted),
-        if (_failed && !running) ...[
+        if (failure != null && !running) ...[
           const SizedBox(height: 8),
           Text(
-            l10n.retranscribeFailed,
+            l10n.retranscribeFailedReason(failure),
             style: theme.textTheme.bodySmall?.copyWith(color: scheme.error),
           ),
         ],

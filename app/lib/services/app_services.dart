@@ -35,6 +35,7 @@ class AppServices {
     this.fileTranscriber,
     this.fileTranscriberCheck,
     this.sttDeviceInfo,
+    this.sttReset,
     this.clock = const SystemClock(),
     this.argon2Params = Argon2Params.standard,
     this.pinKdfParams = Argon2Params.pin,
@@ -82,6 +83,11 @@ class AppServices {
 
   /// Beschleunigung der Engine (`webgpu`, `wasm`) für die Anzeige.
   final String? Function()? sttDeviceInfo;
+
+  /// Setzt eine fehlgeschlagene Engine zurück, damit ein neuer Ladeversuch
+  /// möglich ist ("Erneut versuchen"; Web: neuer Worker). `null`, wenn die
+  /// Engine das nicht braucht.
+  final Future<void> Function()? sttReset;
 
   /// Liefert einen Player für eine Aufnahme (Dateischlüssel, Format und Dauer
   /// stehen im Datensatz).

@@ -50,6 +50,7 @@ const VERSION = '{version}';
 const CORE_CACHE = 'tagebuch-core-' + VERSION;
 const RUNTIME_CACHE = 'tagebuch-runtime-v1';
 const SCOPE = self.registration.scope;
+const MODELS_PREFIX = new URL('models/', SCOPE).href;
 const CORE = {json.dumps(core, ensure_ascii=False)};
 
 self.addEventListener('install', (event) => {{
@@ -102,6 +103,12 @@ self.addEventListener('fetch', (event) => {{
     }}
     const core = await caches.match(request, {{ ignoreSearch: true }});
     if (core) return core;
+    // Modelldateien der Spracherkennung (models/…) hält transformers.js selbst im
+    // Cache-Storage (transformers-cache); hier nicht noch einmal ablegen, sonst
+    // liegen 80 bis 140 MB doppelt auf dem Telefon.
+    if (url.href.startsWith(MODELS_PREFIX)) {{
+      try {{ return await fetch(request); }} catch (err) {{ return new Response('', {{ status: 504, statusText: 'offline' }}); }}
+    }}
     const runtime = await caches.open(RUNTIME_CACHE);
     const stored = await runtime.match(request, {{ ignoreSearch: true }});
     if (stored) return stored;

@@ -73,6 +73,17 @@ class WebStorageInfo {
     return safari != null && safari.toDart;
   }
 
+  /// Ob der Browser eine Netzverbindung meldet (`navigator.onLine`; `true`,
+  /// wenn er es nicht weiß). Nur für Hinweise in der Oberfläche; die App
+  /// stellt damit keine Anfrage.
+  bool isOnline() {
+    try {
+      return web.window.navigator.onLine;
+    } catch (_) {
+      return true;
+    }
+  }
+
   /// iPhone oder iPad (auch iPadOS, das sich als Mac meldet).
   bool isIos() {
     final nav = web.window.navigator;

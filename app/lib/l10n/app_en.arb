@@ -102,8 +102,26 @@
   "sttDeviceWebGpu": "WebGPU",
   "sttDeviceWasm": "WebAssembly",
   "transcriptionRunning": "Transcribing …",
+  "transcriptionPreparing": "Preparing speech recognition … {percent} %",
+  "@transcriptionPreparing": {
+    "placeholders": {"percent": {"type": "int"}}
+  },
   "retranscribe": "Transcribe again",
   "retranscribeFailed": "Transcription failed. The audio is saved.",
+  "retranscribeFailedReason": "Transcription failed: {reason}. The audio is saved.",
+  "@retranscribeFailedReason": {
+    "placeholders": {"reason": {"type": "String"}}
+  },
+  "sttCardLoadingTitle": "Preparing speech recognition",
+  "sttCardLoadingBody": "The model is downloaded once (about 60 to 140 MB). After that the app transcribes your recordings on the device, even without internet. New recordings get their text as soon as it is ready.",
+  "sttCardUnavailableTitle": "Speech recognition not ready",
+  "sttCardUnavailableBody": "The model could not be loaded. Recordings stay saved and get their text on the next attempt.",
+  "sttCardUnavailableReason": "The model could not be loaded ({reason}). Recordings stay saved and get their text on the next attempt.",
+  "@sttCardUnavailableReason": {
+    "placeholders": {"reason": {"type": "String"}}
+  },
+  "sttCardOfflineBody": "No internet connection right now. To start speech recognition the model has to be downloaded once (about 60 to 140 MB); after that everything works offline. Recordings stay saved and get their text once the model is there.",
+  "sttRetry": "Try again",
 
   "sectionAudio": "Audio",
   "keepAudio": "Keep audio",

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/app_lock.dart';
+import '../data/transcription_jobs.dart';
 import '../features/einstellungen/settings_screen.dart';
 import '../features/heute/quick_note_sheet.dart';
 import '../features/heute/today_screen.dart';
@@ -27,7 +28,10 @@ const Key navSettingsKey = Key('nav-settings');
 /// Schnellaktion des Starts (Manifest-Shortcut "Aufnehmen", "Sprachnotiz",
 /// "Kurznotiz" oder "Schreiben") öffnet nach dem ersten Frame direkt die
 /// passende Route oder das Blatt; ist die App gesperrt (D23), wartet sie bis
-/// nach dem Entsperren.
+/// nach dem Entsperren. Außerdem hält sie den Zustand der Spracherkennung
+/// am Leben: Das Modell lädt damit beim Start (solange "Transkription aktiv"
+/// ist), und sobald es bereit ist, werden Aufnahmen ohne Text nachgeholt
+/// (W5, `TranscriptionCatchUp`).
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
@@ -44,6 +48,12 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   void initState() {
     super.initState();
+    ref.listenManual(sttStatusProvider, (previous, next) {
+      if (next.value?.phase == SttPhase.ready &&
+          previous?.value?.phase != SttPhase.ready) {
+        ref.read(transcriptionCatchUpProvider.notifier).run();
+      }
+    }, fireImmediately: true);
     final action = ref.read(platformFeaturesProvider).takeStartAction();
     if (action == null) return;
     _pendingAction = action;

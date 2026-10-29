@@ -15,6 +15,7 @@ import '../bewegung/movement_card.dart';
 import '../zitate/quote_card.dart';
 import 'day_timeline.dart';
 import 'quick_note_sheet.dart';
+import 'stt_status_card.dart';
 
 export '../../widgets/record_button.dart' show recordButtonKey;
 
@@ -26,7 +27,8 @@ const Key quickVoiceKey = Key('quick-voice');
 const Key quickTextKey = Key('quick-text');
 
 /// Startbildschirm: große Aufnahmetaste und die kleinere Aktion "Schreiben",
-/// darunter die kleinen Aktionen "Sprachnotiz" und "Kurznotiz" (D22), das
+/// darunter die kleinen Aktionen "Sprachnotiz" und "Kurznotiz" (D22), die
+/// Karte der Spracherkennung, solange das Modell lädt oder fehlt (W5), das
 /// Zitat zum Tag (D20), "Dein Schritt für heute", die fällige Bewegungspause
 /// "Zeit für Bewegung" (D24), der Tag als Zeitleiste
 /// "Dein Tag" aus den Stücken des heutigen Eintrags (D22) und die Rückblicke
@@ -149,12 +151,14 @@ class TodayScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Reveal(index: 3, child: QuoteCard()),
-            const Reveal(index: 4, child: StepCard()),
+            // Modell lädt oder fehlt (W5); bereit: nichts.
+            const Reveal(index: 3, child: SttStatusCard()),
+            const Reveal(index: 4, child: QuoteCard()),
+            const Reveal(index: 5, child: StepCard()),
             // Fällige Bewegungspause (D24); fehlt ohne Pause.
-            const Reveal(index: 5, child: MovementCard()),
+            const Reveal(index: 6, child: MovementCard()),
             Reveal(
-              index: 6,
+              index: 7,
               child: switch (today) {
                 // Ohne Stücke (kein Eintrag oder nur interne Notizen wie
                 // das Häkchen am Schritt) bleibt die leise Zeile.
@@ -192,7 +196,7 @@ class TodayScreen extends ConsumerWidget {
             ),
             for (final (i, lookback) in lookbacks.indexed)
               Reveal(
-                index: 7 + i,
+                index: 8 + i,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 24),
                   child: Column(

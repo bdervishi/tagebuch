@@ -64,9 +64,11 @@ class WasmSttEngine implements SttEngine, AudioFileTranscriberPort {
     this.dtype,
     String scriptUrl = defaultScriptUrl,
     SttWorkerClient? client,
+    SttWorkerClient Function()? clientFactory,
     WebAudioDecoder? decoder,
-  }) : _client = client ?? SttWorkerClient(scriptUrl),
+  }) : _clientFactory = clientFactory ?? (() => SttWorkerClient(scriptUrl)),
        _decoder = decoder ?? const WebAudioDecoder() {
+    _client = client ?? _clientFactory();
     _subscription = _client.events.listen(_onEvent);
   }
 
@@ -84,9 +86,11 @@ class WasmSttEngine implements SttEngine, AudioFileTranscriberPort {
   /// (`{'encoder_model': 'fp32', 'decoder_model_merged': 'q8'}`).
   final Object? dtype;
 
-  final SttWorkerClient _client;
+  /// Baut einen neuen Worker-Client (beim Start und nach [reset]).
+  final SttWorkerClient Function() _clientFactory;
+  late SttWorkerClient _client;
   final WebAudioDecoder _decoder;
-  late final StreamSubscription<WorkerEvent> _subscription;
+  late StreamSubscription<WorkerEvent> _subscription;
   final _status = StreamController<WasmSttStatus>.broadcast();
   final Map<String, (int loaded, int total)> _files = {};
   WasmSttStatus _current = WasmSttStatus.idle;
@@ -232,6 +236,27 @@ class WasmSttEngine implements SttEngine, AudioFileTranscriberPort {
       text: text,
       segments: segments,
     );
+  }
+
+  /// Verwirft einen fehlgeschlagenen oder laufenden Worker und beginnt beim
+  /// nächsten [prepare] oder [transcribeAudio] von vorn (neuer Worker, neuer
+  /// Ladeversuch). Nötig, wenn das Modell beim ersten Versuch nicht geladen
+  /// werden konnte (etwa ohne Netz vor dem ersten Download): Der Worker
+  /// kennt kein zweites `init`. Offene Transkriptionen enden mit Fehler.
+  Future<void> reset() async {
+    await _subscription.cancel();
+    final old = _client;
+    _client = _clientFactory();
+    _subscription = _client.events.listen(_onEvent);
+    _files.clear();
+    final ready = _ready;
+    if (ready != null && !ready.isCompleted) {
+      ready.completeError(const WorkerFailure('Neu gestartet'));
+      ready.future.catchError((Object _) {});
+    }
+    _ready = null;
+    _set(WasmSttStatus.idle);
+    old.dispose();
   }
 
   void _ensureStarted() {

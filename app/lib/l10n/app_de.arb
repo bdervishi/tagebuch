@@ -138,8 +138,27 @@
   "sttDeviceWebGpu": "WebGPU",
   "sttDeviceWasm": "WebAssembly",
   "transcriptionRunning": "Transkription läuft …",
+  "transcriptionPreparing": "Spracherkennung wird vorbereitet … {percent} %",
+  "@transcriptionPreparing": {
+    "description": "Im Eintrag, solange das Modell noch lädt und die Erkennung darauf wartet",
+    "placeholders": {"percent": {"type": "int"}}
+  },
   "retranscribe": "Erneut transkribieren",
   "retranscribeFailed": "Transkription fehlgeschlagen. Das Audio ist gespeichert.",
+  "retranscribeFailedReason": "Transkription fehlgeschlagen: {reason}. Das Audio ist gespeichert.",
+  "@retranscribeFailedReason": {
+    "placeholders": {"reason": {"type": "String"}}
+  },
+  "sttCardLoadingTitle": "Spracherkennung wird vorbereitet",
+  "sttCardLoadingBody": "Das Modell wird einmalig geladen (rund 60 bis 140 MB). Danach erkennt die App deine Aufnahmen auf dem Gerät, auch ohne Internet. Neue Aufnahmen bekommen ihren Text, sobald es bereit ist.",
+  "sttCardUnavailableTitle": "Spracherkennung nicht bereit",
+  "sttCardUnavailableBody": "Das Modell konnte nicht geladen werden. Aufnahmen bleiben gespeichert und bekommen ihren Text beim nächsten Versuch.",
+  "sttCardUnavailableReason": "Das Modell konnte nicht geladen werden ({reason}). Aufnahmen bleiben gespeichert und bekommen ihren Text beim nächsten Versuch.",
+  "@sttCardUnavailableReason": {
+    "placeholders": {"reason": {"type": "String"}}
+  },
+  "sttCardOfflineBody": "Gerade keine Internetverbindung. Für den ersten Start der Spracherkennung muss das Modell einmalig geladen werden (rund 60 bis 140 MB); danach geht alles ohne Internet. Aufnahmen bleiben gespeichert und bekommen ihren Text, sobald das Modell da ist.",
+  "sttRetry": "Erneut versuchen",
 
   "sectionAudio": "Audio",
   "keepAudio": "Audio behalten",

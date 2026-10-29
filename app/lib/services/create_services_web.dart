@@ -9,9 +9,11 @@ import 'package:diary_web/diary_web.dart';
 import 'app_services.dart';
 import 'platform_features.dart';
 
-/// Text der Fake-Erkennung als Rückfall, wenn die Browser-Erkennung nicht
-/// verfügbar ist (Modell fehlt, Browser ohne WebAssembly). Er wird als
-/// Transkript gespeichert, nicht übersetzt.
+/// Text der Fake-Erkennung (mitlaufender Weg). Auf dem Web kommt sie nicht
+/// mehr zum Zug: Jede Aufnahme geht an die Browser-Erkennung; scheitert die,
+/// bleibt der Eintrag ohne Text und wird nachgeholt, statt dass ein
+/// Platzhalter als Transkript gespeichert würde. Ältere Einträge mit diesem
+/// Platzhalter (Engine `fake`) ersetzt die App, sobald das Modell bereit ist.
 const String fakeTranscriptText = 'Transkription folgt (experimentell)';
 
 /// Web-Fassung (D16): Master-Key in WebCrypto, Datensätze und Audiodateien
@@ -27,8 +29,10 @@ Future<AppServices> createAppServices() async {
       .ensureDefault(defaultLocale: 'de-DE');
   unawaited(const WebStorageInfo().persist());
   // Whisper im Browser (W5, experimentell): Worker `stt/stt_worker.js`,
-  // Modell und Laufzeit vom eigenen Origin. Geladen wird erst, wenn die
-  // Einstellungen oder die erste Erkennung es anstoßen.
+  // Modell und Laufzeit vom eigenen Origin. Geladen wird beim Start der
+  // App, solange "Transkription aktiv" ist (`sttStatusProvider`, von der
+  // Hauptansicht am Leben gehalten), sonst bei der ersten Erkennung oder
+  // auf "Modell jetzt laden".
   final stt = WasmSttEngine();
   return AppServices(
     journalId: journal.id,
@@ -44,8 +48,8 @@ Future<AppServices> createAppServices() async {
     transcriber: FakeSttEngine(text: fakeTranscriptText),
     sttEngine: stt,
     fileTranscriber: stt,
-    fileTranscriberCheck: () => stt.status.phase != WasmSttPhase.failed,
     sttDeviceInfo: () => stt.status.device,
+    sttReset: stt.reset,
     playerFor: (recording) => WebAudioPlayer(
       files,
       fileKeyWrapped: recording.fileKeyWrapped,
@@ -101,6 +105,9 @@ class WebPlatformFeatures implements PlatformFeatures {
 
   @override
   bool get recordsRealAudio => true;
+
+  @override
+  bool get isOnline => _info.isOnline();
 
   @override
   void requestMicrophoneEarly() => MicrophoneAccess.requestEarly();

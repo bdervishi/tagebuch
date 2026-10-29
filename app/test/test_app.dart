@@ -96,6 +96,7 @@ class TestServices {
     this.movementLibrary,
     this.clock = const SystemClock(),
     AudioRecorderPort? recorder,
+    Future<void> Function()? sttReset,
   }) {
     final entryItems = <DiaryEntry>[];
     final recordingItems = <Recording>[];
@@ -222,6 +223,7 @@ class TestServices {
       transcriber: FakeSttEngine(text: fakeTranscript),
       sttEngine: sttEngine,
       fileTranscriber: fileTranscriber,
+      sttReset: sttReset,
       playerFor: (r) => SimulatedPlayer(
         duration: r.duration,
         tick: const Duration(milliseconds: 100),
@@ -334,6 +336,12 @@ class FakePlatformFeatures implements PlatformFeatures {
 
   @override
   bool get recordsRealAudio => isWeb;
+
+  /// Netzverbindung laut Browser (für die Hinweise der Spracherkennung).
+  bool online = true;
+
+  @override
+  bool get isOnline => online;
 
   /// Zahl der frühen Mikrofon-Anfragen aus der Tipp-Geste.
   int microphoneRequests = 0;

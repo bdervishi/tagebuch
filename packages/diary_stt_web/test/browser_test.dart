@@ -110,6 +110,50 @@ void main() {
       await engine.dispose();
     });
 
+    test('reset nach Fehler: neuer Worker, neuer Ladeversuch', () async {
+      // Erster Versuch scheitert (Modell "missing"), danach soll die Engine
+      // nicht dauerhaft ausfallen: reset() verwirft den Worker und beginnt
+      // beim nächsten prepare() von vorn (die App nutzt das für "Erneut
+      // versuchen" nach einem Start ohne Netz).
+      var starts = 0;
+      final engine = WasmSttEngine(
+        model: 'onnx-community/whisper-missing',
+        clientFactory: () {
+          starts++;
+          return SttWorkerClient(url);
+        },
+      );
+      await expectLater(
+        engine.prepare('de-DE').toList(),
+        throwsA(isA<TranscriptionException>()),
+      );
+      expect(engine.status.phase, WasmSttPhase.failed);
+      expect(starts, 1);
+
+      await engine.reset();
+      expect(engine.status.phase, WasmSttPhase.idle);
+      expect(
+        await engine.availability('de-DE'),
+        EngineAvailability.needsDownload,
+      );
+      // Zweiter Versuch läuft wirklich neu (Fortschritt kommt wieder) und
+      // endet mit demselben Grund, weil das Modell immer noch fehlt.
+      final seen = <double>[];
+      await expectLater(
+        engine.prepare('de-DE').forEach(seen.add),
+        throwsA(
+          isA<TranscriptionException>().having(
+            (e) => e.message,
+            'message',
+            contains('404'),
+          ),
+        ),
+      );
+      expect(starts, 2);
+      expect(seen, isNotEmpty);
+      await engine.dispose();
+    });
+
     test(
       'transcribe → result: Dekodierung, Sprache, Segmente, Engine-Kennung',
       () async {

@@ -83,6 +83,10 @@ function errorText(error) {
 let transcriber = null;
 let ready = false;
 let initStarted = false;
+// Für den Rückfall auf WASM nach einem gescheiterten WebGPU-Lauf.
+let activeModel = null;
+let activeDtype = null;
+let activeDevice = null;
 // Transkriptionen nacheinander, nicht parallel (eine Sitzung, ein Gerät).
 let queue = Promise.resolve();
 
@@ -111,22 +115,47 @@ async function init(message) {
   initStarted = true;
   const model = message.model;
   let device = hasWebGpu ? 'webgpu' : 'wasm';
+  activeModel = model;
+  activeDtype = message.dtype ?? null;
   try {
     let loaded;
     try {
-      loaded = await load(model, message.dtype ?? null, device);
+      loaded = await load(model, activeDtype, device);
     } catch (error) {
       if (device !== 'webgpu') throw error;
       // WebGPU gemeldet, aber nicht nutzbar (Adapter, Treiber): Rückfall auf WASM.
       device = 'wasm';
-      loaded = await load(model, message.dtype ?? null, device);
+      loaded = await load(model, activeDtype, device);
     }
     transcriber = loaded.transcriber;
+    activeDevice = device;
     ready = true;
     post({ type: 'ready', device, dtype: loaded.dtype });
   } catch (error) {
     post({ type: 'error', message: errorText(error) });
   }
+}
+
+function run(audio, language) {
+  return transcriber(audio, {
+    language,
+    task: 'transcribe',
+    return_timestamps: true,
+    chunk_length_s: 30,
+    stride_length_s: 5,
+  });
+}
+
+/** Erster Lauf auf WebGPU gescheitert (Shader, Speicher, Treiber; das Laden allein zeigt
+ *  das nicht): einmal auf WASM wechseln und dort bleiben. Meldet `ready` erneut mit dem
+ *  neuen Gerät; der Hauptthread zeigt es in den Einstellungen. */
+async function fallBackToWasm() {
+  ready = false;
+  const loaded = await load(activeModel, activeDtype, 'wasm');
+  transcriber = loaded.transcriber;
+  activeDevice = 'wasm';
+  ready = true;
+  post({ type: 'ready', device: 'wasm', dtype: loaded.dtype });
 }
 
 async function transcribe(message) {
@@ -135,23 +164,25 @@ async function transcribe(message) {
     post({ type: 'error', id, message: 'Modell nicht geladen' });
     return;
   }
+  let output;
   try {
-    const output = await transcriber(audio, {
-      language,
-      task: 'transcribe',
-      return_timestamps: true,
-      chunk_length_s: 30,
-      stride_length_s: 5,
-    });
-    const chunks = (output.chunks ?? []).map((chunk) => ({
-      text: chunk.text ?? '',
-      start: chunk.timestamp?.[0] ?? null,
-      end: chunk.timestamp?.[1] ?? null,
-    }));
-    post({ type: 'result', id, text: output.text ?? '', chunks });
+    try {
+      output = await run(audio, language);
+    } catch (error) {
+      if (activeDevice !== 'webgpu') throw error;
+      await fallBackToWasm();
+      output = await run(audio, language);
+    }
   } catch (error) {
     post({ type: 'error', id, message: errorText(error) });
+    return;
   }
+  const chunks = (output.chunks ?? []).map((chunk) => ({
+    text: chunk.text ?? '',
+    start: chunk.timestamp?.[0] ?? null,
+    end: chunk.timestamp?.[1] ?? null,
+  }));
+  post({ type: 'result', id, text: output.text ?? '', chunks });
 }
 
 self.onmessage = (event) => {

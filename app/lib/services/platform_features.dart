@@ -64,6 +64,12 @@ abstract interface class PlatformFeatures {
   /// Ob die Aufnahme echt ist (Mikrofon) oder simuliert.
   bool get recordsRealAudio;
 
+  /// Ob gerade eine Netzverbindung besteht (Web: `navigator.onLine`). Die
+  /// App lädt damit nichts; die Oberfläche erklärt nur, warum der einmalige
+  /// Modell-Download der Spracherkennung gerade nicht gehen kann. Nativ
+  /// immer wahr.
+  bool get isOnline;
+
   /// Fragt das Mikrofon sofort innerhalb der Tipp-Geste an (Web: Safari
   /// verlangt das; sonst keine Systemabfrage). Die Aufnahme holt den Strom
   /// danach ab. Nativ ohne Wirkung.
@@ -140,6 +146,9 @@ class NativePlatformFeatures implements PlatformFeatures {
 
   @override
   bool get isIos => false;
+
+  @override
+  bool get isOnline => true;
 
   @override
   final bool recordsRealAudio;
